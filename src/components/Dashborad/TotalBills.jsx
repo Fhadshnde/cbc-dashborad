@@ -6,38 +6,38 @@ const TotalBills = () => {
   const data = [
     {
       title: 'فواتير هذا الاسبوع',
-      icon: <img src={NotificationIcon} alt="Notification" className="w-[60px] h-[60px] mt-[-20px] mr-[-12px]" />,
+      icon: <img src={NotificationIcon} alt="Notification" className="w-16 h-16 mt-[-5px] md:mt-[-20px] mr-[-5px] md:mr-[-12px]" />,
       Bills: "666,000 IQ",
       Numberofinvoices: "2",
       titleBills: "#25BC9D"
     },
     {
       title: 'فواتير هذا الشهر',
-      icon: <FaUsers className="text-[#b51a00] text-[30px] w-[50px] h-[50px] mt-[-15px]" />,
+      icon: <FaUsers className="text-[#b51a00] text-3xl w-12 h-12 mt-[-5px] md:mt-[-15px]" />,
       Bills: "1,320,000 IQ",
       Numberofinvoices: "3",
       titleBills: "#b51a00"
-    }
+    },
   ]
 
   return (
-    <div className='total-bills-container flex gap-4 mb-8 w-[600px] h-[130px]'>
+    <div className="total-bills-container w-full flex flex-wrap justify-center gap-4 mb-8">
       {data.map((item, index) => (
         <div
           key={index}
-          className='bg-white flex-1 rounded-lg p-4 flex flex-col shadow pb-[100px] total-bill-card'
+          className="bg-white w-full h-[150px] sm:w-[270px] md:flex-1 rounded-lg p-4 flex flex-col shadow pb-[100px]"
         >
-          <div className='flex w-full text-sm text-gray-700 mb-3'>
-            <div>
-              <div className='mt-2'>{item.icon}</div>
-              <div className='text-sm mt-4 text-gray-500'>
+          <div className="flex flex-col md:flex-row items-center md:items-start text-sm text-gray-700 mb-3">
+            <div className="flex flex-col items-center md:items-start">
+              <div className="mt-2">{item.icon}</div>
+              <div className="text-sm mt-4 text-gray-500 text-center md:text-right">
                 {item.title}
               </div>
-              <div className='w-full text-left text-xl flex justify-around items-center total-bill-row'>
-                <div style={{ color: item.titleBills, fontWeight: 'bold'}}>
+              <div className="w-full text-center md:text-left text-xl flex justify-around mt-2">
+                <div className="font-bold" style={{ color: item.titleBills }}>
                   {item.Bills}
                 </div>
-                <div className="total-bill-number" style={{marginRight:"120px"}}>
+                <div className="md:mr-[120px]">
                   {item.Numberofinvoices}
                 </div>
               </div>
@@ -45,42 +45,32 @@ const TotalBills = () => {
           </div>
         </div>
       ))}
+
       <style>{`
-        .total-bills-container {
-          width: 600px;
-          height: 130px;
-        }
-        .total-bill-card {
-          min-width: 0;
-        }
-        .total-bill-row {
-          flex-wrap: wrap;
-        }
-        .total-bill-number {
-          margin-right: 120px;
-        }
-        @media (max-width: 700px) {
+        /* حجم الحاوية في اللابتوب */
+        @media (min-width: 768px) {
           .total-bills-container {
-            width: 100vw !important;
-            min-width: 0;
-            height: auto;
-            gap: 8px;
-            flex-direction: column;
+            width: 600px !important;
+            height: 130px !important;
           }
-          .total-bill-card {
-            width: 100%;
-            min-width: 0;
-            height: auto;
-            padding: 10px;
-            margin-bottom: 8px;
-            box-sizing: border-box;
+        }
+
+        @media (max-width: 768px) {
+          .total-bills-container {
+            width: 100% !important;
+            height: auto !important;
           }
-          .total-bill-row {
-            flex-direction: row;
-            justify-content: space-between;
+        }
+
+        @media (max-width: 600px) {
+          .total-bills-scale {
+            transform: scale(0.85);
           }
-          .total-bill-number {
-            margin-right: 0;
+        }
+
+        @media (max-width: 450px) {
+          .total-bills-scale {
+            transform: scale(0.75);
           }
         }
       `}</style>
