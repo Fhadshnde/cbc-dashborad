@@ -71,23 +71,11 @@ const Salas = () => {
   };
 
   return (
-    <div style={{
-      width: '600px',
-      height: '320px',
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      padding: '16px',
-      boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-    }}>
-      <h3 style={{
-        textAlign: 'right',
-        fontWeight: 'bold',
-        fontSize: '18px',
-        marginBottom: '16px'
-      }}>
+    <div className="salas-chart-container">
+      <h3 className="salas-chart-title">
         الفواتير
       </h3>
-      <div style={{ width: '100%', height: 'calc(100% - 40px)' }}>
+      <div className="salas-chart-inner">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -119,6 +107,42 @@ const Salas = () => {
           </PieChart>
         </ResponsiveContainer>
       </div>
+      <style>{`
+        .salas-chart-container {
+          width: 600px;
+          max-width: 600px;
+          min-width: 320px;
+          height: 320px;
+          background-color: white;
+          border-radius: 12px;
+          padding: 16px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+          margin: 0 auto;
+        }
+        .salas-chart-title {
+          text-align: right;
+          font-weight: bold;
+          font-size: 18px;
+          margin-bottom: 16px;
+        }
+        .salas-chart-inner {
+          width: 100%;
+          height: calc(100% - 40px);
+        }
+        @media (max-width: 900px) {
+          .salas-chart-container {
+            width: 95vw;
+            max-width: 95vw;
+          }
+        }
+        @media (max-width: 600px) {
+          .salas-chart-container {
+            width: 100vw;
+            max-width: 100vw;
+            min-width: 0;
+          }
+        }
+      `}</style>
     </div>
   );
 };

@@ -25,24 +25,23 @@ const BestSellers = () => {
   if (!user) return null;
 
   return (
-    <div className="p-4 ml-10 rounded-lg w-[420px] h-[450px] overflow-y-auto bg-white">
-      <div className="bg-white p-4 rounded-lg h-[450px]">
-        <h2 className="text-lg font-bold text-center mb-6">أفضل البائعين</h2>
-        <div className="flex flex-col gap-4">
-          {data.map((item, index) => (
-            <div key={index} className="flex items-start">
-              <div className="ml-3">
-                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 overflow-hidden">
-                  <img src={user.picture.large} alt="User" className="w-full h-full object-cover rounded-full" />
-                </div>
-              </div>
-              <div className="flex flex-col text-right flex-1 pr-2">
-                <span className="text-sm font-semibold text-gray-700">{item.name}</span>
-                <span className="text-sm text-gray-500">{item.total}</span>
+    <div className="p-4 rounded-lg bg-white shadow-md overflow-y-auto 
+                    w-full max-w-[420px] h-auto md:h-[450px] mx-auto">
+      <h2 className="text-lg font-bold text-center mb-6">أفضل البائعين</h2>
+      <div className="flex flex-col gap-4">
+        {data.map((item, index) => (
+          <div key={index} className="flex items-start">
+            <div className="ml-3">
+              <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 overflow-hidden">
+                <img src={user.picture.large} alt="User" className="w-full h-full object-cover rounded-full" />
               </div>
             </div>
-          ))}
-        </div>
+            <div className="flex flex-col text-right flex-1 pr-2">
+              <span className="text-sm font-semibold text-gray-700">{item.name}</span>
+              <span className="text-sm text-gray-500">{item.total}</span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
