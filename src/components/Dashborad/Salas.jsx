@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 const Salas = () => {
@@ -9,6 +9,59 @@ const Salas = () => {
   ];
 
   const RADIAN = Math.PI / 180;
+
+  const [dimensions, setDimensions] = useState({
+    innerRadius: 60,
+    outerRadius: 90,
+    fontSize: 13,
+    lineLength1: 20,
+    lineLength2: 30,
+    textOffsetY: 14,
+    centerTextBigFontSize: 24,
+    centerTextSmallFontSize: 14,
+  });
+
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth <= 360) {
+        setDimensions({
+          innerRadius: 20,
+          outerRadius: 40,
+          fontSize: 9,
+          lineLength1: 10,
+          lineLength2: 15,
+          textOffsetY: 10,
+          centerTextBigFontSize: 14,
+          centerTextSmallFontSize: 8,
+        });
+      } else if (window.innerWidth <= 600) {
+        setDimensions({
+          innerRadius: 40,
+          outerRadius: 70,
+          fontSize: 11,
+          lineLength1: 15,
+          lineLength2: 20,
+          textOffsetY: 12,
+          centerTextBigFontSize: 18,
+          centerTextSmallFontSize: 10,
+        });
+      } else {
+        setDimensions({
+          innerRadius: 60,
+          outerRadius: 90,
+          fontSize: 13,
+          lineLength1: 20,
+          lineLength2: 30,
+          textOffsetY: 14,
+          centerTextBigFontSize: 24,
+          centerTextSmallFontSize: 14,
+        });
+      }
+    }
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const renderValueInside = ({ cx, cy, midAngle, innerRadius, outerRadius, value }) => {
     const radius = innerRadius + (outerRadius - innerRadius) / 2;
@@ -22,7 +75,7 @@ const Salas = () => {
         fill="#000"
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize={13}
+        fontSize={dimensions.fontSize}
         fontWeight="bold"
       >
         {value}%
@@ -36,17 +89,17 @@ const Salas = () => {
     const startX = isRightSide ? cx + outerRadius : cx - outerRadius;
     const startY = cy - 40 + index * 40;
 
-    const midX1 = isRightSide ? startX + 20 : startX - 20;
+    const midX1 = isRightSide ? startX + dimensions.lineLength1 : startX - dimensions.lineLength1;
     const midY1 = startY;
 
-    const midX2 = isRightSide ? midX1 + 30 : midX1 - 30;
+    const midX2 = isRightSide ? midX1 + dimensions.lineLength2 : midX1 - dimensions.lineLength2;
     const midY2 = startY;
 
     const endX = midX2;
     const endY = startY + 10;
 
     const textX = endX;
-    const textY = endY + 14;  
+    const textY = endY + dimensions.textOffsetY;  
     const textAnchor = 'middle';
 
     return (
@@ -61,7 +114,7 @@ const Salas = () => {
           textAnchor={textAnchor}
           dominantBaseline="hanging"
           fill="#000"
-          fontSize={13}
+          fontSize={dimensions.fontSize}
           fontWeight="500"
         >
           {data[index].name}
@@ -72,9 +125,7 @@ const Salas = () => {
 
   return (
     <div className="salas-chart-container">
-      <h3 className="salas-chart-title">
-        الفواتير
-      </h3>
+      <h3 className="salas-chart-title">الفواتير</h3>
       <div className="salas-chart-inner">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -82,8 +133,8 @@ const Salas = () => {
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={60}
-              outerRadius={90}
+              innerRadius={dimensions.innerRadius}
+              outerRadius={dimensions.outerRadius}
               dataKey="value"
               labelLine={false}
               label={renderValueInside}
@@ -96,14 +147,36 @@ const Salas = () => {
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={60}
-              outerRadius={90}
+              innerRadius={dimensions.innerRadius}
+              outerRadius={dimensions.outerRadius}
               dataKey="value"
               labelLine={false}
               label={renderCustomNameLabels}
               fill="transparent"
               isAnimationActive={false}
             />
+            {/* النصوص داخل الدائرة */}
+            <text
+              x="50%"
+              y="48%"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize={dimensions.centerTextBigFontSize}
+              fontWeight="bold"
+              fill="#000"
+            >
+              74 فاتورة
+            </text>
+            <text
+              x="50%"
+              y="60%"
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize={dimensions.centerTextSmallFontSize}
+              fill="#666"
+            >
+              شهر مارس
+            </text>
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -137,7 +210,7 @@ const Salas = () => {
         }
         @media (max-width: 600px) {
           .salas-chart-container {
-            width: 100vw;
+            width: 320px;
             max-width: 100vw;
             min-width: 0;
           }

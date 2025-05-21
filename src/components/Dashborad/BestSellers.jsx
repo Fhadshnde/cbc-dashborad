@@ -25,8 +25,16 @@ const BestSellers = () => {
   if (!user) return null;
 
   return (
-    <div className="p-4 rounded-lg bg-white shadow-md overflow-y-auto 
-                    w-full max-w-[420px] h-auto md:h-[450px] mx-auto">
+    <div
+      className="
+        p-4 rounded-lg bg-white shadow-md overflow-y-auto
+        w-[420px] max-w-[420px] min-w-[320px] h-auto md:h-[450px] mx-auto
+        transition-all duration-300
+        [@media(max-width:600px)]:w-[320px]
+        [@media(max-width:600px)]:max-w-[100vw]
+        [@media(max-width:600px)]:min-w-0
+      "
+    >
       <h2 className="text-lg font-bold text-center mb-6">أفضل البائعين</h2>
       <div className="flex flex-col gap-4">
         {data.map((item, index) => (

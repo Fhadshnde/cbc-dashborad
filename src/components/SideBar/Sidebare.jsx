@@ -19,7 +19,6 @@ const Sidebar = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [open, setOpen] = useState(false);
 
-  // تابع لحساب حجم الشاشة وتحديد إذا كانت موبايل أو تابليت
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 900);
     handleResize();
@@ -33,14 +32,12 @@ const Sidebar = () => {
     <>
       {isMobile ? (
         <>
-          {/* زر القائمة ثابت في الأعلى */}
           <div className="fixed top-0 right-0 w-full bg-white p-4 flex justify-end z-50 border-b border-gray-300">
             <button onClick={() => setOpen(true)} aria-label="فتح القائمة">
               <FontAwesomeIcon icon={faBars} size="2x" />
             </button>
           </div>
 
-          {/* الـ Sidebar عند الفتح */}
           <AnimatePresence>
             {open && (
               <motion.div
@@ -48,7 +45,7 @@ const Sidebar = () => {
                 animate={{ x: 0 }}
                 exit={{ x: -300 }}
                 transition={{ duration: 0.3 }}
-                className="fixed top-[56px] right-0 w-[260px] max-h-[90vh] bg-white z-50 shadow-lg border-l overflow-y-auto rounded-bl-lg rounded-tl-lg"
+                className="fixed top-[56px] right-0 bg-white z-50 shadow-lg border-l overflow-y-auto rounded-bl-lg rounded-tl-lg"
               >
                 <div className="flex justify-between items-center p-4 border-b">
                   <h1 className="font-bold text-lg text-black">القائمة</h1>
@@ -74,7 +71,6 @@ const Sidebar = () => {
           </AnimatePresence>
         </>
       ) : (
-        // Sidebar في اللابتوب
         <motion.div
           className="relative z-10 ml-4 flex-shrink-0 bg-white border-r border-gray-300 sidebar-main"
           initial={{ width: 90 }}

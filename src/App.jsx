@@ -10,10 +10,10 @@ const App = () => {
     <div className="p-5 flex" dir="rtl">
       <Router>
         <Sidebar />
-        <div className="flex-grow p-4 overflow-auto">
+        <div className="flex-grow overflow-auto p-4">
           <Navbar />
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Dashboard />} />
             <Route path='/accessaeports' element={<AccessReports/>} />
           </Routes>
         </div>

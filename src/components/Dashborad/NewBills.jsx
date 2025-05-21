@@ -12,8 +12,16 @@ const NewBills = () => {
   ];
 
   return (
-    <div className="p-4 rounded-lg bg-white shadow-md overflow-y-auto 
-                    w-full max-w-[420px] h-auto md:h-[450px] mx-auto">
+    <div
+      className="
+        p-4 rounded-lg bg-white shadow-md overflow-y-auto
+        w-[420px] max-w-[420px] min-w-[320px] h-auto md:h-[450px] mx-auto
+        transition-all duration-300
+        [@media(max-width:600px)]:w-[320px]
+        [@media(max-width:600px)]:max-w-[100vw]
+        [@media(max-width:600px)]:min-w-0
+      "
+    >
       <h2 className="text-lg font-bold text-center mb-6">الفواتير المضافة حديثاً</h2>
       <div className="flex flex-col gap-4 px-2">
         {bills.map((bill, index) => (
@@ -21,21 +29,24 @@ const NewBills = () => {
             <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full bg-gray-100">
               <FaBell className="text-gray-400 text-lg" />
             </div>
-            
+
             <div className="flex flex-col text-right flex-1">
               <span className="text-sm font-semibold text-gray-700">{bill.status}</span>
               <span className="text-sm text-gray-500">تمت إضافة فاتورة جديدة بواسطة</span>
               <span className="text-xs text-gray-400">{bill.time}</span>
             </div>
-            
+
             <div className="flex flex-col items-end flex-shrink-0">
               <div className="flex items-center">
-                <span className="w-2 h-2 rounded-full ml-2" style={{ backgroundColor: bill.color }}></span>
+                <span
+                  className="w-2 h-2 rounded-full ml-2"
+                  style={{ backgroundColor: bill.color }}
+                ></span>
                 <span className="text-sm text-gray-500">{bill.code}</span>
               </div>
-              <FontAwesomeIcon 
+              <FontAwesomeIcon
                 icon={faAngleLeft}
-                className="text-gray-400 text-sm cursor-pointer hover:text-gray-600 mt-1" 
+                className="text-gray-400 text-sm cursor-pointer hover:text-gray-600 mt-1"
                 onClick={() => console.log("Navigate to bill details", bill.code)}
               />
             </div>

@@ -21,11 +21,11 @@ const TotalBills = () => {
   ]
 
   return (
-    <div className="total-bills-container w-full flex flex-wrap justify-center gap-4 mb-8">
+    <div className="total-bills-container w-full sm:w-[70px] flex flex-wrap justify-center  gap-4 mb-8">
       {data.map((item, index) => (
         <div
           key={index}
-          className="bg-white w-full h-[150px] sm:w-[270px] md:flex-1 rounded-lg p-4 flex flex-col shadow pb-[100px]"
+          className="bg-white w-full h-[150px]  sm:w-[70px] md:flex-1 rounded-lg p-4 flex flex-col shadow pb-[100px]"
         >
           <div className="flex flex-col md:flex-row items-center md:items-start text-sm text-gray-700 mb-3">
             <div className="flex flex-col items-center md:items-start">
@@ -57,8 +57,10 @@ const TotalBills = () => {
 
         @media (max-width: 768px) {
           .total-bills-container {
-            width: 100% !important;
+            width: 320px !important;
             height: auto !important;
+                margin-right: 36px;
+
           }
         }
 
