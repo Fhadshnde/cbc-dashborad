@@ -51,7 +51,7 @@ const Dashboard = () => {
           .dashboard-col {
             max-width: 100vw !important;
             width: 100vw !important;
-            margin-right: 15px !important;
+            margin-right: 8px !important;
             padding: 0 !important;
           }
         }
