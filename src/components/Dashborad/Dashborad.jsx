@@ -39,7 +39,7 @@ const Dashboard = () => {
           .dashboard-main {
             width: 86vw !important;
             max-width: 86vw !important;
-            height: 280vh !important;
+            height: 285vh !important;
             margin: 10px !important;
             padding: 30px !important;
 
@@ -51,7 +51,6 @@ const Dashboard = () => {
           .dashboard-col {
             max-width: 100vw !important;
             width: 100vw !important;
-            margin-right: 8px !important;
             padding: 0 !important;
           }
         }

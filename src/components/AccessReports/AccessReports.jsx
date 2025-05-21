@@ -1,37 +1,91 @@
-import React from "react";
+import React, { useState } from "react";
 
 const AccessReports = () => {
-  const reports = Array(8).fill({
-    name: "علي",
-    nameEn: "Ali",
-    phone: "1234567890",
-    quantity: "100",
-    paid: "120...",
-    remaining: "80...",
-    address: "Al- Harrya",
-    ministry: "Al- Harrya",
-    date: "٢١ إبريل",
-  });
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [username, setUsername] = useState("");
+  const [filteredReports, setFilteredReports] = useState([]);
+
+  const reports = [
+    { name: "أحمد", nameEn: "Ahmed", phone: "07891234567", quantity: "250", paid: "150", remaining: "100", address: "Baghdad", ministry: "Education", date: "2025-03-15" },
+    { name: "أحمد", nameEn: "Ahmed", phone: "07891234567", quantity: "250", paid: "150", remaining: "100", address: "Baghdad", ministry: "Education", date: "2025-06-22" },
+    { name: "أحمد", nameEn: "Ahmed", phone: "07891234567", quantity: "250", paid: "150", remaining: "100", address: "Baghdad", ministry: "Education", date: "2025-06-27" },
+    { name: "فاطمة", nameEn: "Fatima", phone: "07712345678", quantity: "300", paid: "200", remaining: "100", address: "Basra", ministry: "Health", date: "2025-03-20" },
+    { name: "حسين", nameEn: "Hussein", phone: "07987654321", quantity: "150", paid: "100", remaining: "50", address: "Najaf", ministry: "Interior", date: "2025-03-22" },
+    { name: "زهراء", nameEn: "Zahraa", phone: "07512398765", quantity: "500", paid: "300", remaining: "200", address: "Karbala", ministry: "Electricity", date: "2025-03-25" },
+    { name: "سعد", nameEn: "Saad", phone: "07894561230", quantity: "400", paid: "250", remaining: "150", address: "Mosul", ministry: "Defense", date: "2025-03-28" },
+    { name: "ليلى", nameEn: "Layla", phone: "07765432109", quantity: "320", paid: "220", remaining: "100", address: "Sulaymaniyah", ministry: "Agriculture", date: "2025-03-30" },
+    { name: "كرار", nameEn: "Karrar", phone: "07911223344", quantity: "180", paid: "120", remaining: "60", address: "Diwaniya", ministry: "Finance", date: "2025-04-01" },
+    { name: "نور", nameEn: "Noor", phone: "07899887766", quantity: "220", paid: "180", remaining: "40", address: "Amara", ministry: "Planning", date: "2025-04-02" },
+    { name: "محمد", nameEn: "Mohammed", phone: "07722334455", quantity: "350", paid: "300", remaining: "50", address: "Erbil", ministry: "Transport", date: "2025-04-03" },
+    { name: "رنا", nameEn: "Rana", phone: "07933445566", quantity: "270", paid: "170", remaining: "100", address: "Duhok", ministry: "Youth", date: "2025-04-04" },
+  ];
+
+  const handleSearch = () => {
+    let result = reports;
+
+    if (username.trim() || startDate || endDate) {
+      result = reports.filter((report) => {
+        // Filter by username if provided
+        const nameMatch = username.trim() === "" || 
+          report.name.includes(username) || 
+          report.nameEn.toLowerCase().includes(username.toLowerCase());
+        
+        // Filter by date range if provided
+        let dateMatch = true;
+        if (startDate || endDate) {
+          const reportDate = new Date(report.date);
+          const start = startDate ? new Date(startDate) : new Date(0);
+          const end = endDate ? new Date(endDate) : new Date(8640000000000000);
+          
+          dateMatch = reportDate >= start && reportDate <= end;
+        }
+        
+        return nameMatch && dateMatch;
+      });
+    }
+
+    setFilteredReports(result);
+  };
 
   return (
-    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen text-right font-sans">
+    <div className="m-16 sm:p-6 bg-gray-50 min-h-screen text-right font-sans">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 sm:gap-0">
         <h2 className="text-2xl font-bold text-gray-700">تقارير الوصول</h2>
       </div>
 
       <div className="bg-white shadow rounded-lg p-4 mb-6">
-        {/* البحث والتصدير */}
-        <div className="flex flex-col sm:flex-row gap-3 justify-end mt-4">
-          <button className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6 justify-end flex-wrap">
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="border px-3 py-2 rounded w-full md:w-auto"
+            placeholder="يبدأ في"
+          />
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="border px-3 py-2 rounded w-full md:w-auto"
+            placeholder="ينتهي في"
+          />
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="border px-3 py-2 rounded w-full md:w-auto"
+            placeholder="اسم المستخدم"
+          />
+          <button
+            onClick={handleSearch}
+            className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition"
+          >
             البحث
-          </button>
-          <button className="border border-teal-600 text-teal-600 px-6 py-2 rounded hover:bg-teal-50 transition">
-            تصدير
           </button>
         </div>
       </div>
 
-      {/* جدول مع تمرير أفقي على الشاشات الصغيرة */}
       <div className="overflow-x-auto bg-white rounded shadow">
         <table className="min-w-[700px] sm:min-w-full text-sm text-right border-collapse">
           <thead className="bg-gray-100 text-gray-600 font-bold whitespace-nowrap">
@@ -48,7 +102,7 @@ const AccessReports = () => {
             </tr>
           </thead>
           <tbody>
-            {reports.map((report, i) => (
+            {(filteredReports.length ? filteredReports : reports).map((report, i) => (
               <tr
                 key={i}
                 className="border-t hover:bg-gray-50 whitespace-nowrap"
