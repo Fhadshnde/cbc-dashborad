@@ -10,7 +10,7 @@ const App = () => {
     <div className="p-5 flex" dir="rtl">
       <Router>
         <Sidebar />
-        <div className="flex-grow overflow-auto p-4">
+        <div className="flex-grow overflow-auto ">
           <Navbar />
           <Routes>
             <Route path="/" element={<Dashboard />} />

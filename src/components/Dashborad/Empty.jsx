@@ -10,6 +10,7 @@ const Empty = () => {
         [@media(max-width:600px)]:w-[320px]
         [@media(max-width:600px)]:max-w-[100vw]
         [@media(max-width:600px)]:min-w-0
+        [@media(max-width:600px)]:mr-[36px]
       "
     >
     </div>

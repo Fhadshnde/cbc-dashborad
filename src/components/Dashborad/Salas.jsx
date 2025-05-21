@@ -155,7 +155,6 @@ const Salas = () => {
               fill="transparent"
               isAnimationActive={false}
             />
-            {/* النصوص داخل الدائرة */}
             <text
               x="50%"
               y="48%"
@@ -190,7 +189,6 @@ const Salas = () => {
           border-radius: 12px;
           padding: 16px;
           box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-          margin: 0 auto;
         }
         .salas-chart-title {
           text-align: right;
@@ -213,6 +211,8 @@ const Salas = () => {
             width: 320px;
             max-width: 100vw;
             min-width: 0;
+           margin-right:36px  ;
+
           }
         }
       `}</style>
