@@ -37,13 +37,12 @@ const Dashboard = () => {
 
         @media (max-width: 700px) {
           .dashboard-main {
-            width: 100vw !important;
-            max-width: 100vw !important;
+            width: 86vw !important;
+            max-width: 86vw !important;
             height: 280vh !important;
-            margin: 0 !important;
-            padding: 0 !important;
+            margin: 10px !important;
+            padding: 30px !important;
 
-            /* لتوسيط المحتوى */
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
@@ -52,7 +51,7 @@ const Dashboard = () => {
           .dashboard-col {
             max-width: 100vw !important;
             width: 100vw !important;
-            margin: 0 !important;
+            margin-right: 20px !important;
             padding: 0 !important;
           }
         }

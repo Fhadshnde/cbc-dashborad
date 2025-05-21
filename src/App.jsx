@@ -1,5 +1,5 @@
 import React from 'react';
-import Dashboard from './components/Dashborad/Dashborad'; // تأكد أن الاسم في الملف هو نفسه
+import Dashboard from './components/Dashborad/Dashborad'; 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/SideBar/Sidebare';
 import Navbar from './components/Navbar/Navbar';
