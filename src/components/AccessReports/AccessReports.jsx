@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const AccessReports = () => {
   const [startDate, setStartDate] = useState("");
@@ -21,104 +21,59 @@ const AccessReports = () => {
     { name: "رنا", nameEn: "Rana", phone: "07933445566", quantity: "270", paid: "170", remaining: "100", address: "Duhok", ministry: "Youth", date: "2025-04-04" },
   ];
 
-  const handleSearch = () => {
-    let result = reports;
 
-    if (username.trim() || startDate || endDate) {
-      result = reports.filter((report) => {
-        const nameMatch = username.trim() === "" || 
-          report.name.includes(username) || 
-          report.nameEn.toLowerCase().includes(username.toLowerCase());
-        
-        let dateMatch = true;
-        if (startDate || endDate) {
-          const reportDate = new Date(report.date);
-          const start = startDate ? new Date(startDate) : new Date(0);
-          const end = endDate ? new Date(endDate) : new Date(8640000000000000);
-          dateMatch = reportDate >= start && reportDate <= end;
-        }
-        
-        return nameMatch && dateMatch;
-      });
-    }
+  useEffect(() => {
+    handleSearch();
+  }, [startDate, endDate, username]);
+
+  const handleSearch = () => {
+    let result = reports.filter(report => {
+      const nameMatch = username.trim() === "" || report.name.includes(username) || report.nameEn.toLowerCase().includes(username.toLowerCase());
+      const reportDate = new Date(report.date);
+      const start = startDate ? new Date(startDate) : new Date(0);
+      const end = endDate ? new Date(endDate) : new Date(8640000000000000);
+      const dateMatch = reportDate >= start && reportDate <= end;
+      return nameMatch && dateMatch;
+    });
 
     setFilteredReports(result);
   };
 
   return (
-    <div className="m-4 sm:m-16 p-4 sm:p-6 bg-gray-50 min-h-screen text-right font-sans">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 sm:gap-0">
-        <h2 className="text-2xl font-bold text-gray-700">تقارير الوصول</h2>
-      </div>
-
+    <div className="m-4 p-4 bg-gray-50 min-h-screen">
+      <h2 className="text-2xl font-bold text-gray-700 text-right">تقارير الوصول</h2>
       <div className="bg-white shadow rounded-lg p-4 mb-6">
-        <div className="flex flex-col md:flex-row gap-4 md:gap-6 justify-end flex-wrap">
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border px-3 py-2 rounded w-full md:w-auto"
-            placeholder="يبدأ في"
-          />
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border px-3 py-2 rounded w-full md:w-auto"
-            placeholder="ينتهي في"
-          />
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="border px-3 py-2 rounded w-full md:w-auto"
-            placeholder="اسم المستخدم"
-          />
-          <button
-            onClick={handleSearch}
-            className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto"
-          >
-            البحث
-          </button>
+        <div className="flex flex-col md:flex-row gap-4">
+          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="border px-3 py-2 rounded w-full md:w-auto" />
+          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="border px-3 py-2 rounded w-full md:w-auto" />
+          <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="border px-3 py-2 rounded w-full md:w-auto" placeholder="اسم المستخدم" />
         </div>
       </div>
 
       <div className="overflow-x-auto bg-white rounded shadow">
-        <table className="w-full sm:min-w-[700px] text-sm text-right border-collapse">
+        <table className="w-full text-sm border-collapse">
           <thead className="bg-gray-100 text-gray-600 font-bold">
             <tr>
-              <th className="px-4 py-2 whitespace-nowrap">الاسم بالعربي</th>
-              <th className="px-4 py-2 whitespace-nowrap">الاسم بالإنجليزي</th>
-              <th className="px-4 py-2 whitespace-nowrap">رقم الهاتف</th>
-              <th className="px-4 py-2 whitespace-nowrap">الكمية</th>
-              <th className="px-4 py-2 whitespace-nowrap">المدفوع</th>
-              <th className="px-4 py-2 whitespace-nowrap">المتبقي</th>
-              <th className="px-4 py-2 whitespace-nowrap">العنوان</th>
-              <th className="px-4 py-2 whitespace-nowrap">عنوان الوزارة</th>
-              <th className="px-4 py-2 whitespace-nowrap">أنشأ في</th>
+              <th className="px-4 py-2">الاسم بالعربي</th>
+              <th className="px-4 py-2">الاسم بالإنجليزي</th>
+              <th className="px-4 py-2">رقم الهاتف</th>
+              <th className="px-4 py-2">العنوان</th>
+              <th className="px-4 py-2">التاريخ</th>
             </tr>
           </thead>
           <tbody>
-            {(filteredReports.length ? filteredReports : reports).length > 0 ? (
-              (filteredReports.length ? filteredReports : reports).map((report, i) => (
+            {filteredReports.length ? (
+              filteredReports.map((report, i) => (
                 <tr key={i} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-2 whitespace-nowrap">{report.name}</td>
-                  <td className="px-4 py-2 whitespace-nowrap">{report.nameEn}</td>
-                  <td className="px-4 py-2 whitespace-nowrap">{report.phone}</td>
-                  <td className="px-4 py-2 whitespace-nowrap">{report.quantity}</td>
-                  <td className="px-4 py-2 whitespace-nowrap">{report.paid}</td>
-                  <td className="px-4 py-2 whitespace-nowrap">{report.remaining}</td>
-                  <td className="px-4 py-2 whitespace-nowrap">{report.address}</td>
-                  <td className="px-4 py-2 whitespace-nowrap">{report.ministry}</td>
-                  <td className="px-4 py-2 whitespace-nowrap">{report.date}</td>
+                  <td className="px-4 py-2">{report.name}</td>
+                  <td className="px-4 py-2">{report.nameEn}</td>
+                  <td className="px-4 py-2">{report.phone}</td>
+                  <td className="px-4 py-2">{report.address}</td>
+                  <td className="px-4 py-2">{report.date}</td>
                 </tr>
               ))
             ) : (
-              <tr>
-                <td colSpan="9" className="px-4 py-4 text-center text-gray-500">
-                  لا توجد نتائج مطابقة لبحثك
-                </td>
-              </tr>
+              <tr><td colSpan="5" className="px-4 py-4 text-center text-gray-500">لا توجد نتائج مطابقة لبحثك</td></tr>
             )}
           </tbody>
         </table>
