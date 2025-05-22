@@ -26,18 +26,15 @@ const AccessReports = () => {
 
     if (username.trim() || startDate || endDate) {
       result = reports.filter((report) => {
-        // Filter by username if provided
         const nameMatch = username.trim() === "" || 
           report.name.includes(username) || 
           report.nameEn.toLowerCase().includes(username.toLowerCase());
         
-        // Filter by date range if provided
         let dateMatch = true;
         if (startDate || endDate) {
           const reportDate = new Date(report.date);
           const start = startDate ? new Date(startDate) : new Date(0);
           const end = endDate ? new Date(endDate) : new Date(8640000000000000);
-          
           dateMatch = reportDate >= start && reportDate <= end;
         }
         
@@ -49,7 +46,7 @@ const AccessReports = () => {
   };
 
   return (
-    <div className="m-16 sm:p-6 bg-gray-50 min-h-screen text-right font-sans">
+    <div className="m-4 sm:m-16 p-4 sm:p-6 bg-gray-50 min-h-screen text-right font-sans">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 sm:gap-0">
         <h2 className="text-2xl font-bold text-gray-700">تقارير الوصول</h2>
       </div>
@@ -79,7 +76,7 @@ const AccessReports = () => {
           />
           <button
             onClick={handleSearch}
-            className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition"
+            className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto"
           >
             البحث
           </button>
@@ -87,37 +84,42 @@ const AccessReports = () => {
       </div>
 
       <div className="overflow-x-auto bg-white rounded shadow">
-        <table className="min-w-[700px] sm:min-w-full text-sm text-right border-collapse">
-          <thead className="bg-gray-100 text-gray-600 font-bold whitespace-nowrap">
+        <table className="w-full sm:min-w-[700px] text-sm text-right border-collapse">
+          <thead className="bg-gray-100 text-gray-600 font-bold">
             <tr>
-              <th className="px-4 py-2">الاسم بالعربي</th>
-              <th className="px-4 py-2">الاسم بالإنجليزي</th>
-              <th className="px-4 py-2">رقم الهاتف</th>
-              <th className="px-4 py-2">الكمية</th>
-              <th className="px-4 py-2">المدفوع</th>
-              <th className="px-4 py-2">المتبقي</th>
-              <th className="px-4 py-2">العنوان</th>
-              <th className="px-4 py-2">عنوان الوزارة</th>
-              <th className="px-4 py-2">أنشأ في</th>
+              <th className="px-4 py-2 whitespace-nowrap">الاسم بالعربي</th>
+              <th className="px-4 py-2 whitespace-nowrap">الاسم بالإنجليزي</th>
+              <th className="px-4 py-2 whitespace-nowrap">رقم الهاتف</th>
+              <th className="px-4 py-2 whitespace-nowrap">الكمية</th>
+              <th className="px-4 py-2 whitespace-nowrap">المدفوع</th>
+              <th className="px-4 py-2 whitespace-nowrap">المتبقي</th>
+              <th className="px-4 py-2 whitespace-nowrap">العنوان</th>
+              <th className="px-4 py-2 whitespace-nowrap">عنوان الوزارة</th>
+              <th className="px-4 py-2 whitespace-nowrap">أنشأ في</th>
             </tr>
           </thead>
           <tbody>
-            {(filteredReports.length ? filteredReports : reports).map((report, i) => (
-              <tr
-                key={i}
-                className="border-t hover:bg-gray-50 whitespace-nowrap"
-              >
-                <td className="px-4 py-2">{report.name}</td>
-                <td className="px-4 py-2">{report.nameEn}</td>
-                <td className="px-4 py-2">{report.phone}</td>
-                <td className="px-4 py-2">{report.quantity}</td>
-                <td className="px-4 py-2">{report.paid}</td>
-                <td className="px-4 py-2">{report.remaining}</td>
-                <td className="px-4 py-2">{report.address}</td>
-                <td className="px-4 py-2">{report.ministry}</td>
-                <td className="px-4 py-2">{report.date}</td>
+            {(filteredReports.length ? filteredReports : reports).length > 0 ? (
+              (filteredReports.length ? filteredReports : reports).map((report, i) => (
+                <tr key={i} className="border-t hover:bg-gray-50">
+                  <td className="px-4 py-2 whitespace-nowrap">{report.name}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{report.nameEn}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{report.phone}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{report.quantity}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{report.paid}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{report.remaining}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{report.address}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{report.ministry}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{report.date}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="9" className="px-4 py-4 text-center text-gray-500">
+                  لا توجد نتائج مطابقة لبحثك
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
