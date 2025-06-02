@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'; // يجب استيراد useState و useEffect
-import axios from 'axios'; // يجب استيراد axios
-import moment from 'moment'; // إذا كنت لا تستخدم moment في هذا المكون، يمكنك إزالته
+import axios from 'axios'; 
+import moment from 'moment'; 
 
-const API_URL = "https://hawkama.cbc-api.app/api/reports"; // تعريف الـ API URL هنا
+const API_URL = "https://hawkama.cbc-api.app/api/reports"; 
 
-const CardsSection = () => { // لم تعد تستقبل props مثل userReports
-  const [userReports, setUserReports] = useState([]); // ستدير حالة التقارير هنا
+const CardsSection = () => { 
+  const [userReports, setUserReports] = useState([]); 
   const [reportsLoading, setReportsLoading] = useState(false); 
   const [reportsError, setReportsError] = useState(null);
 

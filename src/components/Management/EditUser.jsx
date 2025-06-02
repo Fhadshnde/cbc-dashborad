@@ -116,7 +116,7 @@ const EditUser = () => {
       };
 
       const response = await axios.put(
-        `/api/users/${id}`,
+        `https://hawkama.cbc-api.app/api/users/${id}`,
         formDataToSend,
         config
       );
