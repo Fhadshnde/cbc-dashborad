@@ -36,7 +36,7 @@ const UserDetails = () => {
                 },
             };
 
-            const response = await axios.get(`http://31.97.35.42:5000/api/users/username/${username}`, config);
+            const response = await axios.get(`https://hawkama.cbc-api.app/api/users/username/${username}`, config);
             setUser(response.data);
             setLoading(false);
         } catch (err) {
@@ -63,7 +63,7 @@ const UserDetails = () => {
                     Authorization: `Bearer ${token}`,
                 },
             };
-            const response = await axios.get(`http://31.97.35.42:5000/api/reports/by-admin/${username}`, config);
+            const response = await axios.get(`api/reports/by-admin/${username}`, config);
             setUserReports(response.data);
             setReportsLoading(false);
         } catch (err) {

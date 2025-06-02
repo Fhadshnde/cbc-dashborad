@@ -31,7 +31,7 @@ const EditReport = () => {
     const fetchReport = async () => {
       setStatus("loading");
       try {
-        const response = await axios.get(`/api/reports/${id}`);
+        const response = await axios.get(`https://hawkama.cbc-api.app/api/reports/${id}`);
         if (response.data) {
           setForm(response.data);
           setStatus("succeeded");
