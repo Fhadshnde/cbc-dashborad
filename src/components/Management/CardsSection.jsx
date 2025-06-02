@@ -1,7 +1,55 @@
-import React from 'react';
-import moment from 'moment';
+import React, { useState, useEffect } from 'react'; // يجب استيراد useState و useEffect
+import axios from 'axios'; // يجب استيراد axios
+import moment from 'moment'; // إذا كنت لا تستخدم moment في هذا المكون، يمكنك إزالته
 
-const CardsSection = ({ cardsData, userReports, reportsLoading, reportsError }) => {
+const API_URL = "https://hawkama.cbc-api.app/api/reports"; // تعريف الـ API URL هنا
+
+const CardsSection = () => { // لم تعد تستقبل props مثل userReports
+  const [userReports, setUserReports] = useState([]); // ستدير حالة التقارير هنا
+  const [reportsLoading, setReportsLoading] = useState(false); // ستدير حالة التحميل هنا
+  const [reportsError, setReportsError] = useState(null); // ستدير حالة الأخطاء هنا
+
+  // الدالة getAuthHeader - يجب أن تكون متاحة هنا أيضاً
+  const getAuthHeader = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      // قد تحتاج إلى إعادة توجيه المستخدم لتسجيل الدخول أو عرض رسالة خطأ مناسبة
+      console.error("خطأ: توكن المصادقة غير موجود. يرجى تسجيل الدخول.");
+      return {}; // أعد كائن فارغ لتجنب الخطأ، أو قم بمعالجة الخطأ بطريقتك المفضلة
+    }
+    return { Authorization: `Bearer ${token}` };
+  };
+
+  // الدالة getCardTypeText - نقلناها من AccessReports.jsx
+  const getCardTypeText = (cardCategory) => {
+    if (!cardCategory) return "غير محدد";
+    if (cardCategory.oneYear === 1) return "بطاقة سنة واحدة";
+    if (cardCategory.twoYears === 1) return "بطاقة سنتين";
+    if (cardCategory.virtual === 1) return "بطاقة افتراضية";
+    return "غير محدد";
+  };
+
+  useEffect(() => {
+    const fetchUserReports = async () => {
+      setReportsLoading(true);
+      setReportsError(null);
+      try {
+        const headers = { headers: getAuthHeader() };
+        // هنا نقوم بجلب البيانات مباشرة في CardsSection
+        const response = await axios.get(API_URL, headers);
+        // تأكد من أن response.data هي مصفوفة.
+        // بناءً على الكود الخاص بك، يبدو أنها مصفوفة مباشرة.
+        setUserReports(response.data);
+      } catch (err) {
+        setReportsError("حدث خطأ أثناء جلب فواتير البطاقات: " + (err.response?.data?.message || err.message));
+      } finally {
+        setReportsLoading(false);
+      }
+    };
+
+    fetchUserReports();
+  }, []); // [] لضمان تنفيذ الجلب مرة واحدة عند تحميل المكون
+
   if (reportsLoading) {
     return <div className="text-center p-5 text-gray-600">جاري تحميل فواتير البطاقات...</div>;
   }
@@ -11,6 +59,7 @@ const CardsSection = ({ cardsData, userReports, reportsLoading, reportsError }) 
   }
 
   // Calculate totals for the final row
+  // الآن userReports هنا هي الحالة التي يديرها CardsSection نفسه
   const totalOneYearReports = userReports.reduce((sum, report) => sum + (report.cardCategory?.oneYear || 0), 0);
   const totalTwoYearsReports = userReports.reduce((sum, report) => sum + (report.cardCategory?.twoYears || 0), 0);
   const totalVirtualReports = userReports.reduce((sum, report) => sum + (report.cardCategory?.virtual || 0), 0);
@@ -49,7 +98,6 @@ const CardsSection = ({ cardsData, userReports, reportsLoading, reportsError }) 
         </div>
       </div>
 
-
       {userReports.length === 0 ? (
         <p className="text-gray-500 text-center py-4">لا توجد فواتير بطاقات لهذا المستخدم.</p>
       ) : (
@@ -71,7 +119,6 @@ const CardsSection = ({ cardsData, userReports, reportsLoading, reportsError }) 
                 <td className="py-2 px-3 text-sm text-gray-800">{report.cardCategory?.twoYears || 0}</td>
                 <td className="py-2 px-3 text-sm text-gray-800">{report.cardCategory?.oneYear || 0}</td>
                 <td className="py-2 px-3 text-sm text-gray-800">{report.cardCategory?.virtual || 0}</td>
-
               </tr>
             ))}
             <tr className="bg-gray-100 font-bold">
