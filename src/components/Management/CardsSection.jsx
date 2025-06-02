@@ -32,7 +32,7 @@ const CardsSection = () => {
       setReportsError(null);
       try {
         const headers = { headers: getAuthHeader() };
-        const response = await axios.get("https://hawkama.cbc-api.app/api/reports", headers);
+        const response = await axios.get("https://hawkama.cbc-api.app/api/report/", headers);
 
         setUserReports(response.data);
       } catch (err) {
