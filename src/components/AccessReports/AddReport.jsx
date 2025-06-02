@@ -2,7 +2,7 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "/api/reports"; 
+const API_URL = "https://hawkama.cbc-api.app/api/reports"; 
 
 const AddReportForm = () => {
   const [formData, setFormData] = useState({
@@ -75,7 +75,7 @@ const AddReportForm = () => {
     e.preventDefault();
     try {
       const headers = { headers: getAuthHeader() }; // <--- استخدام getAuthHeader
-      await axios.post(API_URL, formData, headers); // <--- استخدام API_URL وإرسال الترويسات
+      await axios.post("https://hawkama.cbc-api.app/api/reports", formData, headers); // <--- استخدام API_URL وإرسال الترويسات
       alert("تم إضافة الفاتورة بنجاح!");
       navigate("/accessreports"); // توجيه لصفحة عرض التقارير
     } catch (error) {

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_URL = "/api/reports";
+const API_URL = "https://hawkama.cbc-api.app/api/reports";
 
 const initialForm = {
   name: "",
@@ -56,7 +56,7 @@ const SupervisorAccessReports = () => {
     try {
       setLoading(true);
       const headers = { headers: getAuthHeader() };
-      const res = await axios.get(API_URL, headers);
+      const res = await axios.get("https://hawkama.cbc-api.app/api/reports", headers);
       setReports(res.data);
       setLoading(false);
     } catch (err) {
