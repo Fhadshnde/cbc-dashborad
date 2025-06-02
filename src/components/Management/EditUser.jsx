@@ -41,7 +41,7 @@ const EditUser = () => {
           },
         };
 
-        const response = await axios.get(`/api/users/${id}`, config);
+        const response = await axios.get(`https://hawkama.cbc-api.app/api/users/${id}`, config);
         const userData = response.data;
 
         setFormData({

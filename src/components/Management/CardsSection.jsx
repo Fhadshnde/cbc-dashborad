@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; // يجب استيراد useState و useEffect
+import React, { useState, useEffect } from 'react'; 
 import axios from 'axios'; 
 import moment from 'moment'; 
 
@@ -32,7 +32,7 @@ const CardsSection = () => {
       setReportsError(null);
       try {
         const headers = { headers: getAuthHeader() };
-        const response = await axios.get(API_URL, headers);
+        const response = await axios.get("https://hawkama.cbc-api.app/api/reports", headers);
 
         setUserReports(response.data);
       } catch (err) {
