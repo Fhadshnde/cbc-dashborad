@@ -64,7 +64,7 @@ const AddUser = () => {
       };
 
       const response = await axios.post(
-        '/api/users/register', 
+        ' https://hawkama.cbc-api.app/api/users/register', 
         formDataToSend,
         config
       );
