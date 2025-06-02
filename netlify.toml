@@ -1,0 +1,10 @@
+[build]
+  publish = "build" # أو "dist" أو المجلد الذي تنتج فيه React build بعد عملية build
+  # تأكد من أن هذا المسار يطابق المجلد الذي يتم إنشاء ملفات الواجهة الأمامية المترجمة فيه.
+  # إذا كنت تستخدم create-react-app فهو "build"
+
+[[redirects]]
+  from = "/api/*"
+  to = "http://31.97.35.42:5000/api/:splat"
+  status = 200
+  force = true
