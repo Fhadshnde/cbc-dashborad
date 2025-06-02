@@ -6,21 +6,18 @@ const API_URL = "https://hawkama.cbc-api.app/api/reports"; // تعريف الـ 
 
 const CardsSection = () => { // لم تعد تستقبل props مثل userReports
   const [userReports, setUserReports] = useState([]); // ستدير حالة التقارير هنا
-  const [reportsLoading, setReportsLoading] = useState(false); // ستدير حالة التحميل هنا
-  const [reportsError, setReportsError] = useState(null); // ستدير حالة الأخطاء هنا
+  const [reportsLoading, setReportsLoading] = useState(false); 
+  const [reportsError, setReportsError] = useState(null);
 
-  // الدالة getAuthHeader - يجب أن تكون متاحة هنا أيضاً
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      // قد تحتاج إلى إعادة توجيه المستخدم لتسجيل الدخول أو عرض رسالة خطأ مناسبة
       console.error("خطأ: توكن المصادقة غير موجود. يرجى تسجيل الدخول.");
-      return {}; // أعد كائن فارغ لتجنب الخطأ، أو قم بمعالجة الخطأ بطريقتك المفضلة
+      return {}; 
     }
     return { Authorization: `Bearer ${token}` };
   };
 
-  // الدالة getCardTypeText - نقلناها من AccessReports.jsx
   const getCardTypeText = (cardCategory) => {
     if (!cardCategory) return "غير محدد";
     if (cardCategory.oneYear === 1) return "بطاقة سنة واحدة";
@@ -35,10 +32,8 @@ const CardsSection = () => { // لم تعد تستقبل props مثل userReport
       setReportsError(null);
       try {
         const headers = { headers: getAuthHeader() };
-        // هنا نقوم بجلب البيانات مباشرة في CardsSection
         const response = await axios.get(API_URL, headers);
-        // تأكد من أن response.data هي مصفوفة.
-        // بناءً على الكود الخاص بك، يبدو أنها مصفوفة مباشرة.
+
         setUserReports(response.data);
       } catch (err) {
         setReportsError("حدث خطأ أثناء جلب فواتير البطاقات: " + (err.response?.data?.message || err.message));
@@ -48,7 +43,7 @@ const CardsSection = () => { // لم تعد تستقبل props مثل userReport
     };
 
     fetchUserReports();
-  }, []); // [] لضمان تنفيذ الجلب مرة واحدة عند تحميل المكون
+  }, []); 
 
   if (reportsLoading) {
     return <div className="text-center p-5 text-gray-600">جاري تحميل فواتير البطاقات...</div>;
@@ -58,8 +53,6 @@ const CardsSection = () => { // لم تعد تستقبل props مثل userReport
     return <div className="text-red-500 text-center p-5">خطأ في جلب فواتير البطاقات: {reportsError}</div>;
   }
 
-  // Calculate totals for the final row
-  // الآن userReports هنا هي الحالة التي يديرها CardsSection نفسه
   const totalOneYearReports = userReports.reduce((sum, report) => sum + (report.cardCategory?.oneYear || 0), 0);
   const totalTwoYearsReports = userReports.reduce((sum, report) => sum + (report.cardCategory?.twoYears || 0), 0);
   const totalVirtualReports = userReports.reduce((sum, report) => sum + (report.cardCategory?.virtual || 0), 0);
@@ -72,7 +65,6 @@ const CardsSection = () => { // لم تعد تستقبل props مثل userReport
     <div className="overflow-x-auto bg-white rounded-lg shadow-md p-4">
       <div className="flex justify-between items-center mb-4">
         <h4 className="text-lg font-medium text-gray-700">فواتير البطاقات الصادرة</h4>
-        {/* Search and date pickers - place holders for now as per image */}
         <div className="flex items-center space-x-2 space-x-reverse">
           <div className="flex items-center border border-gray-300 rounded-md p-2">
             <span className="text-gray-500 ml-2">إلى تاريخ</span>
