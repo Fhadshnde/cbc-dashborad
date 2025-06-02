@@ -7,12 +7,10 @@ import { FaFileInvoiceDollar } from "react-icons/fa";
 
 const SIDEBAR_ITEMS = [
   { icon: () => <FontAwesomeIcon icon={faTableColumns} className="text-black" />, href: "/", text: 'لوحة التحكم' },
-  { icon: FaFileInvoiceDollar, href: "/accessaeports", text: 'التقارير' },
-  { icon: FaFileInvoiceDollar, href: "/stores", text: 'المتاجر' },
-  { icon: FaFileInvoiceDollar, href: "/employees", text: 'الموظفين' },
-  { icon: FaFileInvoiceDollar, href: "/Notification", text: 'الإشعارات' },
-  { icon: FaFileInvoiceDollar, href: "/requests", text: 'الطلبات' },
-  { icon: FaFileInvoiceDollar, href: "/invoice", text: 'الفواتير' },
+  { icon: FaFileInvoiceDollar, href: "/accessreports", text: 'قسم المحاسبة' },
+  { icon: FaFileInvoiceDollar, href: "/archives", text: 'الارشيف' },
+  { icon: FaFileInvoiceDollar, href: "/summary-reports", text: 'ملخص تقارير المبيعات' },
+  { icon: FaFileInvoiceDollar, href: "/management", text: 'قسم الادارة' },
 ];
 
 const Sidebar = () => {
@@ -73,8 +71,8 @@ const Sidebar = () => {
       ) : (
         <motion.div
           className="relative z-10 ml-4 flex-shrink-0 bg-white border-r border-gray-300 sidebar-main"
-          initial={{ width: 90 }}
-          animate={{ width: 90 }}
+          initial={{ width: 100 }}
+          animate={{ width: 100 }}
           transition={{ duration: 0.3 }}
         >
           <div className="h-full flex flex-col">
