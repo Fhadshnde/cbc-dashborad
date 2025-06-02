@@ -102,7 +102,7 @@ const UserDetails = () => {
         return <div className="text-center p-5 font-sans rtl">لا توجد بيانات مستخدم لعرضها.</div>;
     }
 
-    const userImageSrc = user.imageUrl ? `http://31.97.35.42:5000${user.imageUrl}` : 'https://via.placeholder.com/150';
+    const userImageSrc = user.imageUrl ? `https://hawkama.cbc-api.app${user.imageUrl}` : 'https://via.placeholder.com/150';
 
     return (
         <div className="p-5 font-sans rtl text-right bg-gray-50 min-h-screen">
@@ -173,13 +173,13 @@ const UserDetails = () => {
                             الخصومات
                         </button>
                         <button
-                            onClick={() => setActiveTab('vacations')} // New tab for Vacations
+                            onClick={() => setActiveTab('vacations')} 
                             className={`whitespace-nowrap py-3 px-4 border-b-2 font-medium text-sm transition-colors duration-200 ${activeTab === 'vacations'
                                 ? 'border-green-500 text-green-600'
                                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                 }`}
                         >
-                            الإجازات {/* Tab title for Vacations */}
+                            الإجازات 
                         </button>
                     </nav>
                 </div>

@@ -2,7 +2,6 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-// <--- توحيد عنوان الـ API
 const API_URL = "/api/reports"; 
 
 const AddReportForm = () => {
@@ -43,7 +42,6 @@ const AddReportForm = () => {
     }
   }, []);
   
-  // دالة لإرجاع ترويسة مصادقة صحيحة
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
     if (!token) {

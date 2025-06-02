@@ -33,8 +33,8 @@ const Management = () => {
         }
       };
 
-      const usersResponse = await axios.get('http://31.97.35.42:5000/api/users', config);
-      setAllUsers(usersResponse.data); // نخزن جميع المستخدمين هنا
+      const usersResponse = await axios.get('https://hawkama.cbc-api.app/api/users', config);
+      setAllUsers(usersResponse.data); 
       setLoading(false);
       setError(null);
     } catch (err) {
@@ -51,21 +51,18 @@ const Management = () => {
     fetchUsers();
   }, [fetchUsers]);
 
-  // useEffect جديد لتطبيق الفلترة كلما تغيرت البيانات أو شروط البحث
   useEffect(() => {
     let filtered = allUsers;
 
-    // فلترة بناءً على التاريخ
     if (startDate && endDate) {
       const startMoment = moment(startDate).startOf('day');
       const endMoment = moment(endDate).endOf('day');
       filtered = filtered.filter(user => {
         const hireDateMoment = moment(user.hireDate);
-        return hireDateMoment.isBetween(startMoment, endMoment, null, '[]'); // شامل للبداية والنهاية
+        return hireDateMoment.isBetween(startMoment, endMoment, null, '[]'); 
       });
     }
 
-    // فلترة بناءً على اسم المستخدم
     if (searchTerm) {
       const lowercasedSearchTerm = searchTerm.toLowerCase();
       filtered = filtered.filter(user =>
@@ -74,7 +71,7 @@ const Management = () => {
     }
 
     setDisplayedUsers(filtered);
-  }, [allUsers, startDate, endDate, searchTerm]); // تعتمد على allUsers وجميع شروط البحث
+  }, [allUsers, startDate, endDate, searchTerm]); 
 
   const handlePeriodChange = (period) => {
     setSelectedPeriod(period);

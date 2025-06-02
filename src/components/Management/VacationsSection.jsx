@@ -33,7 +33,7 @@ const VacationsSection = ({ userId, vacations }) => {
                 return;
             }
 
-            const response = await axios.post(`http://31.97.35.42:5000/api/users/${userId}/vacations`, newVacation, config);
+            const response = await axios.post(`https://hawkama.cbc-api.app/api/users/${userId}/vacations`, newVacation, config);
             setAddVacationSuccess(true);
             setShowAddVacationModal(false);
             window.location.reload();

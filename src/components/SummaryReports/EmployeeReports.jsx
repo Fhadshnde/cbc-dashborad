@@ -29,7 +29,7 @@ const EmployeeReports = () => {
         },
       };
 
-      const response = await axios.get('http://31.97.35.42:5000/api/reports', config);
+      const response = await axios.get('https://hawkama.cbc-api.app/api/reports', config);
 
       let filteredReports = response.data.filter(report => report.admin === decodeURIComponent(adminUsername));
 

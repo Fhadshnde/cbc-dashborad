@@ -33,7 +33,7 @@ const SummaryReports = () => {
         }
       };
 
-      const response = await axios.get('http://31.97.35.42:5000/api/reports/admins/stats', config);
+      const response = await axios.get('https://hawkama.cbc-api.app/api/reports/admins/stats', config);
       setAdminStats(response.data.stats);
       setLoading(false);
       setError(null);

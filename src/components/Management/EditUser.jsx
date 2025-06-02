@@ -100,8 +100,6 @@ const EditUser = () => {
         formDataToSend.append(key, formData[key]);
       }
       
-      // لا تستخدم toISOString() هنا، أرسل القيمة كما هي من input type="date"
-      // formDataToSend.append('hireDate', moment(formData.hireDate).toISOString());
 
       if (imageFile) {
         formDataToSend.append('imageUrl', imageFile);

@@ -24,7 +24,7 @@ const BonusesSection = ({ userId, bonuses }) => {
                 },
             };
 
-            const response = await axios.post(`http://31.97.35.42:5000/api/users/${userId}/bonuses`, newBonus, config);
+            const response = await axios.post(`https://hawkama.cbc-api.app/api/users/${userId}/bonuses`, newBonus, config);
             console.log('Bonus added successfully:', response.data);
             setAddBonusSuccess(true);
             setShowAddBonusModal(false);

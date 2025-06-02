@@ -52,8 +52,6 @@ const AddUser = () => {
         formDataToSend.append(key, formData[key]);
       }
 
-      // لا تستخدم toISOString() هنا، أرسل القيمة كما هي من input type="date"
-      // formDataToSend.append('hireDate', moment(formData.hireDate).toISOString());
 
       if (imageFile) {
         formDataToSend.append('imageUrl', imageFile);
@@ -66,7 +64,7 @@ const AddUser = () => {
       };
 
       const response = await axios.post(
-        '/api/users/register', // استخدام المسار النسبي للاستفادة من الـ proxy في Vite
+        '/api/users/register', 
         formDataToSend,
         config
       );

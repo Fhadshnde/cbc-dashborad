@@ -24,7 +24,7 @@ const DeductionsSection = ({ userId, deductions }) => {
                 },
             };
 
-            const response = await axios.post(`http://31.97.35.42:5000/api/users/${userId}/deductions`, newDeduction, config);
+            const response = await axios.post(`https://hawkama.cbc-api.app/api/users/${userId}/deductions`, newDeduction, config);
             console.log('Deduction added successfully:', response.data);
             setAddDeductionSuccess(true);
             setShowAddDeductionModal(false);

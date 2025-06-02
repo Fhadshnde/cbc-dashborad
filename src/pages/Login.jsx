@@ -23,7 +23,7 @@ const Login = ({ setIsAuthenticated }) => {
 
     try {
       const response = await axios.post(
-        "http://31.97.35.42:5000/api/auth/login", 
+        "https://hawkama.cbc-api.app/api/auth/login", 
         formData,
         {
           headers: {
