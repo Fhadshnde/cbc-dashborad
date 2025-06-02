@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-const API_URL = "api/reports";
+const API_URL = "https://hawkama.cbc-api.app/api/reports";
 
 const ArchiveReports = () => {
     const [reports, setReports] = useState([]);
@@ -43,7 +43,7 @@ const ArchiveReports = () => {
             setError(null);
             try {
                 const headers = { headers: getAuthHeader() };
-                const response = await axios.get(API_URL, headers);
+                const response = await axios.get("https://hawkama.cbc-api.app/api/reports", headers);
                 setReports(response.data);
                 setFilteredReports(response.data);
             } catch (err) {
