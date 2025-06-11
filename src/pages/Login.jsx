@@ -16,6 +16,7 @@ const Login = ({ setIsAuthenticated }) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");

@@ -3,7 +3,7 @@ import axios from "axios";
 import TotalBills from "./TotalBills";
 import { Link } from "react-router-dom";
 
-const API_URL = "https://hawkama.cbc-api.app/api/reports"; 
+const API_URL = "https://hawkama.cbc-api.app/api/reports";
 
 const AccessReports = () => {
   const [reports, setReports] = useState([]);
@@ -13,7 +13,7 @@ const AccessReports = () => {
   const [admin, setAdmin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [userRole, setUserRole] = useState(null); 
+  const [userRole, setUserRole] = useState(null);
 
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
@@ -41,7 +41,7 @@ const AccessReports = () => {
       setError(null);
       try {
         const headers = { headers: getAuthHeader() };
-        const response = await axios.get("https://hawkama.cbc-api.app/api/reports", headers);
+        const response = await axios.get(API_URL, headers); // استخدم API_URL هنا
         setReports(response.data);
         setFilteredReports(response.data);
       } catch (err) {
@@ -194,6 +194,8 @@ const AccessReports = () => {
                 <th className="px-2 py-2 whitespace-nowrap">عنوان الوزارة</th>
                 <th className="px-2 py-2 whitespace-nowrap">فئة البطاقة</th>
                 <th className="px-2 py-2 whitespace-nowrap">المسؤول</th>
+                <th className="px-2 py-2 whitespace-nowrap">الملاحظات</th> {/* تم إضافة هذا */}
+                <th className="px-2 py-2 whitespace-nowrap">على الراتب</th> {/* تم إضافة هذا */}
                 <th className="px-2 py-2 whitespace-nowrap">أنشأ في</th>
               </tr>
             </thead>
@@ -213,12 +215,16 @@ const AccessReports = () => {
                       {getCardTypeText(report.cardCategory)}
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">{report.admin}</td>
+                    <td className="px-2 py-2 whitespace-nowrap">{report.notes}</td> {/* تم إضافة هذا */}
+                    <td className="px-2 py-2 whitespace-nowrap">
+                      {report.onPayroll ? "على الراتب" : "-"} {/* تم إضافة هذا */}
+                    </td>
                     <td className="px-2 py-2 whitespace-nowrap">{report.date}</td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="11" className="px-4 py-4 text-center text-gray-500">
+                  <td colSpan="13" className="px-4 py-4 text-center text-gray-500"> {/* تم تغيير colSpan */}
                     لا توجد نتائج مطابقة لبحثك
                   </td>
                 </tr>

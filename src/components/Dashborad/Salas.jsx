@@ -1,12 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import axios from 'axios';
+import moment from 'moment';
+import 'moment/locale/ar-sa';
+// لا نحتاج jwtDecode إذا كنا نأخذ اسم المستخدم من localStorage.userData
+// import { jwtDecode } from 'jwt-decode'; // يمكن إزالة هذا السطر
+
+// رابط API الأساسي لتقارير الوصول
+const API_BASE_URL = "https://hawkama.cbc-api.app/api/reports";
 
 const Salas = () => {
-  const data = [
-    { name: 'بانتظار المراجعة', value: 25, color: '#34B3F1' },
-    { name: 'تمت الموافقة', value: 30, color: '#DEECF6' },
-    { name: 'مرفوضة', value: 15, color: '#ADD8E6' },
-  ];
+  const [chartData, setChartData] = useState([]);
+  const [totalInvoices, setTotalInvoices] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentUsername, setCurrentUsername] = useState(null); // لتخزين اسم المستخدم الحالي
 
   const RADIAN = Math.PI / 180;
 
@@ -21,49 +29,117 @@ const Salas = () => {
     centerTextSmallFontSize: 14,
   });
 
+  // دالة لجلب توكن المصادقة واسم المستخدم من localStorage
+  const getAuthData = () => {
+    const token = localStorage.getItem("token");
+    const userDataString = localStorage.getItem("userData"); // جلب بيانات المستخدم كـ string
+
+    if (!token) {
+      console.error("خطأ: توكن المصادقة غير موجود. يرجى تسجيل الدخول.");
+      return { headers: {}, username: null };
+    }
+
+    let username = null;
+    if (userDataString) {
+      try {
+        const userData = JSON.parse(userDataString); // تحويل بيانات المستخدم من string إلى كائن JavaScript
+        username = userData.username; // افترض أن اسم المستخدم مخزن في خاصية 'username'
+        // تأكد من أن 'username' هو الاسم الصحيح للحقل الذي يحتوي على اسم المستخدم في كائن user
+      } catch (e) {
+        console.error("خطأ في تحليل بيانات المستخدم المخزنة في localStorage:", e);
+      }
+    }
+
+    return { headers: { Authorization: `Bearer ${token}` }, username: username };
+  };
+
   useEffect(() => {
+    moment.locale('ar-sa'); // تفعيل اللغة العربية لـ moment
+
+    // جلب بيانات المصادقة واسم المستخدم عند تحميل المكون
+    const { headers, username } = getAuthData();
+    if (username) {
+      setCurrentUsername(username); // تخزين اسم المستخدم في حالة المكون
+    } else {
+      setLoading(false);
+      setError("اسم المستخدم غير متوفر. يرجى التأكد من تسجيل الدخول بشكل صحيح.");
+      return; // توقف عن جلب البيانات إذا لم يتوفر اسم المستخدم
+    }
+
+    const fetchChartData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // استخدام نقطة النهاية المخصصة لجلب تقارير المستخدم
+        const API_URL_BY_ADMIN = `${API_BASE_URL}/by-admin/${username}`;
+        
+        const response = await axios.get(API_URL_BY_ADMIN, { headers });
+        const userReports = response.data; // هذه هي التقارير الخاصة بالمستخدم الحالي
+
+        // حساب الإجمالي لكل فئة بناءً على بيانات الـ API
+        const totalPending = userReports.reduce((sum, report) => sum + (report.cardCategory?.oneYear || 0), 0);
+        const totalApproved = userReports.reduce((sum, report) => sum + (report.cardCategory?.twoYears || 0), 0);
+        const totalRejected = userReports.reduce((sum, report) => sum + (report.cardCategory?.virtual || 0), 0);
+
+        const calculatedTotalOverall = totalPending + totalApproved + totalRejected;
+        setTotalInvoices(calculatedTotalOverall); // تحديث حالة إجمالي الفواتير بالعدد الفعلي
+
+        const dataForChart = [
+          { name: 'بانتظار المراجعة', value: totalPending, color: '#34B3F1' },
+          { name: 'تمت الموافقة', value: totalApproved, color: '#DEECF6' },
+          { name: 'مرفوضة', value: totalRejected, color: '#ADD8E6' },
+        ];
+
+        const dataWithPercentages = dataForChart.map(item => ({
+          ...item,
+          percentage: calculatedTotalOverall > 0 ? parseFloat(((item.value / calculatedTotalOverall) * 100).toFixed(0)) : 0,
+        }));
+
+        setChartData(dataWithPercentages);
+
+      } catch (err) {
+        setError("حدث خطأ أثناء جلب بيانات الفواتير: " + (err.response?.data?.message || err.message));
+        console.error("تفاصيل الخطأ:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // تأكد من أن لدينا اسم مستخدم قبل محاولة جلب البيانات
+    if (currentUsername) {
+      fetchChartData();
+    }
+
+
+    // جزء التعامل مع حجم الشاشة (ريسبونسيف) - لم يتم تغييره
     function handleResize() {
       if (window.innerWidth <= 360) {
         setDimensions({
-          innerRadius: 20,
-          outerRadius: 40,
-          fontSize: 9,
-          lineLength1: 10,
-          lineLength2: 15,
-          textOffsetY: 10,
-          centerTextBigFontSize: 14,
-          centerTextSmallFontSize: 8,
+          innerRadius: 20, outerRadius: 40, fontSize: 9,
+          lineLength1: 10, lineLength2: 15, textOffsetY: 10,
+          centerTextBigFontSize: 14, centerTextSmallFontSize: 8,
         });
       } else if (window.innerWidth <= 600) {
         setDimensions({
-          innerRadius: 40,
-          outerRadius: 70,
-          fontSize: 11,
-          lineLength1: 15,
-          lineLength2: 20,
-          textOffsetY: 12,
-          centerTextBigFontSize: 18,
-          centerTextSmallFontSize: 10,
+          innerRadius: 40, outerRadius: 70, fontSize: 11,
+          lineLength1: 15, lineLength2: 20, textOffsetY: 12,
+          centerTextBigFontSize: 18, centerTextSmallFontSize: 10,
         });
       } else {
         setDimensions({
-          innerRadius: 60,
-          outerRadius: 90,
-          fontSize: 13,
-          lineLength1: 20,
-          lineLength2: 30,
-          textOffsetY: 14,
-          centerTextBigFontSize: 24,
-          centerTextSmallFontSize: 14,
+          innerRadius: 60, outerRadius: 90, fontSize: 13,
+          lineLength1: 20, lineLength2: 30, textOffsetY: 14,
+          centerTextBigFontSize: 24, centerTextSmallFontSize: 14,
         });
       }
     }
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [currentUsername]); // أضف currentUsername كـ dependency ليتم إعادة تشغيل useEffect عند تحديثه
 
-  const renderValueInside = ({ cx, cy, midAngle, innerRadius, outerRadius, value }) => {
+  // دالة لعرض النسبة المئوية داخل شريحة الدائرة - لم يتم تغييرها
+  const renderValueInside = ({ cx, cy, midAngle, innerRadius, outerRadius, percentage }) => {
     const radius = innerRadius + (outerRadius - innerRadius) / 2;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
@@ -78,15 +154,18 @@ const Salas = () => {
         fontSize={dimensions.fontSize}
         fontWeight="bold"
       >
-        {value}%
+        {percentage}%
       </text>
     );
   };
 
+  // دالة لعرض أسماء الشرائح خارج الدائرة - لم يتم تغييرها
   const renderCustomNameLabels = ({ cx, cy, outerRadius, index }) => {
-    const isRightSide = data[index].name !== 'تمت الموافقة';
+    if (!chartData[index]) return null;
 
-    const startX = isRightSide ? cx + outerRadius : cx - outerRadius;
+    const isRightSide = chartData[index].name !== 'تمت الموافقة';
+
+    const startX = isRightSide ? cx + outerRadius + 5 : cx - outerRadius - 5;
     const startY = cy - 40 + index * 40;
 
     const midX1 = isRightSide ? startX + dimensions.lineLength1 : startX - dimensions.lineLength1;
@@ -99,8 +178,8 @@ const Salas = () => {
     const endY = startY + 10;
 
     const textX = endX;
-    const textY = endY + dimensions.textOffsetY;  
-    const textAnchor = 'middle';
+    const textY = endY + dimensions.textOffsetY;
+    const textAnchor = isRightSide ? 'start' : 'end';
 
     return (
       <g>
@@ -117,11 +196,19 @@ const Salas = () => {
           fontSize={dimensions.fontSize}
           fontWeight="500"
         >
-          {data[index].name}
+          {chartData[index].name}
         </text>
       </g>
     );
   };
+
+  if (loading) {
+    return <div className="salas-chart-container text-center p-5 text-gray-600">جاري تحميل بيانات الفواتير...</div>;
+  }
+
+  if (error) {
+    return <div className="salas-chart-container text-red-500 text-center p-5">خطأ: {error}</div>;
+  }
 
   return (
     <div className="salas-chart-container">
@@ -130,7 +217,7 @@ const Salas = () => {
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={data}
+              data={chartData}
               cx="50%"
               cy="50%"
               innerRadius={dimensions.innerRadius}
@@ -139,12 +226,12 @@ const Salas = () => {
               labelLine={false}
               label={renderValueInside}
             >
-              {data.map((entry, index) => (
+              {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
             <Pie
-              data={data}
+              data={chartData}
               cx="50%"
               cy="50%"
               innerRadius={dimensions.innerRadius}
@@ -164,7 +251,7 @@ const Salas = () => {
               fontWeight="bold"
               fill="#000"
             >
-              74 فاتورة
+              {totalInvoices} فاتورة
             </text>
             <text
               x="50%"
@@ -174,7 +261,7 @@ const Salas = () => {
               fontSize={dimensions.centerTextSmallFontSize}
               fill="#666"
             >
-              شهر مارس
+              {moment().format('MMMM')}
             </text>
           </PieChart>
         </ResponsiveContainer>
@@ -189,6 +276,7 @@ const Salas = () => {
           border-radius: 12px;
           padding: 16px;
           box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+          direction: rtl;
         }
         .salas-chart-title {
           text-align: right;
@@ -211,8 +299,7 @@ const Salas = () => {
             width: 320px;
             max-width: 100vw;
             min-width: 0;
-           margin-right:36px  ;
-
+            margin-right:36px;
           }
         }
       `}</style>

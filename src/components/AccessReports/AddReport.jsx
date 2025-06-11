@@ -2,7 +2,7 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "https://hawkama.cbc-api.app/api/reports"; 
+const API_URL = "https://hawkama.cbc-api.app/api/reports";
 
 const AddReportForm = () => {
   const [formData, setFormData] = useState({
@@ -20,14 +20,16 @@ const AddReportForm = () => {
       oneYear: 0,
       twoYears: 0,
       virtual: 0
-    }
+    },
+    notes: "", // تمت إضافة هذا
+    onPayroll: false // تمت إضافة هذا
   });
 
   const navigate = useNavigate();
 
   useEffect(() => {
     const storedUserData = localStorage.getItem('userData');
-  
+
     if (storedUserData && storedUserData !== "undefined") {
       try {
         const userData = JSON.parse(storedUserData);
@@ -41,7 +43,7 @@ const AddReportForm = () => {
       setFormData(prev => ({ ...prev, admin: 'مسؤول النظام' }));
     }
   }, []);
-  
+
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -52,7 +54,7 @@ const AddReportForm = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target; // تم إضافة type و checked
 
     if (name === "cardType") {
       setFormData(prev => ({
@@ -63,7 +65,13 @@ const AddReportForm = () => {
           virtual: value === "virtual" ? 1 : 0
         }
       }));
-    } else {
+    } else if (name === "onPayroll") { // التعامل مع حقل onPayroll
+      setFormData(prev => ({
+        ...prev,
+        [name]: checked, // للحقول من نوع checkbox نستخدم checked
+      }));
+    }
+    else {
       setFormData(prev => ({
         ...prev,
         [name]: value,
@@ -74,10 +82,10 @@ const AddReportForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const headers = { headers: getAuthHeader() }; // <--- استخدام getAuthHeader
-      await axios.post("https://hawkama.cbc-api.app/api/reports", formData, headers); // <--- استخدام API_URL وإرسال الترويسات
+      const headers = { headers: getAuthHeader() };
+      await axios.post(API_URL, formData, headers); // استخدام API_URL
       alert("تم إضافة الفاتورة بنجاح!");
-      navigate("/accessreports"); // توجيه لصفحة عرض التقارير
+      navigate("/accessreports");
     } catch (error) {
       alert("حدث خطأ أثناء الإضافة: " + (error.response?.data?.message || error.message));
       console.error(error);
@@ -205,6 +213,31 @@ const AddReportForm = () => {
         </div>
 
         <div className="sm:col-span-2">
+          <label className="block mb-1 font-medium text-gray-600">الملاحظات</label> {/* تم إضافة هذا */}
+          <textarea
+            name="notes"
+            value={formData.notes}
+            onChange={handleChange}
+            placeholder="أضف أي ملاحظات هنا..."
+            className="w-full border border-gray-300 rounded px-4 py-2 h-24 resize-y"
+          ></textarea>
+        </div>
+
+        <div className="sm:col-span-2 flex items-center mb-4"> {/* تم إضافة هذا */}
+          <label htmlFor="onPayroll" className="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              id="onPayroll"
+              name="onPayroll"
+              checked={formData.onPayroll}
+              onChange={handleChange}
+              className="form-checkbox h-5 w-5 text-teal-600 rounded"
+            />
+            <span className="mr-2 text-gray-700 font-medium">على الراتب</span>
+          </label>
+        </div>
+
+        <div className="sm:col-span-2">
           <label className="block mb-3 font-medium text-gray-600">فئة البطاقة</label>
           <div className="flex flex-wrap gap-4 justify-end">
             <label className="flex items-center space-x-2 space-x-reverse">
@@ -219,7 +252,7 @@ const AddReportForm = () => {
               />
               <span>بطاقة سنة واحدة</span>
             </label>
-            
+
             <label className="flex items-center space-x-2 space-x-reverse">
               <input
                 type="radio"
@@ -231,7 +264,7 @@ const AddReportForm = () => {
               />
               <span>بطاقة سنتين</span>
             </label>
-            
+
             <label className="flex items-center space-x-2 space-x-reverse">
               <input
                 type="radio"
