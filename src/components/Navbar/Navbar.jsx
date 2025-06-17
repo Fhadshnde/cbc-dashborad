@@ -74,13 +74,13 @@ const Navbar = ({ setIsAuthenticated }) => {
       <div className="flex flex-wrap md:flex-nowrap items-center justify-between md:justify-end gap-4">
         <FaBell className="text-gray-700" />
 
-        <img
+        {/* <img
           src={iraqIcon}
           className="w-7 h-7 rounded-full bg-gray-200"
           alt="علم العراق"
-        />
+        /> */}
 
-        <div className="relative">
+        {/* <div className="relative">
           <button
             onClick={toggleLanguageDropdown}
             className="flex items-center px-3 py-1 rounded-md hover:bg-gray-50"
@@ -105,11 +105,11 @@ const Navbar = ({ setIsAuthenticated }) => {
               ))}
             </div>
           )}
-        </div>
+        </div> */}
 
         <div className="flex items-center space-x-2 space-x-reverse">
-          <div className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-200">
-            <FaUser className="text-gray-600 text-xl" />
+          <div className="w-10 h-10 flex items-center justify-center rounded-full ml-5 bg-gray-200">
+            <FaUser className="text-gray-600  text-xl" />
           </div>
           <div className="flex flex-col text-right">
             <span className="font-medium text-gray-800 text-sm">{username}</span>

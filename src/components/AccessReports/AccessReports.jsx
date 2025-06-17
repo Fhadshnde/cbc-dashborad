@@ -18,7 +18,7 @@ const AccessReports = () => {
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("خطأ: توكن المصادقة غير موجود. يرجى تسجيل الدخول.");
+      setError("خطأ: توكن المصادقة غير موجود. يرجى تسجيل الدخول.");
       throw new Error("توكن المصادقة غير موجود");
     }
     return { Authorization: `Bearer ${token}` };
@@ -41,7 +41,7 @@ const AccessReports = () => {
       setError(null);
       try {
         const headers = { headers: getAuthHeader() };
-        const response = await axios.get(API_URL, headers); // استخدم API_URL هنا
+        const response = await axios.get(API_URL, headers);
         setReports(response.data);
         setFilteredReports(response.data);
       } catch (err) {
@@ -183,7 +183,7 @@ const AccessReports = () => {
         <div className="overflow-x-auto bg-white rounded shadow">
           <table className="w-full sm:min-w-[1000px] text-sm text-right border-collapse">
             <thead className="bg-gray-100 text-gray-600 font-bold">
-              <tr>
+              <tr> {/* Ensure no whitespace or text nodes directly here */}
                 <th className="px-2 py-2 whitespace-nowrap">الاسم بالعربي</th>
                 <th className="px-2 py-2 whitespace-nowrap">الاسم بالإنجليزي</th>
                 <th className="px-2 py-2 whitespace-nowrap">رقم الهاتف</th>
@@ -194,15 +194,15 @@ const AccessReports = () => {
                 <th className="px-2 py-2 whitespace-nowrap">عنوان الوزارة</th>
                 <th className="px-2 py-2 whitespace-nowrap">فئة البطاقة</th>
                 <th className="px-2 py-2 whitespace-nowrap">المسؤول</th>
-                <th className="px-2 py-2 whitespace-nowrap">الملاحظات</th> {/* تم إضافة هذا */}
-                <th className="px-2 py-2 whitespace-nowrap">على الراتب</th> {/* تم إضافة هذا */}
+                <th className="px-2 py-2 whitespace-nowrap">الملاحظات</th>
+                <th className="px-2 py-2 whitespace-nowrap">على الراتب</th>
                 <th className="px-2 py-2 whitespace-nowrap">أنشأ في</th>
               </tr>
             </thead>
             <tbody>
               {filteredReports.length > 0 ? (
                 filteredReports.map((report, i) => (
-                  <tr key={i} className="border-t hover:bg-gray-50">
+                  <tr key={i} className="border-t hover:bg-gray-50"> {/* Ensure no whitespace or text nodes directly here */}
                     <td className="px-2 py-2 whitespace-nowrap">{report.name}</td>
                     <td className="px-2 py-2 whitespace-nowrap">{report.nameEn}</td>
                     <td className="px-2 py-2 whitespace-nowrap">{report.phone}</td>
@@ -215,16 +215,16 @@ const AccessReports = () => {
                       {getCardTypeText(report.cardCategory)}
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">{report.admin}</td>
-                    <td className="px-2 py-2 whitespace-nowrap">{report.notes}</td> {/* تم إضافة هذا */}
+                    <td className="px-2 py-2 whitespace-nowrap">{report.notes}</td>
                     <td className="px-2 py-2 whitespace-nowrap">
-                      {report.onPayroll ? "على الراتب" : "-"} {/* تم إضافة هذا */}
+                      {report.onPayroll ? "على الراتب" : "-"}
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">{report.date}</td>
                   </tr>
                 ))
               ) : (
-                <tr>
-                  <td colSpan="13" className="px-4 py-4 text-center text-gray-500"> {/* تم تغيير colSpan */}
+                <tr> {/* Ensure no whitespace or text nodes directly here */}
+                  <td colSpan="13" className="px-4 py-4 text-center text-gray-500">
                     لا توجد نتائج مطابقة لبحثك
                   </td>
                 </tr>

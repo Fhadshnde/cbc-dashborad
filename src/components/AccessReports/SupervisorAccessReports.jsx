@@ -134,7 +134,7 @@ const SupervisorAccessReports = () => {
 
   const handleStatusChange = async (id, currentStatus, newStatus) => {
     if (userRole === "supervisor") {
-      const validStatusesForSupervisor = ["pending", "rejected", "canceled", "received"];
+      const validStatusesForSupervisor = ["pending", "rejected", "canceled", "received","processing"];
       if (!validStatusesForSupervisor.includes(newStatus)) {
         alert("المشرف لا يمكنه تغيير الحالة إلى هذه القيمة.");
         return;
@@ -231,6 +231,7 @@ const SupervisorAccessReports = () => {
           <option value="rejected">مرفوضة</option>
           <option value="canceled">ملغاة</option>
           <option value="received">تم الاستلام</option>
+          <option value="processing">قيد المعالجة</option>
         </select>
 
         <input
@@ -340,6 +341,7 @@ const SupervisorAccessReports = () => {
                       {userRole === "supervisor" && <option value="rejected">مرفوضة</option>}
                       <option value="canceled">ملغاة</option>
                       {userRole === "supervisor" && <option value="received">تم الاستلام</option>}
+                      {userRole === "supervisor" && <option value="processing">قيد المعالجة</option>}
                       {userRole === "admin" && r.status !== "canceled" && (
                         <option value={r.status} disabled>{r.status}</option>
                       )}

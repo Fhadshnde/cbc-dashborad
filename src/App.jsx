@@ -15,6 +15,12 @@ import Management from './components/Management/Management';
 import AddUser from './components/Management/AddUser';
 import EditUser from './components/Management/EditUser';
 import UserDetails from './components/Management/UserDetails';
+import ContractsPage from './pages/ContractsPage';
+import ContractDetails from './components/ContractDetails'
+import FollowUpSurveyList from './components/FollowUp/FollowUpSurveyList';
+import FollowUpSurveyCreate from './components/FollowUp/FollowUpSurveyCreate';
+import FollowUpSurveyDetails from './components/FollowUp/FollowUpSurveyDetails';
+import FollowUpSurveyEdit from './components/FollowUp/FollowUpSurveyEdit';
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -59,8 +65,13 @@ const App = () => {
                     <Route path="/management/add-user" element={<AddUser />} />
                     <Route path="/management/edit-user/:id" element={<EditUser />} />
                     <Route path="/management/details/:username" element={<UserDetails />} />
-
-                    </Routes>
+                    <Route path="/contracts" element={<ContractsPage />} />
+                    <Route path="/contracts/:id" element={<ContractDetails />} />
+                    <Route path="/followupsurveys" element={<FollowUpSurveyList />} />
+                    <Route path="/followupsurveys/new" element={<FollowUpSurveyCreate />} />
+                    <Route path="/followupsurveys/:id" element={<FollowUpSurveyDetails />} />
+                    <Route path="/followupsurveys/:id/edit" element={<FollowUpSurveyEdit />} />
+                  </Routes>
                 </div>
               </div>
             ) : (

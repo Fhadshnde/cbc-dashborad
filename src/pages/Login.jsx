@@ -16,7 +16,6 @@ const Login = ({ setIsAuthenticated }) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -34,12 +33,10 @@ const Login = ({ setIsAuthenticated }) => {
       );
 
       if (response.status === 200) {
-        const { token, user } = response.data; 
-
+        const { token, user } = response.data;
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("userData", JSON.stringify(user));
         localStorage.setItem("token", token);
-
         setIsAuthenticated(true);
         navigate("/");
       }
@@ -47,9 +44,9 @@ const Login = ({ setIsAuthenticated }) => {
       if (err.response) {
         setError(err.response.data.message || "حدث خطأ أثناء تسجيل الدخول"); 
       } else if (err.request) {
-        setError("لا يوجد اتصال بالخادم. يرجى التحقق من تشغيل الخادم.");
+        setError("لا يوجد اتصال بالخادم");
       } else {
-        setError("حدث خطأ غير متوقع.");
+        setError("حدث خطأ غير متوقع");
       }
     } finally {
       setLoading(false);
