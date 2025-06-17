@@ -309,7 +309,6 @@ const ContractsPage = () => {
                 <th className="px-4 py-2 whitespace-nowrap">نوع العقد</th>
                 <th className="px-4 py-2 whitespace-nowrap">تاريخ التوقيع</th>
                 <th className="px-4 py-2 whitespace-nowrap">تاريخ الانتهاء</th>
-                <th className="px-4 py-2 whitespace-nowrap">الحالة</th>
                 <th className="px-4 py-2 whitespace-nowrap">الإجراءات</th>
               </tr>
             </thead>
@@ -326,16 +325,7 @@ const ContractsPage = () => {
                       {contract.expiryDate ? new Date(contract.expiryDate).toLocaleDateString('ar-EG') : 'N/A'}
                     </td>
                     <td className="px-4 py-2 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        contract.status === 'active' ? 'bg-green-100 text-green-800' :
-                        contract.status === 'expired' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {contract.status || 'N/A'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      <div className="flex gap-2 justify-end">
+                      <div className="flex gap-2 justify-start">
                         <Link
                           to={`/contracts/${contract._id}`}
                           className="text-blue-600 hover:text-blue-800"

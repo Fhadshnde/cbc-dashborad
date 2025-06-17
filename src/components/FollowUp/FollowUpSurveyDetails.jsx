@@ -82,21 +82,51 @@ const FollowUpSurveyDetails = () => {
             </div>
           </div>
 
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">ملاحظات</h3>
-            <p className="text-gray-700">{survey.notes || "لا توجد ملاحظات"}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">معلومات ترويجية</h3>
+              <div className="space-y-3">
+                <p>
+                  <span className="font-medium text-gray-600">هل تم تصوير فيديو إعلاني؟</span>{" "}
+                  {survey.promotionalVideoShot ? "نعم" : "لا"}
+                </p>
+                <p>
+                  <span className="font-medium text-gray-600">هل تم نشر تصميم إعلاني؟</span>{" "}
+                  {survey.promotionalDesignPublished ? "نعم" : "لا"}
+                </p>
+              </div>
+            </div>
           </div>
+
+          <div className="mb-6">
+  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">الملاحظات</h3>
+  <div className="space-y-6 text-gray-700">
+    <div>
+      <h4 className="font-medium text-gray-600 mb-1">ماهي ملاحظات عن النافذة الخاصة بالمتجر داخل التطبيق *</h4>
+      <p className="whitespace-pre-wrap">{survey.notes || "لا توجد ملاحظات"}</p>
+    </div>
+    <div>
+      <h4 className="font-medium text-gray-600 mb-1">ماهي المشاكل التي واجهتها خلال فتره التعاون *</h4>
+      <p className="whitespace-pre-wrap">{survey.internalNotes || "لا توجد ملاحظات"}</p>
+    </div>
+    <div>
+      <h4 className="font-medium text-gray-600 mb-1">ملاحظات متابعة</h4>
+      <p className="whitespace-pre-wrap">{survey.followUpNotes || "لا توجد ملاحظات"}</p>
+    </div>
+  </div>
+</div>
 
           <div className="flex justify-end space-x-3">
             <button
               onClick={() => navigate(`/followupsurveys/${id}/edit`)}
-              className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-yellow-600"
+              className="bg-blue-600 text-white px-6 py-2 rounded 
+              "
             >
               تعديل
             </button>
             <button
               onClick={handleDelete}
-              className="bg-[#25BC9D] text-white px-6 py-2 rounded hover:bg-red-700"
+              className="bg-[#25BC9D] text-white px-6 py-2 rounded "
             >
               حذف
             </button>

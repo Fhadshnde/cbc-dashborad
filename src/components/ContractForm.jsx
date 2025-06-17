@@ -206,14 +206,7 @@ const ContractForm = ({ contract, onSave, onCancel }) => {
 
       {(isEditable || isCreateMode) && renderStep()}
 
-      {/* زر الإلغاء، تم إزالته مؤقتًا بناءً على تعليقك في الكود */}
-      {/* <button
-        onClick={onCancel}
-        disabled={loading}
-        className="mt-6 px-5 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 transition"
-      >
-        إلغاء
-      </button> */}
+
     </div>
   );
 };

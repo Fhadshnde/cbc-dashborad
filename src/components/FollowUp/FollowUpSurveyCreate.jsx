@@ -1,8 +1,8 @@
-// FollowUpSurveyCreate.jsx
-
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import FloatingInput from "../common/FloatingInput";
+import FloatingSelect from "../common/FloatingSelect";
 import StepIndicator from "../common/StepIndicator";
 
 const FollowUpSurveyCreate = () => {
@@ -40,91 +40,190 @@ const FollowUpSurveyCreate = () => {
       });
       navigate("/followupsurveys");
     } catch (error) {
-      alert("خطأ في الإضافة: " + error.response?.data?.message || error.message);
+      alert("خطأ في الإضافة: " + (error.response?.data?.message || error.message));
     }
   };
 
-  const next = () => setStep((s) => Math.min(s + 1, 3));
+  const next = () => setStep((s) => Math.min(s + 1, 4));
   const prev = () => setStep((s) => Math.max(s - 1, 1));
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">إضافة استبيان جديد</h2>
+    <div className="p-6 max-w-3xl mx-auto">
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">إضافة استبيان جديد</h2>
 
       {/* Stepper */}
       <div className="flex justify-between mb-8">
         <StepIndicator stepNumber={1} label="بيانات المتجر" isActive={step === 1} isCompleted={step > 1} />
-        <StepIndicator stepNumber={2} label="الملاحظات" isActive={step === 2} isCompleted={step > 2} />
-        <StepIndicator stepNumber={3} label="موظف المتابعة" isActive={step === 3} isCompleted={false} />
+        <StepIndicator stepNumber={2} label="تقييم المتابعة" isActive={step === 2} isCompleted={step > 2} />
+        <StepIndicator stepNumber={3} label="الملاحظات" isActive={step === 3} isCompleted={step > 3} />
+        <StepIndicator stepNumber={4} label="الموظف" isActive={step === 4} isCompleted={false} />
       </div>
 
-      <form onSubmit={handleSubmit} className="grid gap-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
+
         {step === 1 && (
-          <>
-            <input name="storeName" placeholder="اسم المتجر" value={formData.storeName} onChange={handleChange} required />
-            <select name="storeAddress" value={formData.storeAddress} onChange={handleChange} required>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FloatingInput
+              label="اسم المتجر *"
+              name="storeName"
+              value={formData.storeName}
+              onChange={handleChange}
+              required
+            />
+            <FloatingSelect
+              label="عنوان المتجر *"
+              name="storeAddress"
+              value={formData.storeAddress}
+              onChange={handleChange}
+              required
+            >
               <option value="">اختر العنوان</option>
-              <option>كرخ</option><option>رصافة</option><option>بصرة</option><option>كربلاء</option><option>انبار</option><option>اربيل</option>
-            </select>
-            <input name="section" placeholder="القسم" value={formData.section} onChange={handleChange} required />
-            <input name="storeRepresentativeName" placeholder="ممثل المتجر" value={formData.storeRepresentativeName} onChange={handleChange} required />
-            <select name="cbcCardHoldersVisits" value={formData.cbcCardHoldersVisits} onChange={handleChange} required>
-              <option value="">عدد زيارات حاملي CBC</option>
-              <option>اقل من 10</option><option>من 10 الى 50</option><option>من 50 الى 100</option><option>من 100 الى 1000</option><option>اكثر من 1000</option>
-            </select>
-
-            <select name="promotionalVideoShot" value={formData.promotionalVideoShot ? "yes" : "no"} onChange={(e) => {
-              setFormData({ ...formData, promotionalVideoShot: e.target.value === "yes" });
-            }} required>
-              <option value="">هل تم عمل فيديو إعلاني؟</option>
-              <option value="yes">نعم</option>
-              <option value="no">لا</option>
-            </select>
-
-            <select name="promotionalDesignPublished" value={formData.promotionalDesignPublished ? "yes" : "no"} onChange={(e) => {
-              setFormData({ ...formData, promotionalDesignPublished: e.target.value === "yes" });
-            }} required>
-              <option value="">هل تم تصميم إعلان؟</option>
-              <option value="yes">نعم</option>
-              <option value="no">لا</option>
-            </select>
-
-            <select name="companyCommunicationRating" value={formData.companyCommunicationRating} onChange={handleChange} required>
-              <option value="">تقييم تواصل الشركة</option>
-              <option>ضعيف</option><option>جيد</option><option>جيد جدا</option><option>ممتاز</option>
-            </select>
-            <select name="customerQualitySatisfaction" value={formData.customerQualitySatisfaction} onChange={handleChange} required>
-              <option value="">رضا الزبائن</option>
-              <option>ضعيف</option><option>جيد</option><option>جيد جدا</option><option>ممتاز</option>
-            </select>
-            <select name="storeBehaviorRating" value={formData.storeBehaviorRating} onChange={handleChange} required>
-              <option value="">سلوك المتجر</option>
-              <option>ضعيف</option><option>جيد</option><option>جيد جدا</option><option>ممتاز</option>
-            </select>
-          </>
+              <option>كرخ</option><option>رصافة</option><option>بصرة</option>
+              <option>كربلاء</option><option>انبار</option><option>اربيل</option>
+            </FloatingSelect>
+            <FloatingInput
+              label="القسم *"
+              name="section"
+              value={formData.section}
+              onChange={handleChange}
+              required
+            />
+            <FloatingInput
+              label="ممثل المتجر *"
+              name="storeRepresentativeName"
+              value={formData.storeRepresentativeName}
+              onChange={handleChange}
+              required
+            />
+          </div>
         )}
 
         {step === 2 && (
-          <>
-            <textarea name="notes" placeholder="ملاحظات" value={formData.notes} onChange={handleChange} />
-            <textarea name="internalNotes" placeholder="ملاحظات داخلية" value={formData.internalNotes} onChange={handleChange} />
-            <textarea name="followUpNotes" placeholder="ملاحظات متابعة" value={formData.followUpNotes} onChange={handleChange} />
-          </>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FloatingSelect
+              label="عدد زيارات حاملي CBC *"
+              name="cbcCardHoldersVisits"
+              value={formData.cbcCardHoldersVisits}
+              onChange={handleChange}
+              required
+            >
+              <option value="">اختر عدد الزيارات</option>
+              <option>اقل من 10</option><option>من 10 الى 50</option>
+              <option>من 50 الى 100</option><option>من 100 الى 1000</option>
+              <option>اكثر من 1000</option>
+            </FloatingSelect>
+
+            <FloatingSelect
+              label="هل تم عمل فيديو إعلاني؟ *"
+              name="promotionalVideoShot"
+              value={formData.promotionalVideoShot ? "yes" : "no"}
+              onChange={(e) =>
+                setFormData({ ...formData, promotionalVideoShot: e.target.value === "yes" })
+              }
+              required
+            >
+              <option value="">اختر</option>
+              <option value="yes">نعم</option>
+              <option value="no">لا</option>
+            </FloatingSelect>
+
+            <FloatingSelect
+              label="هل تم نشر تصميم إعلاني؟ *"
+              name="promotionalDesignPublished"
+              value={formData.promotionalDesignPublished ? "yes" : "no"}
+              onChange={(e) =>
+                setFormData({ ...formData, promotionalDesignPublished: e.target.value === "yes" })
+              }
+              required
+            >
+              <option value="">اختر</option>
+              <option value="yes">نعم</option>
+              <option value="no">لا</option>
+            </FloatingSelect>
+
+            <FloatingSelect
+              label="تقييم تواصل الشركة *"
+              name="companyCommunicationRating"
+              value={formData.companyCommunicationRating}
+              onChange={handleChange}
+              required
+            >
+              <option value="">اختر التقييم</option>
+              <option>ضعيف</option><option>جيد</option>
+              <option>جيد جدا</option><option>ممتاز</option>
+            </FloatingSelect>
+
+            <FloatingSelect
+              label="رضا الزبائن *"
+              name="customerQualitySatisfaction"
+              value={formData.customerQualitySatisfaction}
+              onChange={handleChange}
+              required
+            >
+              <option value="">اختر الرضا</option>
+              <option>ضعيف</option><option>جيد</option>
+              <option>جيد جدا</option><option>ممتاز</option>
+            </FloatingSelect>
+
+            <FloatingSelect
+              label="سلوك المتجر *"
+              name="storeBehaviorRating"
+              value={formData.storeBehaviorRating}
+              onChange={handleChange}
+              required
+            >
+              <option value="">اختر السلوك</option>
+              <option>ضعيف</option><option>جيد</option>
+              <option>جيد جدا</option><option>ممتاز</option>
+            </FloatingSelect>
+          </div>
         )}
 
         {step === 3 && (
-          <>
-            <input name="followUpEmployee" placeholder="اسم موظف المتابعة" value={formData.followUpEmployee} onChange={handleChange} required />
-          </>
+          <div className="grid grid-cols-1 gap-6">
+          <FloatingInput
+            label="ماهي ملاحظات عن النافذة الخاصة بالمتجر داخل التطبيق *"
+            name="notes"
+            value={formData.notes}
+            onChange={handleChange}
+            textarea
+          />
+          <FloatingInput
+            label="ماهي المشاكل التي واجهتها خلال فتره التعاون *"
+            name="internalNotes"
+            value={formData.internalNotes}
+            onChange={handleChange}
+            textarea
+          />
+          <FloatingInput
+            label="ملاحظات متابعة"
+            name="followUpNotes"
+            value={formData.followUpNotes}
+            onChange={handleChange}
+            textarea
+          />
+        </div>
         )}
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-4">
-          {step > 1 && <button type="button" onClick={prev} className="px-4 py-2 bg-gray-300 rounded">السابق</button>}
-          {step < 3 ? (
-            <button type="button" onClick={next} className="px-4 py-2 bg-blue-600 text-white rounded">التالي</button>
+        {step === 4 && (
+          <FloatingInput
+            label="اسم موظف المتابعة *"
+            name="followUpEmployee"
+            value={formData.followUpEmployee}
+            onChange={handleChange}
+            required
+          />
+        )}
+
+        {/* Buttons */}
+        <div className="flex justify-between pt-6">
+          {step > 1 && (
+            <button type="button" onClick={prev} className="bg-gray-300 text-black px-4 py-2 rounded-lg">السابق</button>
+          )}
+          {step < 4 ? (
+            <button type="button" onClick={next} className="bg-blue-600 text-white px-4 py-2 rounded-lg">التالي</button>
           ) : (
-            <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded">إنشاء</button>
+            <button type="submit" className="bg-[#25BC9D] text-white px-4 py-2 rounded-lg">إنشاء</button>
           )}
         </div>
       </form>
