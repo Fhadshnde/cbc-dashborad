@@ -28,7 +28,7 @@ const ContractsPage = () => {
     return roles.includes(user.role);
   };
 
-  const API_BASE_URL = 'http://localhost:5000/api';
+  const API_BASE_URL = 'https://hawkama.cbc-api.app/api';
 
   const getAuthHeaders = () => {
     return {

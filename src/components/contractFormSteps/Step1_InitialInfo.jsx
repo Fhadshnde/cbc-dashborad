@@ -14,7 +14,7 @@ const apiRequest = async (method, url, data = null, isFormData = false, getToken
     body = JSON.stringify(data);
   }
   try {
-    const response = await fetch(`http://localhost:5000/api/merchant/contracts${url}`, {
+    const response = await fetch(`https://hawkama.cbc-api.app/api/merchant/contracts${url}`, {
       method: method,
       headers: headers,
       body: body,

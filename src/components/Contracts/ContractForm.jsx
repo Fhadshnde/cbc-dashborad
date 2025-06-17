@@ -49,7 +49,7 @@ const apiRequest = async (method, url, data = null, isFormData = false) => {
   }
 
   try {
-    const response = await fetch(`http://localhost:5000/api${url}`, {
+    const response = await fetch(`https://hawkama.cbc-api.app${url}`, {
       method: method,
       headers: headers,
       body: body,

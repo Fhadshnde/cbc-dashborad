@@ -11,7 +11,7 @@ const FollowUpSurveyEdit = () => {
   useEffect(() => {
     const fetchSurvey = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/followupsurveys/${id}`, {
+        const res = await axios.get(`https://hawkama.cbc-api.app/api/followupsurveys/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setFormData(res.data.data);
@@ -31,7 +31,7 @@ const FollowUpSurveyEdit = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5000/api/followupsurveys/${id}`, formData, {
+      await axios.put(`https://hawkama.cbc-api.app/api/followupsurveys/${id}`, formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       navigate(`/followupsurveys/${id}`);

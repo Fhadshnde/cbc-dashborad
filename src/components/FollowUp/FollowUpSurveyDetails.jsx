@@ -15,7 +15,7 @@ const FollowUpSurveyDetails = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await axios.get(`http://localhost:5000/api/followupsurveys/${id}`, {
+        const res = await axios.get(`https://hawkama.cbc-api.app/api/followupsurveys/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSurvey(res.data.data);
@@ -31,7 +31,7 @@ const FollowUpSurveyDetails = () => {
   const handleDelete = async () => {
     if (!window.confirm("هل أنت متأكد من حذف هذا الاستبيان؟")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/followupsurveys/${id}`, {
+      await axios.delete(`https://hawkama.cbc-api.app/api/followupsurveys/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       navigate("/followupsurveys");

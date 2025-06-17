@@ -35,7 +35,7 @@ const FollowUpSurveyCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/followupsurveys", formData, {
+      await axios.post("https://hawkama.cbc-api.app/api/followupsurveys", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       navigate("/followupsurveys");

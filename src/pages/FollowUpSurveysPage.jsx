@@ -31,7 +31,7 @@ const FollowUpSurveysPage = () => {
   const deleteSurvey = async (id) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`/api/followupsurveys/${id}`, {
+      const response = await fetch(`https://hawkama.cbc-api.app/api/followupsurveys/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

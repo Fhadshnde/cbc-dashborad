@@ -34,7 +34,7 @@ const ContractDetailsPage = () => {
 
   const fetchContract = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/merchant/contracts/${id}`, {
+      const response = await fetch(`https://hawkama.cbc-api.app/api/merchant/contracts/${id}`, {
         headers: {
           Authorization: `Bearer ${getToken()}`
         }
@@ -76,7 +76,7 @@ const ContractDetailsPage = () => {
   const handleDelete = async () => {
     if (window.confirm('هل أنت متأكد من حذف هذا العقد؟')) {
       try {
-        await fetch(`http://localhost:5000/api/merchant/contracts/${id}`, {
+        await fetch(`https://hawkama.cbc-api.app/merchant/api/contracts/${id}`, {
           method: 'DELETE',
           headers: {
             Authorization: `Bearer ${getToken()}`
