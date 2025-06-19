@@ -1,17 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import FloatingInput from "../common/FloatingInput";
 import FloatingSelect from "../common/FloatingSelect";
 import StepIndicator from "../common/StepIndicator";
 
 const FollowUpSurveyCreate = () => {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-  const [step, setStep] = useState(1);
+  const { contractId } = useParams();
+  const location = useLocation();
+  const { storeName: initialStoreName } = location.state || {};
 
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    storeName: "",
+    storeName: initialStoreName || "",
     storeAddress: "",
     section: "",
     storeRepresentativeName: "",
@@ -24,8 +26,47 @@ const FollowUpSurveyCreate = () => {
     notes: "",
     internalNotes: "",
     followUpNotes: "",
-    followUpEmployee: ""
+    followUpEmployee: "",
+    contractId: contractId || null
   });
+  const [loadingContractData, setLoadingContractData] = useState(true);
+  const [contractError, setContractError] = useState('');
+
+  const getToken = useCallback(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      throw new Error("No token found");
+    }
+    return token;
+  }, [navigate]);
+
+  useEffect(() => {
+    const fetchContractData = async () => {
+      if (contractId) {
+        setLoadingContractData(true);
+        try {
+          const response = await axios.get(`https://hawkama.cbc-api.app/api/merchant/contracts/${contractId}`, {
+            headers: { Authorization: `Bearer ${getToken()}` },
+          });
+          const contract = response.data;
+          setFormData(prev => ({
+            ...prev,
+            storeName: contract.storeName || prev.storeName,
+            storeAddress: contract.contractFullAddress || prev.storeAddress,
+            section: contract.commercialActivityType || prev.section,
+          }));
+        } catch (error) {
+          setContractError("فشل جلب بيانات العقد: " + (error.response?.data?.message || error.message));
+        } finally {
+          setLoadingContractData(false);
+        }
+      } else {
+        setLoadingContractData(false);
+      }
+    };
+    fetchContractData();
+  }, [contractId, getToken]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -34,9 +75,13 @@ const FollowUpSurveyCreate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loadingContractData) {
+      alert("الرجاء انتظار تحميل بيانات العقد.");
+      return;
+    }
     try {
       await axios.post("https://hawkama.cbc-api.app/api/followupsurveys", formData, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
       });
       navigate("/followupsurveys");
     } catch (error) {
@@ -47,11 +92,28 @@ const FollowUpSurveyCreate = () => {
   const next = () => setStep((s) => Math.min(s + 1, 4));
   const prev = () => setStep((s) => Math.max(s - 1, 1));
 
+  if (loadingContractData) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-xl">جاري تحميل بيانات المتجر...</div>
+      </div>
+    );
+  }
+
+  if (contractError) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-xl text-red-500">{contractError}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">إضافة استبيان جديد</h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">
+        إضافة استبيان جديد {formData.storeName && `للمتجر: ${formData.storeName}`}
+      </h2>
 
-      {/* Stepper */}
       <div className="flex justify-between mb-8">
         <StepIndicator stepNumber={1} label="بيانات المتجر" isActive={step === 1} isCompleted={step > 1} />
         <StepIndicator stepNumber={2} label="تقييم المتابعة" isActive={step === 2} isCompleted={step > 2} />
@@ -60,7 +122,6 @@ const FollowUpSurveyCreate = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-
         {step === 1 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FloatingInput
@@ -182,14 +243,14 @@ const FollowUpSurveyCreate = () => {
         {step === 3 && (
           <div className="grid grid-cols-1 gap-6">
           <FloatingInput
-            label="ماهي ملاحظات عن النافذة الخاصة بالمتجر داخل التطبيق *"
+            label="ملاحظات عن النافذة الخاصة بالمتجر داخل التطبيق"
             name="notes"
             value={formData.notes}
             onChange={handleChange}
             textarea
           />
           <FloatingInput
-            label="ماهي المشاكل التي واجهتها خلال فتره التعاون *"
+            label="المشاكل التي واجهتها خلال فتره التعاون"
             name="internalNotes"
             value={formData.internalNotes}
             onChange={handleChange}
@@ -215,7 +276,6 @@ const FollowUpSurveyCreate = () => {
           />
         )}
 
-        {/* Buttons */}
         <div className="flex justify-between pt-6">
           {step > 1 && (
             <button type="button" onClick={prev} className="bg-gray-300 text-black px-4 py-2 rounded-lg">السابق</button>

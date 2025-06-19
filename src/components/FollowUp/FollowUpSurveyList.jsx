@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -11,7 +11,15 @@ const FollowUpSurveyList = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+
+  const getToken = useCallback(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      throw new Error("No token found");
+    }
+    return token;
+  }, [navigate]);
 
   useEffect(() => {
     const fetchSurveys = async () => {
@@ -19,7 +27,7 @@ const FollowUpSurveyList = () => {
       setError(null);
       try {
         const res = await axios.get("https://hawkama.cbc-api.app/api/followupsurveys", {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${getToken()}` },
         });
         setSurveys(res.data.data);
         setFilteredSurveys(res.data.data);
@@ -31,7 +39,7 @@ const FollowUpSurveyList = () => {
       }
     };
     fetchSurveys();
-  }, []);
+  }, [getToken]);
 
   const handleSearch = () => {
     let result = surveys;
@@ -72,7 +80,7 @@ const FollowUpSurveyList = () => {
     if (window.confirm("هل أنت متأكد من حذف هذا الاستبيان؟")) {
       try {
         await axios.delete(`https://hawkama.cbc-api.app/api/followupsurveys/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${getToken()}` },
         });
         setSurveys(surveys.filter(survey => survey._id !== id));
         setFilteredSurveys(filteredSurveys.filter(survey => survey._id !== id));
@@ -144,10 +152,10 @@ const FollowUpSurveyList = () => {
             />
           </div>
           <button
-            onClick={() => navigate("/followupsurveys/new")}
-            className=" text-white px-6 py-2 rounded bg-[#25BC9D] transition w-full md:w-auto self-end"
+            onClick={() => navigate("/select-store-for-survey")}
+            className="text-white px-6 py-2 rounded bg-[#25BC9D] transition w-full md:w-auto self-end"
           >
-            إضافة استبيان جديد
+            إضافة استبيان جديد لمتجر
           </button>
           <button
             onClick={handleSearch}
@@ -184,7 +192,7 @@ const FollowUpSurveyList = () => {
                     <td className="px-4 py-2 whitespace-nowrap">{survey.storeAddress}</td>
                     <td className="px-4 py-2 whitespace-nowrap">{survey.section}</td>
                     <td className="px-4 py-2 whitespace-nowrap">
-                      {new Date(survey.createdAt).toLocaleDateString()}
+                      {new Date(survey.createdAt).toLocaleDateString('ar-EG')}
                     </td>
                     <td className="px-4 py-2 whitespace-nowrap space-x-2">
                       <button

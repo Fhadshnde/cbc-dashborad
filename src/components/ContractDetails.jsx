@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import axios from 'axios';
 
 const ContractDetailsPage = () => {
   const { id } = useParams();
@@ -8,281 +9,206 @@ const ContractDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const getToken = () => {
+  const getToken = useCallback(() => {
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login');
       throw new Error('No token found');
     }
     return token;
-  };
+  }, [navigate]);
 
-  const getUserData = () => {
+  const getUserData = useCallback(() => {
     const userData = localStorage.getItem('userData');
-    try {
-      return userData ? JSON.parse(userData) : null;
-    } catch (e) {
-      return null;
-    }
-  };
+    return userData ? JSON.parse(userData) : null;
+  }, []);
 
-  const hasRole = (roles) => {
+  const hasRole = useCallback((roles) => {
     const user = getUserData();
     if (!user || !user.role) return false;
     return roles.includes(user.role);
-  };
+  }, [getUserData]);
 
-  const fetchContract = async () => {
+  const API_BASE_URL = 'https://hawkama.cbc-api.app/api';
+
+  const getContractDetails = useCallback(async () => {
+    setLoading(true);
+    setError('');
     try {
-      const response = await fetch(`https://hawkama.cbc-api.app/api/merchant/contracts/${id}`, {
+      const response = await axios.get(`${API_BASE_URL}/merchant/contracts/${id}`, {
         headers: {
-          Authorization: `Bearer ${getToken()}`
-        }
+          Authorization: `Bearer ${getToken()}`,
+        },
       });
-      
-      if (!response.ok) {
-        throw new Error('فشل في جلب بيانات العقد');
-      }
-      
-      const data = await response.json();
-      setContract(data);
+      setContract(response.data);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message || 'فشل جلب تفاصيل العقد.');
+      if (err.response?.status === 401) {
+        navigate('/login');
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, getToken, navigate]);
 
   useEffect(() => {
-    fetchContract();
-  }, [id]);
-
-  const getStatusColor = () => {
-    if (!contract) return 'bg-gray-500';
-    switch (contract.status) {
-      case 'draft': return 'bg-gray-400';
-      case 'pending': return 'bg-yellow-400';
-      case 'approved': return 'bg-green-500';
-      case 'rejected': return 'bg-red-500';
-      case 'finalized': return 'bg-blue-500';
-      default: return 'bg-gray-600';
-    }
-  };
-
-  const handleEdit = () => {
-    navigate(`/contracts/edit/${id}`);
-  };
-
-  const handleDelete = async () => {
-    if (window.confirm('هل أنت متأكد من حذف هذا العقد؟')) {
-      try {
-        await fetch(`https://hawkama.cbc-api.app/merchant/api/contracts/${id}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${getToken()}`
-          }
-        });
-        navigate('/contracts');
-      } catch (err) {
-        setError('فشل في حذف العقد');
-      }
-    }
-  };
+    getContractDetails();
+  }, [getContractDetails]);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-xl">جاري تحميل بيانات العقد...</div>
+      <div className="flex justify-center items-center h-screen bg-gray-100 rtl">
+        <div className="text-center p-8 text-lg text-gray-600 animate-pulse">جاري تحميل تفاصيل العقد...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-xl text-red-500">{error}</div>
+      <div className="flex justify-center items-center h-screen bg-gray-100 rtl">
+        <div className="text-center p-8 text-lg text-red-600">{error}</div>
       </div>
     );
   }
 
   if (!contract) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-xl">لا يوجد عقد لعرضه</div>
+      <div className="flex justify-center items-center h-screen bg-gray-100 rtl">
+        <div className="text-center p-8 text-lg text-gray-600">لم يتم العثور على العقد.</div>
       </div>
     );
   }
 
   const isAdminOrSupervisor = hasRole(['admin', 'supervisor']);
-  const canDelete = hasRole(['admin']);
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-md rtl text-right">
+    <div className="m-4 sm:m-16 p-4 sm:p-6 bg-gray-50 min-h-screen text-right font-sans">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">تفاصيل العقد: {contract.contractNumber}</h2>
-        <button 
-          onClick={() => navigate('/contracts')}
-          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-        >
-          رجوع للقائمة
-        </button>
-      </div>
-
-      {/* المعلومات الأساسية */}
-      <div className="mb-8 p-6 border rounded-xl  bg-white overflow-auto" dir="rtl">
-  <h3 className="text-2xl font-bold mb-4 pb-2  text-gray-800">المعلومات الأساسية</h3>
-  <div className="flex flex-wrap gap-x-12 gap-y-6 text-center">
-    <div className="flex flex-col">
-      <span className="text-gray-600 font-medium mb-1">رقم العقد</span>
-      <span className="text-gray-800">{contract.contractNumber}</span>
-    </div>
-    <div className="flex flex-col">
-      <span className="text-gray-600 font-medium mb-1">نوع العقد</span>
-      <span className="text-gray-800">{contract.contractType}</span>
-    </div>
-    <div className="flex flex-col">
-      <span className="text-gray-600 font-medium mb-1">تاريخ التوقيع</span>
-      <span className="text-gray-800">{new Date(contract.signingDate).toLocaleDateString('ar-EG')}</span>
-    </div>
-    <div className="flex flex-col">
-      <span className="text-gray-600 font-medium mb-1">تاريخ الانتهاء</span>
-      <span className="text-gray-800">{new Date(contract.expiryDate).toLocaleDateString('ar-EG')}</span>
-    </div>
-    <div className="flex flex-col">
-      <span className="text-gray-600 font-medium mb-1">المنشئ</span>
-      <span className="text-gray-800">{contract.createdBy?.username || 'غير معروف'}</span>
-    </div>
-  </div>
-</div>
-
-
-      {/* معلومات الطرف الثاني */}
-      <div className="mb-8 p-4 border rounded-lg">
-        <h3 className="text-xl font-semibold mb-4 pb-2">معلومات الطرف الثاني</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex justify-between">
-            <span className="font-medium">اسم صاحب العقد:</span>
-            <span>{contract.secondPartyOwnerName || 'غير محدد'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-medium">نوع النشاط:</span>
-            <span>{contract.commercialActivityType || 'غير محدد'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-medium">هاتف المالك:</span>
-            <span>{contract.ownerPersonalPhone || 'غير محدد'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-medium">البريد الإلكتروني:</span>
-            <span>{contract.contractEmail || 'غير محدد'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-medium">المحافظة:</span>
-            <span>{contract.contractGovernorate || 'غير محدد'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-medium">العنوان:</span>
-            <span>{contract.contractFullAddress || 'غير محدد'}</span>
-          </div>
+        <h2 className="text-2xl font-bold text-gray-700">تفاصيل العقد: {contract.contractNumber}</h2>
+        <div className="flex gap-2">
+          {isAdminOrSupervisor && (
+            <button
+              onClick={() => navigate(`/contracts/edit/${contract._id}`)}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+            >
+              تعديل العقد
+            </button>
+          )}
+          <Link
+            to="/contracts"
+            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
+          >
+            العودة للقائمة
+          </Link>
         </div>
       </div>
 
-      {/* الخصومات والخدمات */}
-      <div className="mb-8 p-4 border rounded-lg">
-        <h3 className="text-xl font-semibold mb-4 pb-2">الخصومات والخدمات</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <React.Fragment key={i}>
-              <div className="flex justify-between">
-                <span className="font-medium">خصم {i}:</span>
-                <span>{contract[`discount${i}`] || 'غير محدد'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">خدمة {i}:</span>
-                <span>{contract[`service${i}`] || 'غير محدد'}</span>
-              </div>
-            </React.Fragment>
-          ))}
-        </div>
-      </div>
-
-      {/* بيانات الفروع */}
-      <div className="mb-8 p-4 border rounded-lg">
-        <h3 className="text-xl font-semibold mb-4 ">بيانات الفروع</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-            <div key={i} className="p-3 border rounded bg-gray-50">
-              <h4 className="font-medium mb-2">فرع {i}</h4>
-              <div className="flex justify-between">
-                <span>الاسم:</span>
-                <span>{contract[`branchName${i}`] || 'غير محدد'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>العنوان:</span>
-                <span>{contract[`branchAddress${i}`] || 'غير محدد'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>الهاتف:</span>
-                <span>{contract[`branchPhone${i}`] || 'غير محدد'}</span>
-              </div>
+      <div className="bg-white shadow rounded-lg p-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">معلومات أساسية</h3>
+            <div className="space-y-3 text-gray-700">
+              <p><span className="font-medium text-gray-600">رقم العقد:</span> {contract.contractNumber}</p>
+              <p><span className="font-medium text-gray-600">نوع العقد:</span> {contract.contractType}</p>
+              <p><span className="font-medium text-gray-600">اسم المتجر:</span> {contract.storeName || 'غير محدد'}</p>
+              <p><span className="font-medium text-gray-600">تاريخ التوقيع:</span> {contract.signingDate ? new Date(contract.signingDate).toLocaleDateString('ar-EG') : 'غير محدد'}</p>
+              <p><span className="font-medium text-gray-600">تاريخ الانتهاء:</span> {contract.expiryDate ? new Date(contract.expiryDate).toLocaleDateString('ar-EG') : 'غير محدد'}</p>
+              <p><span className="font-medium text-gray-600">الحالة:</span> {contract.status}</p>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* معلومات الاشتراك */}
-      <div className="mb-8 p-4 border rounded-lg">
-        <h3 className="text-xl font-semibold mb-4 pb-2 ">معلومات الاشتراك</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex justify-between">
-            <span className="font-medium">نوع الاشتراك:</span>
-            <span>{contract.subscriptionType || 'غير محدد'}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="font-medium">مبلغ الاشتراك:</span>
-            <span>{contract.subscriptionAmount || 'غير محدد'}</span>
-          </div>
-          <div className="flex justify-between col-span-1 md:col-span-2">
-            <span className="font-medium">ملاحظات:</span>
-            <span className="text-right">{contract.notes || 'لا توجد ملاحظات'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-medium">نفذ بواسطة:</span>
-            <span>{contract.executedBy || 'غير محدد'}</span>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">معلومات الطرف الثاني</h3>
+            <div className="space-y-3 text-gray-700">
+              <p><span className="font-medium text-gray-600">اسم صاحب المتجر:</span> {contract.secondPartyOwnerName}</p>
+              <p><span className="font-medium text-gray-600">عنوان المتجر الكامل:</span> {contract.contractFullAddress}</p>
+              <p><span className="font-medium text-gray-600">نوع النشاط التجاري:</span> {contract.commercialActivityType}</p>
+              <p><span className="font-medium text-gray-600">هاتف صاحب المتجر:</span> {contract.ownerPersonalPhone || 'غير محدد'}</p>
+              <p><span className="font-medium text-gray-600">هاتف خدمة الزبائن:</span> {contract.customerServicePhone || 'غير محدد'}</p>
+              <p><span className="font-medium text-gray-600">بريد العقد الإلكتروني:</span> {contract.contractEmail || 'غير محدد'}</p>
+              <p><span className="font-medium text-gray-600">المحافظة:</span> {contract.contractGovernorate || 'غير محدد'}</p>
+              <p><span className="font-medium text-gray-600">بريد المتجر الإلكتروني:</span> {contract.storeEmail || 'غير محدد'}</p>
+              <p><span className="font-medium text-gray-600">فيسبوك:</span> {contract.facebook || 'غير محدد'}</p>
+              <p><span className="font-medium text-gray-600">انستغرام:</span> {contract.instagram || 'غير محدد'}</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* صورة العقد */}
-      {contract.contractImage && (
-        <div className="mb-8 p-4 border rounded-lg">
-          <h3 className="text-xl font-semibold mb-4">صورة العقد</h3>
-          <img
-            src={`http://localhost:5000/uploads/${contract.contractImage}`}
-            alt="صورة العقد"
-            className="max-w-full h-auto rounded shadow"
-          />
+        {/* معلومات الخصومات والخدمات (تم تعديلها لتناسب الحقول الجديدة) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">الخصومات</h3>
+            <div className="space-y-3 text-gray-700">
+              {contract.discount1 && <p><span className="font-medium text-gray-600">الخصم 1:</span> {contract.discount1}%</p>}
+              {contract.discount2 && <p><span className="font-medium text-gray-600">الخصم 2:</span> {contract.discount2}%</p>}
+              {contract.discount3 && <p><span className="font-medium text-gray-600">الخصم 3:</span> {contract.discount3}%</p>}
+              {contract.discount4 && <p><span className="font-medium text-gray-600">الخصم 4:</span> {contract.discount4}%</p>}
+              {contract.discount5 && <p><span className="font-medium text-gray-600">الخصم 5:</span> {contract.discount5}%</p>}
+              {contract.discount6 && <p><span className="font-medium text-gray-600">الخصم 6:</span> {contract.discount6}%</p>}
+            </div>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">الخدمات</h3>
+            <div className="space-y-3 text-gray-700">
+              {contract.service1 && <p><span className="font-medium text-gray-600">الخدمة 1:</span> {contract.service1}</p>}
+              {contract.service2 && <p><span className="font-medium text-gray-600">الخدمة 2:</span> {contract.service2}</p>}
+              {contract.service3 && <p><span className="font-medium text-gray-600">الخدمة 3:</span> {contract.service3}</p>}
+              {contract.service4 && <p><span className="font-medium text-gray-600">الخدمة 4:</span> {contract.service4}</p>}
+              {contract.service5 && <p><span className="font-medium text-gray-600">الخدمة 5:</span> {contract.service5}</p>}
+              {contract.service6 && <p><span className="font-medium text-gray-600">الخدمة 6:</span> {contract.service6}</p>}
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* أزرار التحكم */}
-      <div className="flex justify-center gap-4 mt-6">
-        {isAdminOrSupervisor && contract.status !== 'finalized' && (
-          <button 
-            onClick={handleEdit}
-            className="px-6 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-          >
-            تعديل العقد
-          </button>
+        {/* فروع المتجر (تم تعديلها لتناسب الحقول الجديدة) */}
+        {(contract.branchName1 || contract.branchName2 || contract.branchName3 || contract.branchName4 || contract.branchName5 || contract.branchName6 || contract.branchName7 || contract.branchName8) && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">فروع المتجر</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm text-right border-collapse">
+                <thead className="bg-gray-100 text-gray-600 font-bold">
+                  <tr>
+                    <th className="px-4 py-2 whitespace-nowrap">اسم الفرع</th>
+                    <th className="px-4 py-2 whitespace-nowrap">عنوان الفرع</th>
+                    <th className="px-4 py-2 whitespace-nowrap">هاتف الفرع</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {contract.branchName1 && <tr className="border-t hover:bg-gray-50"><td className="px-4 py-2">{contract.branchName1}</td><td className="px-4 py-2">{contract.branchAddress1}</td><td className="px-4 py-2">{contract.branchPhone1}</td></tr>}
+                  {contract.branchName2 && <tr className="border-t hover:bg-gray-50"><td className="px-4 py-2">{contract.branchName2}</td><td className="px-4 py-2">{contract.branchAddress2}</td><td className="px-4 py-2">{contract.branchPhone2}</td></tr>}
+                  {contract.branchName3 && <tr className="border-t hover:bg-gray-50"><td className="px-4 py-2">{contract.branchName3}</td><td className="px-4 py-2">{contract.branchAddress3}</td><td className="px-4 py-2">{contract.branchPhone3}</td></tr>}
+                  {contract.branchName4 && <tr className="border-t hover:bg-gray-50"><td className="px-4 py-2">{contract.branchName4}</td><td className="px-4 py-2">{contract.branchAddress4}</td><td className="px-4 py-2">{contract.branchPhone4}</td></tr>}
+                  {contract.branchName5 && <tr className="border-t hover:bg-gray-50"><td className="px-4 py-2">{contract.branchName5}</td><td className="px-4 py-2">{contract.branchAddress5}</td><td className="px-4 py-2">{contract.branchPhone5}</td></tr>}
+                  {contract.branchName6 && <tr className="border-t hover:bg-gray-50"><td className="px-4 py-2">{contract.branchName6}</td><td className="px-4 py-2">{contract.branchAddress6}</td><td className="px-4 py-2">{contract.branchPhone6}</td></tr>}
+                  {contract.branchName7 && <tr className="border-t hover:bg-gray-50"><td className="px-4 py-2">{contract.branchName7}</td><td className="px-4 py-2">{contract.branchAddress7}</td><td className="px-4 py-2">{contract.branchPhone7}</td></tr>}
+                  {contract.branchName8 && <tr className="border-t hover:bg-gray-50"><td className="px-4 py-2">{contract.branchName8}</td><td className="px-4 py-2">{contract.branchAddress8}</td><td className="px-4 py-2">{contract.branchPhone8}</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
-        {canDelete && (
-          <button
-            onClick={handleDelete}
-            className="px-6 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-          >
-            حذف العقد
-          </button>
-        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">معلومات إضافية</h3>
+            <div className="space-y-3 text-gray-700">
+              <p><span className="font-medium text-gray-600">نوع الاشتراك:</span> {contract.subscriptionType || 'غير محدد'}</p>
+              <p><span className="font-medium text-gray-600">مبلغ الاشتراك:</span> {contract.subscriptionAmount || 'غير محدد'}</p>
+              <p><span className="font-medium text-gray-600">ملاحظات:</span> {contract.notes || 'لا يوجد'}</p>
+              <p><span className="font-medium text-gray-600">تم التنفيذ بواسطة:</span> {contract.executedBy || 'غير محدد'}</p>
+              {contract.contractImage && (
+                <p><span className="font-medium text-gray-600">صورة العقد:</span> <a href={`https://hawkama.cbc-api.app/${contract.contractImage}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">عرض الصورة</a></p>
+              )}
+            </div>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">حالة العقد والتواريخ</h3>
+            <div className="space-y-3 text-gray-700">
+              <p><span className="font-medium text-gray-600">الحالة:</span> {contract.status}</p>
+              <p><span className="font-medium text-gray-600">تاريخ الإنشاء:</span> {contract.createdAt ? new Date(contract.createdAt).toLocaleDateString('ar-EG') : 'غير محدد'}</p>
+              <p><span className="font-medium text-gray-600">آخر تحديث:</span> {contract.updatedAt ? new Date(contract.updatedAt).toLocaleDateString('ar-EG') : 'غير محدد'}</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

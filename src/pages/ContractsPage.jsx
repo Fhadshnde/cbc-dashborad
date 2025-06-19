@@ -1,46 +1,44 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import ContractForm from '../components/ContractForm';
 
 const ContractsPage = () => {
-  const getToken = () => {
+  const navigate = useNavigate();
+
+  const getToken = useCallback(() => {
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login');
       throw new Error('No token found');
     }
     return token;
-  };
+  }, [navigate]);
 
-  const getUserData = () => {
+  const getUserData = useCallback(() => {
     const userData = localStorage.getItem('userData');
     return userData ? JSON.parse(userData) : null;
-  };
+  }, []);
 
-  const isAuthenticated = () => {
-    return !!localStorage.getItem('token'); 
-  };
+  const isAuthenticated = useCallback(() => {
+    return !!localStorage.getItem('token');
+  }, []);
 
-  const hasRole = (roles) => {
+  const hasRole = useCallback((roles) => {
     const user = getUserData();
     if (!user || !user.role) return false;
     return roles.includes(user.role);
-  };
+  }, [getUserData]);
 
   const API_BASE_URL = 'https://hawkama.cbc-api.app/api';
 
-  const getAuthHeaders = () => {
-    return {
-      headers: {
-        Authorization: `Bearer ${getToken()}`,
-      },
-    };
-  };
-
-  const getAllContracts = async () => {
+  const getAllContracts = useCallback(async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/merchant/contracts`, getAuthHeaders());
+      const response = await axios.get(`${API_BASE_URL}/merchant/contracts`, {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      });
       return response.data;
     } catch (error) {
       if (error.response?.status === 401) {
@@ -48,11 +46,15 @@ const ContractsPage = () => {
       }
       throw error.response?.data?.message || error.message;
     }
-  };
+  }, [getToken, navigate]);
 
-  const deleteContract = async (id) => {
+  const deleteContract = useCallback(async (id) => {
     try {
-      const response = await axios.delete(`${API_BASE_URL}/merchant/contracts/${id}`, getAuthHeaders());
+      const response = await axios.delete(`${API_BASE_URL}/merchant/contracts/${id}`, {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+        },
+      });
       return response.data;
     } catch (error) {
       if (error.response?.status === 401) {
@@ -60,7 +62,7 @@ const ContractsPage = () => {
       }
       throw error.response?.data?.message || error.message;
     }
-  };
+  }, [getToken, navigate]);
 
   const [contracts, setContracts] = useState([]);
   const [filteredContracts, setFilteredContracts] = useState([]);
@@ -75,17 +77,31 @@ const ContractsPage = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   
-  const navigate = useNavigate();
   const isAdminOrSupervisor = hasRole(['admin', 'supervisor']);
   const canDelete = hasRole(['admin']);
+
+  // *** هنا قمنا بنقل تعريف fetchContracts إلى الأعلى ***
+  const fetchContracts = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await getAllContracts();
+      setContracts(data);
+      setFilteredContracts(data);
+    } catch (err) {
+      setError(err || 'فشل جلب العقود.');
+    } finally {
+      setLoading(false);
+    }
+  }, [getAllContracts]); // تعتمد على getAllContracts
 
   useEffect(() => {
     if (!isAuthenticated()) {
       navigate('/login');
       return;
     }
-    fetchContracts();
-  }, [navigate]);
+    fetchContracts(); // الآن fetchContracts معرفة عند هذه النقطة
+  }, [isAuthenticated, navigate, fetchContracts]); // أضف fetchContracts إلى التبعيات
 
   useEffect(() => {
     if (successMessage) {
@@ -105,27 +121,14 @@ const ContractsPage = () => {
     }
   }, [error]);
 
-  const fetchContracts = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await getAllContracts();
-      setContracts(data);
-      setFilteredContracts(data);
-    } catch (err) {
-      setError(err || 'فشل جلب العقود.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSearch = () => {
     let result = contracts;
 
     if (searchTerm.trim()) {
       result = result.filter((contract) =>
         (contract.contractNumber && contract.contractNumber.toLowerCase().includes(searchTerm.toLowerCase().trim())) ||
-        (contract.contractType && contract.contractType.toLowerCase().includes(searchTerm.toLowerCase().trim()))
+        (contract.contractType && contract.contractType.toLowerCase().includes(searchTerm.toLowerCase().trim())) ||
+        (contract.storeName && contract.storeName.toLowerCase().includes(searchTerm.toLowerCase().trim()))
       );
     }
 
@@ -215,7 +218,7 @@ const ContractsPage = () => {
         <div className="relative w-full sm:w-auto">
           <input
             type="text"
-            placeholder="ابحث برقم العقد أو النوع..."
+            placeholder="ابحث برقم العقد أو نوعه أو اسم المتجر..."
             className="border px-4 py-2 rounded-lg pr-10 w-full"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -306,6 +309,7 @@ const ContractsPage = () => {
             <thead className="bg-gray-100 text-gray-600 font-bold">
               <tr>
                 <th className="px-4 py-2 whitespace-nowrap">رقم العقد</th>
+                <th className="px-4 py-2 whitespace-nowrap">اسم المتجر</th>
                 <th className="px-4 py-2 whitespace-nowrap">نوع العقد</th>
                 <th className="px-4 py-2 whitespace-nowrap">تاريخ التوقيع</th>
                 <th className="px-4 py-2 whitespace-nowrap">تاريخ الانتهاء</th>
@@ -317,6 +321,7 @@ const ContractsPage = () => {
                 filteredContracts.map((contract) => (
                   <tr key={contract._id} className="border-t hover:bg-gray-50">
                     <td className="px-4 py-2 whitespace-nowrap">{contract.contractNumber || 'N/A'}</td>
+                    <td className="px-4 py-2 whitespace-nowrap">{contract.storeName || 'N/A'}</td>
                     <td className="px-4 py-2 whitespace-nowrap">{contract.contractType || 'N/A'}</td>
                     <td className="px-4 py-2 whitespace-nowrap">
                       {contract.signingDate ? new Date(contract.signingDate).toLocaleDateString('ar-EG') : 'N/A'}
@@ -378,15 +383,15 @@ const ContractsPage = () => {
             <h3 className="text-xl font-bold mb-4 text-gray-800">تأكيد الحذف</h3>
             <p className="mb-6 text-gray-700">هل أنت متأكد أنك تريد حذف هذا العقد بشكل دائم؟ لا يمكن التراجع عن هذا الإجراء.</p>
             <div className="flex justify-end gap-3">
-              <button 
-                onClick={cancelDelete} 
-                className="bg-gray-500 text-white px-5 py-2 rounded-lg hover:bg-gray-600"
+              <button
+                onClick={cancelDelete}
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition"
               >
                 إلغاء
               </button>
-              <button 
-                onClick={confirmDelete} 
-                className="bg-red-500 text-white px-5 py-2 rounded-lg hover:bg-red-600"
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
               >
                 حذف
               </button>

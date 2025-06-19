@@ -32,6 +32,7 @@ const apiRequest = async (method, url, data = null, isFormData = false, getToken
 
 const createInitialContractApi = (contractData, getToken) => apiRequest('POST', '/', contractData, false, getToken);
 const updateContractApi = (id, contractData, getToken) => apiRequest('PUT', `/${id}`, contractData, false, getToken);
+
 const Step1_InitialInfo = ({ formData, handleChange, setFormData, setCurrentStep, contract, setError, setSuccess, setLoading, loading, getToken }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,8 +40,8 @@ const Step1_InitialInfo = ({ formData, handleChange, setFormData, setCurrentStep
     setSuccess('');
     setLoading(true);
     try {
-      if (!formData.contractType || !formData.contractNumber || !formData.contractPeriod || !formData.signingDate || !formData.expiryDate) {
-        throw new Error("الرجاء ملء جميع حقول معلومات العقد الأولية المطلوبة.");
+      if (!formData.contractType || !formData.contractNumber || !formData.contractPeriod || !formData.signingDate || !formData.expiryDate || !formData.storeName || !formData.contractGovernorate) {
+        throw new Error("الرجاء ملء جميع حقول معلومات العقد الأولية المطلوبة (بما في ذلك اسم المتجر والمحافظة).");
       }
       let res;
       if (contract && contract._id) {
@@ -50,12 +51,16 @@ const Step1_InitialInfo = ({ formData, handleChange, setFormData, setCurrentStep
           contractPeriod: formData.contractPeriod,
           signingDate: formData.signingDate,
           expiryDate: formData.expiryDate,
+          storeName: formData.storeName,
+          contractGovernorate: formData.contractGovernorate,
         }, getToken);
         setSuccess('تم تحديث المعلومات الأولية بنجاح.');
       } else {
         res = await createInitialContractApi({
           ...formData,
           status: "draft",
+          storeName: formData.storeName,
+          contractGovernorate: formData.contractGovernorate,
         }, getToken);
         setSuccess('تم إنشاء العقد الأولي بنجاح. يمكنك الآن إضافة التفاصيل.');
       }
@@ -70,7 +75,7 @@ const Step1_InitialInfo = ({ formData, handleChange, setFormData, setCurrentStep
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-6  rounded-lg ">
+    <form onSubmit={handleSubmit} className="p-6 rounded-lg ">
       <h3 className="text-2xl font-bold text-gray-800 mb-6">المعلومات الأولية للعقد</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <FloatingSelect
@@ -120,7 +125,32 @@ const Step1_InitialInfo = ({ formData, handleChange, setFormData, setCurrentStep
         type="date"
         className="mb-6"
       />
-      <button type="submit" className="bg-[#25BC9D]  text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full transition-colors duration-300" disabled={loading}>المتابعة إلى تفاصيل الطرف الثاني</button>
+      <FloatingInput
+        label="اسم المتجر *"
+        placeholder="ادخل اسم المتجر"
+        name="storeName"
+        value={formData.storeName || ''}
+        onChange={handleChange}
+        required
+        className="mb-6"
+      />
+      {/* إضافة حقل المحافظة هنا */}
+      <FloatingSelect
+          label="المحافظة *"
+          name="contractGovernorate"
+          value={formData.contractGovernorate || ''}
+          onChange={handleChange}
+          required
+      >
+          <option value="">اختر المحافظة</option>
+          <option>كرخ</option>
+          <option>رصافة</option>
+          <option>بصرة</option>
+          <option>كربلاء</option>
+          <option>انبار</option>
+          <option>اربيل</option>
+      </FloatingSelect>
+      <button type="submit" className="bg-[#25BC9D] text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full transition-colors duration-300" disabled={loading}>المتابعة إلى تفاصيل الطرف الثاني</button>
     </form>
   );
 };
