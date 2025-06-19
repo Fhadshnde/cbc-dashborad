@@ -21,7 +21,8 @@ import FollowUpSurveyList from './components/FollowUp/FollowUpSurveyList';
 import FollowUpSurveyCreate from './components/FollowUp/FollowUpSurveyCreate';
 import FollowUpSurveyDetails from './components/FollowUp/FollowUpSurveyDetails';
 import FollowUpSurveyEdit from './components/FollowUp/FollowUpSurveyEdit';
-import SelectStoreForSurvey from './pages/SelectStoreForSurvey'; // استيراد المكون الجديد
+import SelectStoreForSurvey from './pages/SelectStoreForSurvey';
+import ContractsWithoutSurveyPage from './pages/ContractsWithoutSurveyPage';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -70,18 +71,13 @@ const App = () => {
                     <Route path="/contracts" element={<ContractsPage />} />
                     <Route path="/contracts/:id" element={<ContractDetails />} />
                     <Route path="/followupsurveys" element={<FollowUpSurveyList />} />
-                    
-                    {/* المسار الجديد لاختيار المتجر لإنشاء استبيان */}
                     <Route path="/select-store-for-survey" element={<SelectStoreForSurvey />} />
-                    
-                    {/* المسار المعدل لإنشاء الاستبيان الذي يستقبل contractId */}
                     <Route path="/followupsurveys/create/:contractId" element={<FollowUpSurveyCreate />} />
-                    
-                    {/* المسار الأصلي لإنشاء استبيان (إذا كنت لا تزال تريده بدون ربط مباشر بعقد) */}
                     <Route path="/followupsurveys/new" element={<FollowUpSurveyCreate />} />
-                    
                     <Route path="/followupsurveys/:id" element={<FollowUpSurveyDetails />} />
                     <Route path="/followupsurveys/:id/edit" element={<FollowUpSurveyEdit />} />
+                    
+                    <Route path="/contracts/without-survey" element={<ContractsWithoutSurveyPage />} />
                   </Routes>
                 </div>
               </div>

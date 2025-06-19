@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const FollowUpSurveyList = () => {
   const [surveys, setSurveys] = useState([]);
@@ -151,6 +151,12 @@ const FollowUpSurveyList = () => {
               className="border px-3 py-2 rounded w-full md:w-auto"
             />
           </div>
+          {/* <Link
+            to="/contracts/without-survey"
+            className="text-white px-6 py-2 rounded bg-blue-600 hover:bg-blue-700 transition w-full md:w-auto self-end"
+          >
+            عقود بدون استبيان
+          </Link> */}
           <button
             onClick={() => navigate("/select-store-for-survey")}
             className="text-white px-6 py-2 rounded bg-[#25BC9D] transition w-full md:w-auto self-end"
