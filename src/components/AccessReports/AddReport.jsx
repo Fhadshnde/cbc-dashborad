@@ -21,8 +21,8 @@ const AddReportForm = () => {
       twoYears: 0,
       virtual: 0
     },
-    notes: "", // تمت إضافة هذا
-    onPayroll: false // تمت إضافة هذا
+    notes: "",
+    onPayroll: false 
   });
 
   const navigate = useNavigate();
@@ -65,10 +65,10 @@ const AddReportForm = () => {
           virtual: value === "virtual" ? 1 : 0
         }
       }));
-    } else if (name === "onPayroll") { // التعامل مع حقل onPayroll
+    } else if (name === "onPayroll") { 
       setFormData(prev => ({
         ...prev,
-        [name]: checked, // للحقول من نوع checkbox نستخدم checked
+        [name]: checked,
       }));
     }
     else {

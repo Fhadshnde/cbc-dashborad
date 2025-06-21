@@ -14,6 +14,7 @@ const AccessReports = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [currentUsername, setCurrentUsername] = useState(null);
 
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
@@ -30,8 +31,10 @@ const AccessReports = () => {
       try {
         const userData = JSON.parse(storedUserData);
         setUserRole(userData?.role);
+        setCurrentUsername(userData?.username);
       } catch {
         setUserRole(null);
+        setCurrentUsername(null);
       }
     }
 
@@ -41,8 +44,18 @@ const AccessReports = () => {
       try {
         const headers = { headers: getAuthHeader() };
         const response = await axios.get(API_URL, headers);
-        setReports(response.data);
-        setFilteredReports(response.data);
+        const allReports = response.data;
+
+        if (userRole === "admin") {
+          const personalReports = allReports.filter(
+            (report) => report.admin === currentUsername
+          );
+          setReports(personalReports);
+          setFilteredReports(personalReports);
+        } else {
+          setReports(allReports);
+          setFilteredReports(allReports);
+        }
       } catch (err) {
         setError("حدث خطأ أثناء جلب البيانات: " + (err.response?.data?.message || err.message));
       } finally {
@@ -50,8 +63,10 @@ const AccessReports = () => {
       }
     };
 
-    fetchReports();
-  }, []);
+    if (userRole && currentUsername) {
+      fetchReports();
+    }
+  }, [userRole, currentUsername]);
 
   const handleSearch = () => {
     let result = reports;
@@ -106,9 +121,7 @@ const AccessReports = () => {
       <div className="bg-white shadow rounded-lg p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4 md:gap-6 justify-end flex-wrap">
           <div className="flex flex-col">
-            <label htmlFor="startDate" className="text-sm text-gray-600 mb-1">
-              من تاريخ
-            </label>
+            <label htmlFor="startDate" className="text-sm text-gray-600 mb-1">من تاريخ</label>
             <input
               id="startDate"
               type="date"
@@ -118,9 +131,7 @@ const AccessReports = () => {
             />
           </div>
           <div className="flex flex-col">
-            <label htmlFor="endDate" className="text-sm text-gray-600 mb-1">
-              إلى تاريخ
-            </label>
+            <label htmlFor="endDate" className="text-sm text-gray-600 mb-1">إلى تاريخ</label>
             <input
               id="endDate"
               type="date"
@@ -130,9 +141,7 @@ const AccessReports = () => {
             />
           </div>
           <div className="flex flex-col">
-            <label htmlFor="admin" className="text-sm text-gray-600 mb-1">
-              اسم المسؤول
-            </label>
+            <label htmlFor="admin" className="text-sm text-gray-600 mb-1">اسم المسؤول</label>
             <input
               id="admin"
               type="text"
@@ -153,7 +162,6 @@ const AccessReports = () => {
               اضافة فاتورة جديدة
             </button>
           </Link>
-
           {userRole === "supervisor" && (
             <Link to={"./supervisor/reports"}>
               <button className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6">
@@ -169,7 +177,6 @@ const AccessReports = () => {
       </div>
 
       {loading && <div className="text-center py-4 text-gray-600">...جاري تحميل البيانات</div>}
-
       {error && <div className="text-center py-4 text-red-600">{error}</div>}
 
       {!loading && !error && (

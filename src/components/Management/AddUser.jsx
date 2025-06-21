@@ -9,6 +9,7 @@ const AddUser = () => {
     username: '',
     email: '',
     password: '',
+    phoneNumber: '', // ✅ تمت إضافة رقم الهاتف هنا
     role: 'supervisor',
     hireDate: moment().format('YYYY-MM-DD'),
     department: '',
@@ -52,7 +53,6 @@ const AddUser = () => {
         formDataToSend.append(key, formData[key]);
       }
 
-
       if (imageFile) {
         formDataToSend.append('imageUrl', imageFile);
       }
@@ -64,7 +64,7 @@ const AddUser = () => {
       };
 
       const response = await axios.post(
-        ' https://hawkama.cbc-api.app/api/users/register', 
+        'https://hawkama.cbc-api.app/api/users/register',
         formDataToSend,
         config
       );
@@ -75,6 +75,7 @@ const AddUser = () => {
         username: '',
         email: '',
         password: '',
+        phoneNumber: '', // ✅ إعادة تعيين رقم الهاتف
         role: 'supervisor',
         hireDate: moment().format('YYYY-MM-DD'),
         department: '',
@@ -132,6 +133,19 @@ const AddUser = () => {
               id="password"
               name="password"
               value={formData.password}
+              onChange={handleChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="phoneNumber" className="block text-gray-700 text-sm font-bold mb-2">رقم الهاتف:</label>
+            <input
+              type="tel"
+              id="phoneNumber"
+              name="phoneNumber"
+              value={formData.phoneNumber}
               onChange={handleChange}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               required
