@@ -13,6 +13,7 @@ const SIDEBAR_ITEMS = [
   { icon: FaFileInvoiceDollar, href: "/management", text: 'قسم الادارة' },
   { icon: FaFileInvoiceDollar, href: "/contracts", text: 'العقود' },
   { icon: FaFileInvoiceDollar, href: "/followupsurveys", text: 'متابعة الاستبيانات' },
+  { icon: FaFileInvoiceDollar, href: "/my-tasks", text: 'مهامي' },
 ];
 
 const Sidebar = () => {

@@ -8,7 +8,7 @@ const apiRequest = async (method, url, data = null, isFormData = false, getToken
     headers['Authorization'] = `Bearer ${userToken}`;
   }
   let body = data;
-  if (!isFormData) {
+  if (!isFormData && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
     headers['Content-Type'] = 'application/json';
     body = JSON.stringify(data);
   }
@@ -24,35 +24,62 @@ const apiRequest = async (method, url, data = null, isFormData = false, getToken
     }
     return response.json();
   } catch (error) {
-    console.error(`API request error (${method} ${url}):`, error);
     throw error;
   }
 };
 
-const updateContractDetailsApi = (id, detailsData, getToken) => apiRequest('PUT', `/${id}/details`, detailsData, false, getToken);
-const Step2_SecondPartyDetails = ({ formData, handleChange, setFormData, setCurrentStep, contract, setError, setSuccess, setLoading, loading, getToken }) => {
+const updateContractDetailsApi = (id, detailsData, getToken) =>
+  apiRequest('PUT', `/${id}/details`, detailsData, false, getToken);
+
+const Step2_SecondPartyDetails = ({
+  formData,
+  handleChange,
+  setFormData,
+  setCurrentStep,
+  contract,
+  setError,
+  setSuccess,
+  setLoading,
+  loading,
+  getToken,
+}) => {
+
+  if (!formData) {
+    return <div className="p-6 text-center text-gray-500">جارٍ تحميل بيانات الطرف الثاني...</div>;
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
+
     const contractId = contract?._id || formData._id;
     if (!contractId) {
-      setError("الرجاء إنشاء العقد الأولي أولاً والانتظار حتى يتم حفظه.");
+      setError('الرجاء إنشاء العقد الأولي أولاً والانتظار حتى يتم حفظه.');
       setLoading(false);
       return;
     }
+
+    if (
+      !formData.secondPartyOwnerName ||
+      !formData.commercialActivityType ||
+      !formData.ownerPersonalPhone ||
+      !formData.contractFullAddress ||
+      !formData.contractGovernorate
+    ) {
+      setError('الرجاء ملء جميع حقول معلومات الطرف الثاني المطلوبة.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      if (!formData.secondPartyOwnerName || !formData.commercialActivityType || !formData.ownerPersonalPhone || !formData.contractFullAddress || !formData.contractGovernorate) {
-        throw new Error("الرجاء ملء جميع حقول معلومات الطرف الثاني المطلوبة.");
-      }
       const res = await updateContractDetailsApi(contractId, formData, getToken);
       setFormData(res.contract);
       setSuccess('تم تحديث تفاصيل الطرف الثاني بنجاح.');
       setCurrentStep(3);
     } catch (err) {
       setError(err.message || 'حدث خطأ أثناء تحديث تفاصيل الطرف الثاني.');
-      console.error("Error updating contract details:", err);
     } finally {
       setLoading(false);
     }
@@ -149,8 +176,21 @@ const Step2_SecondPartyDetails = ({ formData, handleChange, setFormData, setCurr
         className="mb-6"
       />
       <div className="flex justify-between gap-4 mt-6">
-        <button type="button" onClick={() => setCurrentStep(1)} className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full sm:w-auto transition-colors duration-300" disabled={loading}>السابق</button>
-        <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full sm:w-auto transition-colors duration-300" disabled={loading}>المتابعة إلى الخصومات والخدمات</button>
+        <button
+          type="button"
+          onClick={() => setCurrentStep(1)}
+          className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full sm:w-auto transition-colors duration-300"
+          disabled={loading}
+        >
+          السابق
+        </button>
+        <button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full sm:w-auto transition-colors duration-300"
+          disabled={loading}
+        >
+          المتابعة إلى الخصومات والخدمات
+        </button>
       </div>
     </form>
   );

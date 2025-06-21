@@ -133,7 +133,6 @@ const FollowUpSurveyForm = ({ survey, onSave, onCancel }) => {
           
           <textarea name="internalNotes" placeholder="ملاحظات داخلية" value={formData.internalNotes} onChange={handleChange} rows="3"></textarea>
           
-          <textarea name="followUpNotes" placeholder="ملاحظات المتابعة" value={formData.followUpNotes} onChange={handleChange} rows="3"></textarea>
           
           {/* أزرار التنقل */}
         </div>

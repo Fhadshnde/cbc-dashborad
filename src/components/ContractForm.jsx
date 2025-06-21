@@ -6,27 +6,65 @@ import Step3_DiscountsServices from './contractFormSteps/Step3_DiscountsServices
 import Step4_BranchesData from './contractFormSteps/Step4_BranchesData';
 import Step5_FinalizeContract from './contractFormSteps/Step5_FinalizeContract';
 
-// دالة لجلب بيانات المستخدم من localStorage
 const getUserData = () => {
   const userData = localStorage.getItem('userData');
   return userData ? JSON.parse(userData) : null;
 };
 
-// دالة لجلب توكن المصادقة من localStorage
-// **تم التعديل هنا لضمان استخدام المفتاح الصحيح 'token'**
 const getToken = () => {
   return localStorage.getItem('token');
 };
 
-// دالة للتحقق مما إذا كان المستخدم يمتلك دورًا معينًا
 const hasRole = (roles) => {
   const user = getUserData();
   if (!user || !user.role) return false;
   return roles.includes(user.role);
 };
 
+const getEmptyFormData = () => ({
+  contractType: '',
+  contractNumber: '',
+  contractPeriod: '',
+  signingDate: '',
+  expiryDate: '',
+  storeName: '',
+  contractGovernorate: '',
+  location: null,
+  secondPartyOwnerName: '',
+  commercialActivityType: '',
+  ownerPersonalPhone: '',
+  customerServicePhone: '',
+  contractEmail: '',
+  contractFullAddress: '',
+  storeEmail: '',
+  facebook: '',
+  instagram: '',
+  discount1: '', service1: '',
+  discount2: '', service2: '',
+  discount3: '', service3: '',
+  discount4: '', service4: '',
+  discount5: '', service5: '',
+  discount6: '', service6: '',
+  branchName1: '', branchAddress1: '', branchPhone1: '',
+  branchName2: '', branchAddress2: '', branchPhone2: '',
+  branchName3: '', branchAddress3: '', branchPhone3: '',
+  branchName4: '', branchAddress4: '', branchPhone4: '',
+  branchName5: '', branchAddress5: '', branchPhone5: '',
+  branchName6: '', branchAddress6: '', branchPhone6: '',
+  branchName7: '', branchAddress7: '', branchPhone7: '',
+  branchName8: '', branchAddress8: '', branchPhone8: '',
+  subscriptionType: 'free',
+  subscriptionAmount: '',
+  notes: '',
+  executedBy: '',
+  contractImage: '',
+  electronicSignature: '',
+  status: 'draft',
+  _id: '',
+});
+
 const ContractForm = ({ contract, onSave, onCancel }) => {
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState(getEmptyFormData());
   const [currentStep, setCurrentStep] = useState(1);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -36,27 +74,29 @@ const ContractForm = ({ contract, onSave, onCancel }) => {
   const user = getUserData();
   const isAdminOrSupervisor = hasRole(['admin', 'supervisor']);
 
-  // useEffect لمعالجة التغيرات في كائن العقد (contract)
   useEffect(() => {
     if (contract) {
-      setFormData(contract);
-      // ضبط الخطوة الحالية بناءً على حالة العقد
+      setFormData(prev => ({
+        ...getEmptyFormData(),
+        ...contract,
+        signingDate: contract.signingDate ? new Date(contract.signingDate).toISOString().split('T')[0] : '',
+        expiryDate: contract.expiryDate ? new Date(contract.expiryDate).toISOString().split('T')[0] : '',
+      }));
+
       if (contract.status === 'draft') setCurrentStep(1);
       else if (contract.status === 'pending') setCurrentStep(2);
       else if (contract.status === 'approved' || contract.status === 'rejected') setCurrentStep(3);
       else if (contract.status === 'finalized') setCurrentStep(5);
+      else setCurrentStep(1);
     } else {
-      // إعادة تعيين النموذج إذا لم يكن هناك عقد محدد (لوضع إنشاء جديد)
-      setFormData({});
+      setFormData(getEmptyFormData());
       setCurrentStep(1);
     }
-    // مسح الرسائل والحالة عند تغيير العقد
     setError('');
     setSuccess('');
     setFile(null);
   }, [contract]);
 
-  // دالة لمعالجة التغييرات في حقول الإدخال
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -65,12 +105,10 @@ const ContractForm = ({ contract, onSave, onCancel }) => {
     }));
   };
 
-  // دالة لمعالجة تغيير ملف الصورة
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
-  // دالة لعرض الخطوة الحالية من نموذج العقد
   const renderStep = () => (
     <>
       {currentStep === 1 && (
@@ -84,7 +122,7 @@ const ContractForm = ({ contract, onSave, onCancel }) => {
           setSuccess={setSuccess}
           setLoading={setLoading}
           loading={loading}
-          getToken={getToken} // تمرير دالة getToken
+          getToken={getToken}
         />
       )}
       {currentStep === 2 && (
@@ -98,7 +136,7 @@ const ContractForm = ({ contract, onSave, onCancel }) => {
           setSuccess={setSuccess}
           setLoading={setLoading}
           loading={loading}
-          getToken={getToken} // تمرير دالة getToken
+          getToken={getToken}
         />
       )}
       {currentStep === 3 && (
@@ -112,7 +150,7 @@ const ContractForm = ({ contract, onSave, onCancel }) => {
           setSuccess={setSuccess}
           setLoading={setLoading}
           loading={loading}
-          getToken={getToken} // تمرير دالة getToken
+          getToken={getToken}
         />
       )}
       {currentStep === 4 && (
@@ -126,7 +164,7 @@ const ContractForm = ({ contract, onSave, onCancel }) => {
           setSuccess={setSuccess}
           setLoading={setLoading}
           loading={loading}
-          getToken={getToken} // تمرير دالة getToken
+          getToken={getToken}
         />
       )}
       {currentStep === 5 && (
@@ -143,14 +181,13 @@ const ContractForm = ({ contract, onSave, onCancel }) => {
           file={file}
           handleFileChange={handleFileChange}
           onSave={onSave}
-          getToken={getToken} // تمرير دالة getToken
-          getUserData={getUserData} // تمرير دالة getUserData
+          getToken={getToken}
+          getUserData={getUserData}
         />
       )}
     </>
   );
 
-  // تحديد ما إذا كان العقد قابلاً للتعديل
   const isEditable = !contract || (isAdminOrSupervisor && contract.status !== 'finalized');
   const isCreateMode = !contract;
 
@@ -160,7 +197,6 @@ const ContractForm = ({ contract, onSave, onCancel }) => {
         {isCreateMode ? 'إنشاء عقد جديد' : `تعديل العقد رقم: ${formData.contractNumber || ''}`}
       </h2>
 
-      {/* مؤشر الخطوات */}
       <div className="flex justify-between mb-6">
         <StepIndicator
           stepNumber={1}
@@ -205,8 +241,6 @@ const ContractForm = ({ contract, onSave, onCancel }) => {
       )}
 
       {(isEditable || isCreateMode) && renderStep()}
-
-
     </div>
   );
 };

@@ -7,16 +7,20 @@ const FollowUpSurveyList = () => {
   const [filteredSurveys, setFilteredSurveys] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false); // لحالة المودال الجديد
+  const [surveyToDeleteId, setSurveyToDeleteId] = useState(null); // لتخزين ID الاستبيان للحذف
+
   const navigate = useNavigate();
 
   const getToken = useCallback(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
-      throw new Error("No token found");
+      return null;
     }
     return token;
   }, [navigate]);
@@ -33,13 +37,33 @@ const FollowUpSurveyList = () => {
         setFilteredSurveys(res.data.data);
       } catch (error) {
         setError("خطأ في تحميل الاستبيانات: " + (error.response?.data?.message || error.message));
-        console.error("خطأ في تحميل الاستبيانات:", error);
+        if (error.response?.status === 401) {
+          navigate('/login');
+        }
       } finally {
         setLoading(false);
       }
     };
     fetchSurveys();
-  }, [getToken]);
+  }, [getToken, navigate]);
+
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError('');
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const handleSearch = () => {
     let result = surveys;
@@ -76,19 +100,34 @@ const FollowUpSurveyList = () => {
     setFilteredSurveys(result);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("هل أنت متأكد من حذف هذا الاستبيان؟")) {
-      try {
-        await axios.delete(`https://hawkama.cbc-api.app/api/followupsurveys/${id}`, {
-          headers: { Authorization: `Bearer ${getToken()}` },
-        });
-        setSurveys(surveys.filter(survey => survey._id !== id));
-        setFilteredSurveys(filteredSurveys.filter(survey => survey._id !== id));
-      } catch (error) {
-        console.error("خطأ في حذف الاستبيان:", error);
-        alert("حدث خطأ أثناء حذف الاستبيان");
+  const handleDeleteClick = (id) => {
+    setSurveyToDeleteId(id);
+    setShowConfirmModal(true);
+  };
+
+  const confirmDelete = async () => {
+    setShowConfirmModal(false);
+    setError('');
+    try {
+      await axios.delete(`https://hawkama.cbc-api.app/api/followupsurveys/${surveyToDeleteId}`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      setSuccessMessage('تم حذف الاستبيان بنجاح!');
+      setSurveys(surveys.filter(survey => survey._id !== surveyToDeleteId));
+      setFilteredSurveys(filteredSurveys.filter(survey => survey._id !== surveyToDeleteId));
+    } catch (err) {
+      setError("حدث خطأ أثناء حذف الاستبيان: " + (err.response?.data?.message || err.message));
+      if (err.response?.status === 401) {
+        navigate('/login');
       }
+    } finally {
+      setSurveyToDeleteId(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowConfirmModal(false);
+    setSurveyToDeleteId(null);
   };
 
   return (
@@ -102,6 +141,7 @@ const FollowUpSurveyList = () => {
             className="border px-4 py-2 rounded-lg pr-10 w-full"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
           />
           <button
             onClick={handleSearch}
@@ -151,12 +191,12 @@ const FollowUpSurveyList = () => {
               className="border px-3 py-2 rounded w-full md:w-auto"
             />
           </div>
-          {/* <Link
-            to="/contracts/without-survey"
+          <Link
+            to="/contracts-without-survey"
             className="text-white px-6 py-2 rounded bg-blue-600 hover:bg-blue-700 transition w-full md:w-auto self-end"
           >
             عقود بدون استبيان
-          </Link> */}
+          </Link>
           <button
             onClick={() => navigate("/select-store-for-survey")}
             className="text-white px-6 py-2 rounded bg-[#25BC9D] transition w-full md:w-auto self-end"
@@ -172,11 +212,21 @@ const FollowUpSurveyList = () => {
         </div>
       </div>
 
+      {error && (
+        <div className="fixed top-20 right-5 bg-red-500 text-white p-3 rounded-lg shadow-lg z-50 animate-bounce-in-right">
+          {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="fixed top-20 right-5 bg-green-500 text-white p-3 rounded-lg shadow-lg z-50 animate-bounce-in-right">
+          {successMessage}
+        </div>
+      )}
+
       {loading && (
         <div className="text-center py-4 text-gray-600">...جاري تحميل البيانات</div>
       )}
-
-      {error && <div className="text-center py-4 text-red-600">{error}</div>}
 
       {!loading && !error && (
         <div className="overflow-x-auto bg-white rounded shadow">
@@ -214,7 +264,7 @@ const FollowUpSurveyList = () => {
                         تعديل
                       </button>
                       <button
-                        onClick={() => handleDelete(survey._id)}
+                        onClick={() => handleDeleteClick(survey._id)} // تم تغيير اسم الدالة
                         className="text-red-600 hover:text-red-800"
                       >
                         حذف
@@ -231,6 +281,30 @@ const FollowUpSurveyList = () => {
               )}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Confirmation Modal for Delete */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[1002] p-4">
+          <div className="bg-white p-8 rounded-lg shadow-xl w-11/12 max-w-sm text-right rtl">
+            <h3 className="text-xl font-bold mb-4 text-gray-800">تأكيد الحذف</h3>
+            <p className="mb-6 text-gray-700">هل أنت متأكد أنك تريد حذف هذا الاستبيان بشكل دائم؟ لا يمكن التراجع عن هذا الإجراء.</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={cancelDelete}
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition"
+              >
+                إلغاء
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+              >
+                حذف
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

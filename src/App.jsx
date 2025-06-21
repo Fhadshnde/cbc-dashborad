@@ -17,12 +17,14 @@ import EditUser from './components/Management/EditUser';
 import UserDetails from './components/Management/UserDetails';
 import ContractsPage from './pages/ContractsPage';
 import ContractDetails from './components/ContractDetails';
+import ContractForm from './components/ContractForm'; 
 import FollowUpSurveyList from './components/FollowUp/FollowUpSurveyList';
 import FollowUpSurveyCreate from './components/FollowUp/FollowUpSurveyCreate';
 import FollowUpSurveyDetails from './components/FollowUp/FollowUpSurveyDetails';
 import FollowUpSurveyEdit from './components/FollowUp/FollowUpSurveyEdit';
 import SelectStoreForSurvey from './pages/SelectStoreForSurvey';
 import ContractsWithoutSurveyPage from './pages/ContractsWithoutSurveyPage';
+import MyTasksPage from './pages/MyTasksPage';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -69,6 +71,8 @@ const App = () => {
                     <Route path="/management/edit-user/:id" element={<EditUser />} />
                     <Route path="/management/details/:username" element={<UserDetails />} />
                     <Route path="/contracts" element={<ContractsPage />} />
+                    <Route path="/contracts/create" element={<ContractForm />} />
+                    <Route path="/contracts/edit/:id" element={<ContractForm />} />
                     <Route path="/contracts/:id" element={<ContractDetails />} />
                     <Route path="/followupsurveys" element={<FollowUpSurveyList />} />
                     <Route path="/select-store-for-survey" element={<SelectStoreForSurvey />} />
@@ -76,8 +80,8 @@ const App = () => {
                     <Route path="/followupsurveys/new" element={<FollowUpSurveyCreate />} />
                     <Route path="/followupsurveys/:id" element={<FollowUpSurveyDetails />} />
                     <Route path="/followupsurveys/:id/edit" element={<FollowUpSurveyEdit />} />
-                    
                     <Route path="/contracts/without-survey" element={<ContractsWithoutSurveyPage />} />
+                    <Route path="/my-tasks" element={<MyTasksPage />} />
                   </Routes>
                 </div>
               </div>

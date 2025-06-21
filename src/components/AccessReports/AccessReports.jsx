@@ -25,13 +25,12 @@ const AccessReports = () => {
   };
 
   useEffect(() => {
-    const storedUserData = localStorage.getItem('userData');
+    const storedUserData = localStorage.getItem("userData");
     if (storedUserData && storedUserData !== "undefined") {
       try {
         const userData = JSON.parse(storedUserData);
         setUserRole(userData?.role);
-      } catch (error) {
-        console.error("Error parsing user data from localStorage:", error);
+      } catch {
         setUserRole(null);
       }
     }
@@ -61,7 +60,7 @@ const AccessReports = () => {
       result = reports.filter((report) => {
         const adminMatch =
           admin.trim() === "" ||
-          report.admin.toLowerCase().includes(admin.toLowerCase().trim());
+          (report.admin && report.admin.toLowerCase().includes(admin.toLowerCase().trim()));
 
         let dateMatch = true;
         if (startDate || endDate) {
@@ -150,18 +149,14 @@ const AccessReports = () => {
             بحث
           </button>
           <Link to={"./add-report"}>
-            <button
-              className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6"
-            >
+            <button className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6">
               اضافة فاتورة جديدة
             </button>
           </Link>
 
           {userRole === "supervisor" && (
             <Link to={"./supervisor/reports"}>
-              <button
-                className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6"
-              >
+              <button className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6">
                 تعديل التقارير
               </button>
             </Link>
@@ -173,9 +168,7 @@ const AccessReports = () => {
         <TotalBills />
       </div>
 
-      {loading && (
-        <div className="text-center py-4 text-gray-600">...جاري تحميل البيانات</div>
-      )}
+      {loading && <div className="text-center py-4 text-gray-600">...جاري تحميل البيانات</div>}
 
       {error && <div className="text-center py-4 text-red-600">{error}</div>}
 
@@ -183,7 +176,7 @@ const AccessReports = () => {
         <div className="overflow-x-auto bg-white rounded shadow">
           <table className="w-full sm:min-w-[1000px] text-sm text-right border-collapse">
             <thead className="bg-gray-100 text-gray-600 font-bold">
-              <tr> {/* Ensure no whitespace or text nodes directly here */}
+              <tr>
                 <th className="px-2 py-2 whitespace-nowrap">الاسم بالعربي</th>
                 <th className="px-2 py-2 whitespace-nowrap">الاسم بالإنجليزي</th>
                 <th className="px-2 py-2 whitespace-nowrap">رقم الهاتف</th>
@@ -202,7 +195,7 @@ const AccessReports = () => {
             <tbody>
               {filteredReports.length > 0 ? (
                 filteredReports.map((report, i) => (
-                  <tr key={i} className="border-t hover:bg-gray-50"> {/* Ensure no whitespace or text nodes directly here */}
+                  <tr key={i} className="border-t hover:bg-gray-50">
                     <td className="px-2 py-2 whitespace-nowrap">{report.name}</td>
                     <td className="px-2 py-2 whitespace-nowrap">{report.nameEn}</td>
                     <td className="px-2 py-2 whitespace-nowrap">{report.phone}</td>
@@ -211,19 +204,15 @@ const AccessReports = () => {
                     <td className="px-2 py-2 whitespace-nowrap">{report.remaining}</td>
                     <td className="px-2 py-2 whitespace-nowrap">{report.address}</td>
                     <td className="px-2 py-2 whitespace-nowrap">{report.ministry}</td>
-                    <td className="px-2 py-2 whitespace-nowrap">
-                      {getCardTypeText(report.cardCategory)}
-                    </td>
+                    <td className="px-2 py-2 whitespace-nowrap">{getCardTypeText(report.cardCategory)}</td>
                     <td className="px-2 py-2 whitespace-nowrap">{report.admin}</td>
                     <td className="px-2 py-2 whitespace-nowrap">{report.notes}</td>
-                    <td className="px-2 py-2 whitespace-nowrap">
-                      {report.onPayroll ? "على الراتب" : "-"}
-                    </td>
+                    <td className="px-2 py-2 whitespace-nowrap">{report.onPayroll ? "على الراتب" : "-"}</td>
                     <td className="px-2 py-2 whitespace-nowrap">{report.date}</td>
                   </tr>
                 ))
               ) : (
-                <tr> {/* Ensure no whitespace or text nodes directly here */}
+                <tr>
                   <td colSpan="13" className="px-4 py-4 text-center text-gray-500">
                     لا توجد نتائج مطابقة لبحثك
                   </td>

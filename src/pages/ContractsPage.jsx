@@ -73,35 +73,38 @@ const ContractsPage = () => {
   const [selectedContract, setSelectedContract] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [contractToDeleteId, setContractToDeleteId] = useState(null);
+  
+  // حالات الفلترة الجديدة والموجودة
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  
+  const [governorateFilter, setGovernorateFilter] = useState(""); // للمحافظة
+  const [employeeFilter, setEmployeeFilter] = useState(""); // للموظف المنفذ
+
   const isAdminOrSupervisor = hasRole(['admin', 'supervisor']);
   const canDelete = hasRole(['admin']);
 
-  // *** هنا قمنا بنقل تعريف fetchContracts إلى الأعلى ***
   const fetchContracts = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       const data = await getAllContracts();
       setContracts(data);
-      setFilteredContracts(data);
+      setFilteredContracts(data); // في البداية، التقارير المفلترة هي كل التقارير
     } catch (err) {
       setError(err || 'فشل جلب العقود.');
     } finally {
       setLoading(false);
     }
-  }, [getAllContracts]); // تعتمد على getAllContracts
+  }, [getAllContracts]);
 
   useEffect(() => {
     if (!isAuthenticated()) {
       navigate('/login');
       return;
     }
-    fetchContracts(); // الآن fetchContracts معرفة عند هذه النقطة
-  }, [isAuthenticated, navigate, fetchContracts]); // أضف fetchContracts إلى التبعيات
+    fetchContracts();
+  }, [isAuthenticated, navigate, fetchContracts]);
 
   useEffect(() => {
     if (successMessage) {
@@ -121,9 +124,10 @@ const ContractsPage = () => {
     }
   }, [error]);
 
-  const handleSearch = () => {
-    let result = contracts;
+  const handleApplyFilters = () => { // تم تغيير الاسم ليعكس تطبيق جميع الفلاتر
+    let result = contracts; // ابدأ من جميع العقود المجلوبة
 
+    // 1. فلترة البحث العام (رقم العقد، نوعه، اسم المتجر)
     if (searchTerm.trim()) {
       result = result.filter((contract) =>
         (contract.contractNumber && contract.contractNumber.toLowerCase().includes(searchTerm.toLowerCase().trim())) ||
@@ -132,6 +136,7 @@ const ContractsPage = () => {
       );
     }
 
+    // 2. فلترة حسب نطاق التاريخ (تاريخ التوقيع)
     if (startDate || endDate) {
       result = result.filter((contract) => {
         const signingDate = contract.signingDate ? new Date(contract.signingDate) : null;
@@ -154,7 +159,30 @@ const ContractsPage = () => {
       });
     }
 
+    // 3. فلترة حسب المحافظة (contractGovernorate)
+    if (governorateFilter) {
+      result = result.filter(contract => 
+        contract.contractGovernorate && contract.contractGovernorate.toLowerCase() === governorateFilter.toLowerCase()
+      );
+    }
+
+    // 4. فلترة حسب الموظف المنفذ (executedBy)
+    if (employeeFilter.trim()) {
+      result = result.filter(contract => 
+        contract.executedBy && contract.executedBy.toLowerCase().includes(employeeFilter.toLowerCase().trim())
+      );
+    }
+
     setFilteredContracts(result);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setStartDate("");
+    setEndDate("");
+    setGovernorateFilter("");
+    setEmployeeFilter("");
+    setFilteredContracts(contracts); // عرض جميع العقود الأصلية
   };
 
   const handleAddContract = () => {
@@ -222,10 +250,10 @@ const ContractsPage = () => {
             className="border px-4 py-2 rounded-lg pr-10 w-full"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            onKeyPress={(e) => e.key === 'Enter' && handleApplyFilters()}
           />
           <button
-            onClick={handleSearch}
+            onClick={handleApplyFilters}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
           >
             <svg
@@ -272,14 +300,56 @@ const ContractsPage = () => {
               className="border px-3 py-2 rounded w-full md:w-auto"
             />
           </div>
+          {/* حقل فلترة المحافظة */}
+          <div className="flex flex-col">
+            <label htmlFor="governorateFilter" className="text-sm text-gray-600 mb-1">
+              المحافظة
+            </label>
+            <select
+              id="governorateFilter"
+              value={governorateFilter}
+              onChange={(e) => setGovernorateFilter(e.target.value)}
+              className="border px-3 py-2 rounded w-full md:w-auto"
+            >
+              <option value="">جميع المحافظات</option>
+              <option>كرخ</option>
+              <option>رصافة</option>
+              <option>بصرة</option>
+              <option>كربلاء</option>
+              <option>انبار</option>
+              <option>اربيل</option>
+              {/* أضف باقي المحافظات هنا */}
+            </select>
+          </div>
+          {/* حقل فلترة الموظف */}
+          <div className="flex flex-col">
+            <label htmlFor="employeeFilter" className="text-sm text-gray-600 mb-1">
+              الموظف المنفذ
+            </label>
+            <input
+              id="employeeFilter"
+              type="text"
+              value={employeeFilter}
+              onChange={(e) => setEmployeeFilter(e.target.value)}
+              className="border px-3 py-2 rounded w-full md:w-auto"
+              placeholder="ابحث باسم الموظف"
+            />
+          </div>
 
           <button
-            onClick={handleSearch}
+            onClick={handleApplyFilters} // الزر الرئيسي لتطبيق الفلاتر
             className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6"
           >
-            بحث
+            بحث/فلترة
           </button>
           
+          <button
+            onClick={handleClearFilters} // زر مسح الفلاتر
+            className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500 transition w-full md:w-auto self-end mt-6"
+          >
+            مسح الفلاتر
+          </button>
+
           {isAdminOrSupervisor && (
             <button
               onClick={handleAddContract}
@@ -311,6 +381,8 @@ const ContractsPage = () => {
                 <th className="px-4 py-2 whitespace-nowrap">رقم العقد</th>
                 <th className="px-4 py-2 whitespace-nowrap">اسم المتجر</th>
                 <th className="px-4 py-2 whitespace-nowrap">نوع العقد</th>
+                <th className="px-4 py-2 whitespace-nowrap">المحافظة</th> {/* إضافة عمود المحافظة */}
+                <th className="px-4 py-2 whitespace-nowrap">الموظف المنفذ</th> {/* إضافة عمود الموظف */}
                 <th className="px-4 py-2 whitespace-nowrap">تاريخ التوقيع</th>
                 <th className="px-4 py-2 whitespace-nowrap">تاريخ الانتهاء</th>
                 <th className="px-4 py-2 whitespace-nowrap">الإجراءات</th>
@@ -323,6 +395,8 @@ const ContractsPage = () => {
                     <td className="px-4 py-2 whitespace-nowrap">{contract.contractNumber || 'N/A'}</td>
                     <td className="px-4 py-2 whitespace-nowrap">{contract.storeName || 'N/A'}</td>
                     <td className="px-4 py-2 whitespace-nowrap">{contract.contractType || 'N/A'}</td>
+                    <td className="px-4 py-2 whitespace-nowrap">{contract.contractGovernorate || 'N/A'}</td> {/* عرض المحافظة */}
+                    <td className="px-4 py-2 whitespace-nowrap">{contract.executedBy || 'N/A'}</td> {/* عرض الموظف المنفذ */}
                     <td className="px-4 py-2 whitespace-nowrap">
                       {contract.signingDate ? new Date(contract.signingDate).toLocaleDateString('ar-EG') : 'N/A'}
                     </td>
@@ -359,7 +433,7 @@ const ContractsPage = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="px-4 py-4 text-center text-gray-500">
+                  <td colSpan="8" className="px-4 py-4 text-center text-gray-500">
                     لا توجد نتائج مطابقة لبحثك
                   </td>
                 </tr>

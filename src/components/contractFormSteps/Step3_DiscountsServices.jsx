@@ -8,7 +8,7 @@ const apiRequest = async (method, url, data = null, isFormData = false, getToken
     headers['Authorization'] = `Bearer ${userToken}`;
   }
   let body = data;
-  if (!isFormData) {
+  if (!isFormData && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
     headers['Content-Type'] = 'application/json';
     body = JSON.stringify(data);
   }
@@ -24,7 +24,6 @@ const apiRequest = async (method, url, data = null, isFormData = false, getToken
     }
     return response.json();
   } catch (error) {
-    console.error(`API request error (${method} ${url}):`, error);
     throw error;
   }
 };
@@ -50,7 +49,6 @@ const Step3_DiscountsServices = ({ formData, handleChange, setFormData, setCurre
       setCurrentStep(4);
     } catch (err) {
       setError(err.message || 'حدث خطأ أثناء تحديث الخصومات والخدمات.');
-      console.error("Error updating discounts and services:", err);
     } finally {
       setLoading(false);
     }

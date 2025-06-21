@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 
-const ContractDetailsPage = () => {
+const ContractDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [contract, setContract] = useState(null);
@@ -114,6 +114,22 @@ const ContractDetailsPage = () => {
               <p><span className="font-medium text-gray-600">تاريخ التوقيع:</span> {contract.signingDate ? new Date(contract.signingDate).toLocaleDateString('ar-EG') : 'غير محدد'}</p>
               <p><span className="font-medium text-gray-600">تاريخ الانتهاء:</span> {contract.expiryDate ? new Date(contract.expiryDate).toLocaleDateString('ar-EG') : 'غير محدد'}</p>
               <p><span className="font-medium text-gray-600">الحالة:</span> {contract.status}</p>
+              {contract.location && contract.location.coordinates && contract.location.coordinates.length === 2 && (
+                <div className="mt-4">
+                  <span className="font-medium text-gray-600 block mb-1">موقع المتجر (GPS):</span>
+                  <p className="text-sm text-gray-700">
+                    خط الطول: {contract.location.coordinates[0]}, خط العرض: {contract.location.coordinates[1]}
+                  </p>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${contract.location.coordinates[1]},${contract.location.coordinates[0]}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline text-sm"
+                  >
+                    عرض على الخريطة
+                  </a>
+                </div>
+              )}
             </div>
           </div>
           <div>
@@ -133,7 +149,6 @@ const ContractDetailsPage = () => {
           </div>
         </div>
 
-        {/* معلومات الخصومات والخدمات (تم تعديلها لتناسب الحقول الجديدة) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
             <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">الخصومات</h3>
@@ -159,7 +174,6 @@ const ContractDetailsPage = () => {
           </div>
         </div>
 
-        {/* فروع المتجر (تم تعديلها لتناسب الحقول الجديدة) */}
         {(contract.branchName1 || contract.branchName2 || contract.branchName3 || contract.branchName4 || contract.branchName5 || contract.branchName6 || contract.branchName7 || contract.branchName8) && (
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">فروع المتجر</h3>
@@ -196,7 +210,24 @@ const ContractDetailsPage = () => {
               <p><span className="font-medium text-gray-600">ملاحظات:</span> {contract.notes || 'لا يوجد'}</p>
               <p><span className="font-medium text-gray-600">تم التنفيذ بواسطة:</span> {contract.executedBy || 'غير محدد'}</p>
               {contract.contractImage && (
-                <p><span className="font-medium text-gray-600">صورة العقد:</span> <a href={`https://hawkama.cbc-api.app/${contract.contractImage}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">عرض الصورة</a></p>
+                <div className="mt-4">
+                  <span className="font-medium text-gray-600 block mb-2">صورة العقد:</span>
+                  <img
+                    src={`https://hawkama.cbc-api.app/api/uploads/${contract.contractImage}`}
+                    alt="صورة العقد"
+                    className="max-w-xs h-auto rounded-lg shadow-md border border-gray-200"
+                  />
+                </div>
+              )}
+              {contract.electronicSignature && (
+                <div className="mt-4">
+                  <span className="font-medium text-gray-600 block mb-2">التوقيع الإلكتروني:</span>
+                  <img
+                    src={`https://hawkama.cbc-api.app/api/uploads/${contract.electronicSignature}`}
+                    alt="التوقيع الإلكتروني"
+                    className="max-w-xs h-auto rounded-lg shadow-md border border-gray-200"
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -214,4 +245,4 @@ const ContractDetailsPage = () => {
   );
 };
 
-export default ContractDetailsPage;
+export default ContractDetails;
