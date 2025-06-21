@@ -191,18 +191,6 @@ const FollowUpSurveyList = () => {
               className="border px-3 py-2 rounded w-full md:w-auto"
             />
           </div>
-          <Link
-            to="/contracts-without-survey"
-            className="text-white px-6 py-2 rounded bg-blue-600 hover:bg-blue-700 transition w-full md:w-auto self-end"
-          >
-            عقود بدون استبيان
-          </Link>
-          <button
-            onClick={() => navigate("/select-store-for-survey")}
-            className="text-white px-6 py-2 rounded bg-[#25BC9D] transition w-full md:w-auto self-end"
-          >
-            إضافة استبيان جديد لمتجر
-          </button>
           <button
             onClick={handleSearch}
             className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end"
@@ -264,7 +252,7 @@ const FollowUpSurveyList = () => {
                         تعديل
                       </button>
                       <button
-                        onClick={() => handleDeleteClick(survey._id)} // تم تغيير اسم الدالة
+                        onClick={() => handleDeleteClick(survey._id)} 
                         className="text-red-600 hover:text-red-800"
                       >
                         حذف
@@ -284,7 +272,6 @@ const FollowUpSurveyList = () => {
         </div>
       )}
 
-      {/* Confirmation Modal for Delete */}
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[1002] p-4">
           <div className="bg-white p-8 rounded-lg shadow-xl w-11/12 max-w-sm text-right rtl">
