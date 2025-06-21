@@ -318,10 +318,8 @@ const ContractsPage = () => {
               <option>كربلاء</option>
               <option>انبار</option>
               <option>اربيل</option>
-              {/* أضف باقي المحافظات هنا */}
             </select>
           </div>
-          {/* حقل فلترة الموظف */}
           <div className="flex flex-col">
             <label htmlFor="employeeFilter" className="text-sm text-gray-600 mb-1">
               الموظف المنفذ
@@ -337,18 +335,18 @@ const ContractsPage = () => {
           </div>
 
           <button
-            onClick={handleApplyFilters} // الزر الرئيسي لتطبيق الفلاتر
+            onClick={handleApplyFilters} 
             className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6"
           >
             بحث/فلترة
           </button>
           
-          <button
-            onClick={handleClearFilters} // زر مسح الفلاتر
+          {/* <button
+            onClick={handleClearFilters} //
             className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500 transition w-full md:w-auto self-end mt-6"
           >
             مسح الفلاتر
-          </button>
+          </button> */}
 
           {isAdminOrSupervisor && (
             <button
@@ -381,8 +379,8 @@ const ContractsPage = () => {
                 <th className="px-4 py-2 whitespace-nowrap">رقم العقد</th>
                 <th className="px-4 py-2 whitespace-nowrap">اسم المتجر</th>
                 <th className="px-4 py-2 whitespace-nowrap">نوع العقد</th>
-                <th className="px-4 py-2 whitespace-nowrap">المحافظة</th> {/* إضافة عمود المحافظة */}
-                <th className="px-4 py-2 whitespace-nowrap">الموظف المنفذ</th> {/* إضافة عمود الموظف */}
+                <th className="px-4 py-2 whitespace-nowrap">المحافظة</th> 
+                <th className="px-4 py-2 whitespace-nowrap">الموظف المنفذ</th> 
                 <th className="px-4 py-2 whitespace-nowrap">تاريخ التوقيع</th>
                 <th className="px-4 py-2 whitespace-nowrap">تاريخ الانتهاء</th>
                 <th className="px-4 py-2 whitespace-nowrap">الإجراءات</th>
