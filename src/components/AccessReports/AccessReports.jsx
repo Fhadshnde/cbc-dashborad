@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom"; // Added useNavigate here as it's typically used in Login, but keeping it as the user provided the Login component initially.
-
+import TotalBills from "./TotalBills"; // Assuming you have a TotalBills component for displaying total bills
 const API_URL = "https://hawkama.cbc-api.app/api/reports";
 
 const AccessReports = () => {
@@ -136,7 +136,9 @@ const AccessReports = () => {
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 sm:gap-0">
         <h2 className="text-2xl font-bold text-gray-700">قسم المحاسبة</h2>
       </div>
-
+      <div>
+        <TotalBills  />
+      </div>
       <div className="bg-white shadow rounded-lg p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4 md:gap-6 justify-end flex-wrap">
           <div className="flex flex-col">
