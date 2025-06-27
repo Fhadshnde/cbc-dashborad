@@ -25,7 +25,8 @@ import FollowUpSurveyEdit from './components/FollowUp/FollowUpSurveyEdit';
 import SelectStoreForSurvey from './pages/SelectStoreForSurvey';
 import ContractsWithoutSurveyPage from './pages/ContractsWithoutSurveyPage';
 import MyTasksPage from './pages/MyTasksPage';
-
+import UpdareReport from './components/AccessReports/UpdareReport'
+import AccessPrint from './components/AccessPrint/AccessPrint';
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -61,6 +62,7 @@ const App = () => {
                     <Route path="/" element={<Home />} />
                     <Route path="/accessreports" element={<AccessReports />} />
                     <Route path="/accessreports/add-report" element={<AddReportForm />} />
+                    <Route path="/edit-report/:id" element={<EditReport />} />
                     <Route path="/accessreports/supervisor/reports" element={<SupervisorAccessReports />} />
                     <Route path="/supervisor/reports/edit/:id" element={<EditReport />} />
                     <Route path="/archives" element={<Archives />} />
@@ -82,6 +84,8 @@ const App = () => {
                     <Route path="/followupsurveys/:id/edit" element={<FollowUpSurveyEdit />} />
                     <Route path="/contracts/without-survey" element={<ContractsWithoutSurveyPage />} />
                     <Route path="/my-tasks" element={<MyTasksPage />} />
+                    <Route path="/accessreports/print/:id" element={<AccessPrint />} />
+                    <Route path="/accessreports/print" element={<AccessPrint />} />
                   </Routes>
                 </div>
               </div>

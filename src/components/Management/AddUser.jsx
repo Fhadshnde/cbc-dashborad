@@ -9,17 +9,39 @@ const AddUser = () => {
     username: '',
     email: '',
     password: '',
-    phoneNumber: '', // ✅ تمت إضافة رقم الهاتف هنا
+    phoneNumber: '',
     role: 'supervisor',
     hireDate: moment().format('YYYY-MM-DD'),
     department: '',
     jobTitle: '',
     employeeDebt: 0,
+    governorate: '', // المحافظة
   });
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+
+  const governorates = [
+    "بغداد",
+    "بابل",
+    "البصرة",
+    "الأنبار",
+    "كركوك",
+    "نينوى",
+    "ديالى",
+    "ذي قار",
+    "صلاح الدين",
+    "المثنى",
+    "ميسان",
+    "النجف",
+    "القادسية",
+    "كربلاء",
+    "واسط",
+    "أربيل",
+    "السليمانية",
+    "دهوك",
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -60,6 +82,7 @@ const AddUser = () => {
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
         },
       };
 
@@ -75,12 +98,13 @@ const AddUser = () => {
         username: '',
         email: '',
         password: '',
-        phoneNumber: '', // ✅ إعادة تعيين رقم الهاتف
+        phoneNumber: '',
         role: 'supervisor',
         hireDate: moment().format('YYYY-MM-DD'),
         department: '',
         jobTitle: '',
         employeeDebt: 0,
+        governorate: '',
       });
       setImageFile(null);
       navigate('/management');
@@ -95,13 +119,25 @@ const AddUser = () => {
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">إضافة مستخدم جديد</h2>
 
-        {loading && <div className="text-center p-4 text-blue-600">جاري إضافة المستخدم...</div>}
-        {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">{error}</div>}
-        {success && <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">{success}</div>}
+        {loading && (
+          <div className="text-center p-4 text-blue-600">جاري إضافة المستخدم...</div>
+        )}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
+            {success}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label htmlFor="username" className="block text-gray-700 text-sm font-bold mb-2">اسم المستخدم:</label>
+            <label htmlFor="username" className="block text-gray-700 text-sm font-bold mb-2">
+              اسم المستخدم:
+            </label>
             <input
               type="text"
               id="username"
@@ -114,7 +150,9 @@ const AddUser = () => {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">البريد الإلكتروني:</label>
+            <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">
+              البريد الإلكتروني:
+            </label>
             <input
               type="email"
               id="email"
@@ -127,7 +165,9 @@ const AddUser = () => {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">كلمة المرور:</label>
+            <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">
+              كلمة المرور:
+            </label>
             <input
               type="password"
               id="password"
@@ -140,7 +180,9 @@ const AddUser = () => {
           </div>
 
           <div>
-            <label htmlFor="phoneNumber" className="block text-gray-700 text-sm font-bold mb-2">رقم الهاتف:</label>
+            <label htmlFor="phoneNumber" className="block text-gray-700 text-sm font-bold mb-2">
+              رقم الهاتف:
+            </label>
             <input
               type="tel"
               id="phoneNumber"
@@ -153,7 +195,9 @@ const AddUser = () => {
           </div>
 
           <div>
-            <label htmlFor="role" className="block text-gray-700 text-sm font-bold mb-2">الدور:</label>
+            <label htmlFor="role" className="block text-gray-700 text-sm font-bold mb-2">
+              الدور:
+            </label>
             <select
               id="role"
               name="role"
@@ -169,7 +213,9 @@ const AddUser = () => {
           </div>
 
           <div>
-            <label htmlFor="hireDate" className="block text-gray-700 text-sm font-bold mb-2">تاريخ المباشرة:</label>
+            <label htmlFor="hireDate" className="block text-gray-700 text-sm font-bold mb-2">
+              تاريخ المباشرة:
+            </label>
             <input
               type="date"
               id="hireDate"
@@ -181,7 +227,9 @@ const AddUser = () => {
           </div>
 
           <div>
-            <label htmlFor="department" className="block text-gray-700 text-sm font-bold mb-2">القسم:</label>
+            <label htmlFor="department" className="block text-gray-700 text-sm font-bold mb-2">
+              القسم:
+            </label>
             <input
               type="text"
               id="department"
@@ -193,7 +241,9 @@ const AddUser = () => {
           </div>
 
           <div>
-            <label htmlFor="jobTitle" className="block text-gray-700 text-sm font-bold mb-2">العنوان الوظيفي:</label>
+            <label htmlFor="jobTitle" className="block text-gray-700 text-sm font-bold mb-2">
+              العنوان الوظيفي:
+            </label>
             <input
               type="text"
               id="jobTitle"
@@ -205,7 +255,9 @@ const AddUser = () => {
           </div>
 
           <div>
-            <label htmlFor="employeeDebt" className="block text-gray-700 text-sm font-bold mb-2">ذمة الموظف:</label>
+            <label htmlFor="employeeDebt" className="block text-gray-700 text-sm font-bold mb-2">
+              ذمة الموظف:
+            </label>
             <input
               type="number"
               id="employeeDebt"
@@ -217,7 +269,30 @@ const AddUser = () => {
           </div>
 
           <div>
-            <label htmlFor="imageUrl" className="block text-gray-700 text-sm font-bold mb-2">صورة المستخدم:</label>
+            <label htmlFor="governorate" className="block text-gray-700 text-sm font-bold mb-2">
+              المحافظة:
+            </label>
+            <select
+              id="governorate"
+              name="governorate"
+              value={formData.governorate}
+              onChange={handleChange}
+              className="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              required
+            >
+              <option value="" disabled>اختر المحافظة</option>
+              {governorates.map((gov) => (
+                <option key={gov} value={gov}>
+                  {gov}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="imageUrl" className="block text-gray-700 text-sm font-bold mb-2">
+              صورة المستخدم:
+            </label>
             <input
               type="file"
               id="imageUrl"

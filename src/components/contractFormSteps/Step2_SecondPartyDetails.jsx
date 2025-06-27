@@ -29,7 +29,7 @@ const apiRequest = async (method, url, data = null, isFormData = false, getToken
 };
 
 const updateContractDetailsApi = (id, detailsData, getToken) =>
-  apiRequest('PUT', `/${id}/details`, detailsData, false, getToken);
+  apiRequest('PUT', `/${id}`, detailsData, false, getToken);
 
 const Step2_SecondPartyDetails = ({
   formData,
@@ -74,7 +74,18 @@ const Step2_SecondPartyDetails = ({
     }
 
     try {
-      const res = await updateContractDetailsApi(contractId, formData, getToken);
+      const res = await updateContractDetailsApi(contractId, {
+        secondPartyOwnerName: formData.secondPartyOwnerName,
+        commercialActivityType: formData.commercialActivityType,
+        ownerPersonalPhone: formData.ownerPersonalPhone,
+        customerServicePhone: formData.customerServicePhone,
+        contractEmail: formData.contractEmail,
+        contractGovernorate: formData.contractGovernorate,
+        contractFullAddress: formData.contractFullAddress,
+        storeEmail: formData.storeEmail,
+        facebook: formData.facebook,
+        instagram: formData.instagram
+      }, getToken);
       setFormData(res.contract);
       setSuccess('تم تحديث تفاصيل الطرف الثاني بنجاح.');
       setCurrentStep(3);

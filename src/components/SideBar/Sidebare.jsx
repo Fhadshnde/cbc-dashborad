@@ -5,20 +5,22 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTableColumns, faBars, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FaFileInvoiceDollar } from "react-icons/fa";
 
-const SIDEBAR_ITEMS = [
+const BASE_ITEMS = [
   { icon: () => <FontAwesomeIcon icon={faTableColumns} className="text-black" />, href: "/", text: 'لوحة التحكم' },
   { icon: FaFileInvoiceDollar, href: "/accessreports", text: 'قسم المحاسبة' },
   { icon: FaFileInvoiceDollar, href: "/archives", text: 'الارشيف' },
   { icon: FaFileInvoiceDollar, href: "/summary-reports", text: 'ملخص تقارير المبيعات' },
-  { icon: FaFileInvoiceDollar, href: "/management", text: 'قسم الادارة' },
-  { icon: FaFileInvoiceDollar, href: "/contracts", text: 'العقود' },
-  { icon: FaFileInvoiceDollar, href: "/followupsurveys", text: 'متابعة الاستبيانات' },
-  { icon: FaFileInvoiceDollar, href: "/my-tasks", text: 'مهامي' },
+  // { icon: FaFileInvoiceDollar, href: "/contracts", text: 'العقود' },
+  // { icon: FaFileInvoiceDollar, href: "/followupsurveys", text: 'متابعة الاستبيانات' },
+  // { icon: FaFileInvoiceDollar, href: "/my-tasks", text: 'مهامي' },
+  { icon: FaFileInvoiceDollar, href: "/accessreports/print", text: 'قسم الطباعة' },
+
 ];
 
 const Sidebar = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [open, setOpen] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 900);
@@ -27,7 +29,26 @@ const Sidebar = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  useEffect(() => {
+    const stored = localStorage.getItem("userData");
+    if (stored && stored !== "undefined") {
+      try {
+        const user = JSON.parse(stored);
+        setUserRole(user?.role || null);
+      } catch {
+        setUserRole(null);
+      }
+    }
+  }, []);
+
   const handleClose = () => setOpen(false);
+
+  const sidebarItems = [
+    ...BASE_ITEMS,
+    ...(userRole === "supervisor"
+      ? [{ icon: FaFileInvoiceDollar, href: "/management", text: 'قسم الادارة' }]
+      : []),
+  ];
 
   return (
     <>
@@ -56,7 +77,7 @@ const Sidebar = () => {
                 </div>
 
                 <nav className="p-4 space-y-4">
-                  {SIDEBAR_ITEMS.map((item, index) => (
+                  {sidebarItems.map((item, index) => (
                     <Link key={index} to={item.href} onClick={handleClose}>
                       <div className="flex items-center gap-3 hover:bg-gray-100 p-2 rounded transition cursor-pointer">
                         <div className="text-xl">
@@ -84,7 +105,7 @@ const Sidebar = () => {
             </div>
 
             <nav className="flex-grow overflow-y-auto">
-              {SIDEBAR_ITEMS.map((item, index) => (
+              {sidebarItems.map((item, index) => (
                 <Link key={index} to={item.href} className="block">
                   <motion.div
                     className="flex items-center hover:bg-gray-100 transition-colors"
