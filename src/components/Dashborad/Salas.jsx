@@ -3,10 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
 import moment from 'moment';
 import 'moment/locale/ar-sa';
-// لا نحتاج jwtDecode إذا كنا نأخذ اسم المستخدم من localStorage.userData
-// import { jwtDecode } from 'jwt-decode'; // يمكن إزالة هذا السطر
 
-// رابط API الأساسي لتقارير الوصول
 const API_BASE_URL = "https://hawkama.cbc-api.app/api/reports";
 
 const Salas = () => {

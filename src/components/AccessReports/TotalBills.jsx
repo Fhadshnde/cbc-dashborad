@@ -1,39 +1,34 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import NotificationIcon from '../../assets/NotificationIcon.jpeg';
+import { FaUsers } from 'react-icons/fa';
 
-// استيراد الأيقونات مباشرة في هذا المكون بما أنه سيقوم بحساب وعرض البيانات بنفسه
-import NotificationIcon from '../../assets/NotificationIcon.jpeg'; // تأكد أن هذا المسار صحيح
-import { FaUsers } from 'react-icons/fa'; // استيراد FaUsers
-
-const API_URL = "https://hawkama.cbc-api.app/api/reports"; // نقطة نهاية API لجلب التقارير
+const API_URL = "https://hawkama.cbc-api.app/api/reports";
 
 const TotalBills = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [totalBillsDisplayData, setTotalBillsDisplayData] = useState([]); // لبيانات العرض النهائية
+  const [totalBillsDisplayData, setTotalBillsDisplayData] = useState([]);
 
   const navigate = useNavigate();
 
-  // دالة للحصول على التوكن من Local Storage (منطق الحماية من الباك إند)
   const getAuthHeader = useCallback(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      // إذا لم يكن هناك توكن، قم بإعادة التوجيه لصفحة تسجيل الدخول
       navigate("/login");
-      return null; // ارجع null للإشارة إلى عدم وجود توكن
+      return null;
     }
     return { Authorization: `Bearer ${token}` };
   }, [navigate]);
 
-  // دالة لجلب التقارير من API
   const fetchReports = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const headers = getAuthHeader();
-      if (!headers) { // تحقق إذا كانت getAuthHeader أعادت null
+      if (!headers) {
         setLoading(false);
         return;
       }
@@ -41,7 +36,7 @@ const TotalBills = () => {
       setReports(response.data);
     } catch (err) {
       if (err.response && err.response.status === 401) {
-        navigate('/login'); // إعادة توجيه إذا كان التوكن غير صالح أو منتهي الصلاحية
+        navigate('/login');
       } else {
         setError("حدث خطأ أثناء جلب البيانات: " + (err.response?.data?.message || err.message));
       }
@@ -50,22 +45,16 @@ const TotalBills = () => {
     }
   }, [getAuthHeader, navigate]);
 
-  // useEffect لجلب البيانات عند تحميل المكون
   useEffect(() => {
     fetchReports();
   }, [fetchReports]);
 
-  // دالة لحساب إجماليات الفواتير بناءً على التقارير المجلبة
   const calculateAndSetTotalBillsData = useCallback(() => {
     const now = new Date();
-    // الحصول على بداية ونهاية الأسبوع الحالي
     const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
     startOfWeek.setHours(0, 0, 0, 0);
-
     const endOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay() + 6);
     endOfWeek.setHours(23, 59, 59, 999);
-
-    // الحصول على بداية ونهاية الشهر الحالي
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     startOfMonth.setHours(0, 0, 0, 0);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -75,45 +64,36 @@ const TotalBills = () => {
     let weeklyCount = 0;
     let monthlyBills = 0;
     let monthlyCount = 0;
-    let paidBills = 0; // إجمالي الفواتير المدفوعة (حالتها "received")
-    let paidCount = 0; // عدد الفواتير المدفوعة
-    let unpaidBills = 0; // إجمالي المبلغ المتبقي للفواتير غير المدفوعة
-    let unpaidCount = 0; // عدد الفواتير غير المدفوعة
+    let paidBills = 0;
+    let paidCount = 0;
+    let unpaidBills = 0;
+    let unpaidCount = 0;
 
     reports.forEach(report => {
-      // تحويل التاريخ من String إلى Date للمقارنة (كما هو مخزن في الموديل)
-      const reportDate = new Date(report.date);
+      const reportDate = new Date(report.createdAt);
       reportDate.setHours(0, 0, 0, 0);
-
-      // تحويل الكميات والمبالغ من String إلى Number قبل إجراء العمليات الحسابية
       const quantity = parseFloat(report.quantity) || 0;
-      const remaining = parseFloat(report.remaining) || 0;
+      const remaining = parseFloat(report.moneyRemain) || 0;
 
-      // حساب فواتير الأسبوع
       if (reportDate >= startOfWeek && reportDate <= endOfWeek) {
         weeklyBills += quantity;
         weeklyCount++;
       }
-
-      // حساب فواتير الشهر
       if (reportDate >= startOfMonth && reportDate <= endOfMonth) {
         monthlyBills += quantity;
         monthlyCount++;
       }
-
-      // حساب الفواتير المدفوعة وغير المدفوعة بناءً على التعريفات الجديدة
-      if (report.status === "received") { // الفاتورة مدفوعة إذا كانت حالتها "received"
-        paidBills += quantity; // نجمع المبلغ الكلي للفواتير المدفوعة
+      if (report.status === "received") {
+        paidBills += quantity;
         paidCount++;
-      } else { // الفاتورة غير مدفوعة (أو جزء منها) إذا لم تكن "received" ولها مبلغ متبقي
-        if (remaining > 0) { // تأكد من وجود مبلغ متبقي
-          unpaidBills += remaining; // نجمع المبلغ المتبقي للفواتير غير المدفوعة
+      } else {
+        if (remaining > 0) {
+          unpaidBills += remaining;
           unpaidCount++;
         }
       }
     });
 
-    // إعداد البيانات التي سيتم عرضها
     setTotalBillsDisplayData([
       {
         title: 'فواتير هذا الأسبوع',
@@ -144,34 +124,26 @@ const TotalBills = () => {
         titleColor: "#b51a00"
       },
     ]);
-  }, [reports]); // تعتمد هذه الدالة على 'reports' لتُعاد حسابها عند تغير البيانات
+  }, [reports]);
 
-  // useEffect لحساب البيانات المعروضة كلما تغيرت التقارير
   useEffect(() => {
-    if (reports.length > 0) { // تأكد من أن هناك تقارير للحساب
+    if (reports.length > 0) {
       calculateAndSetTotalBillsData();
     } else {
-      // إذا لم تكن هناك تقارير، أعد تعيين البيانات إلى فارغة
       setTotalBillsDisplayData([]);
     }
-  }, [reports, calculateAndSetTotalBillsData]); // إضافة calculateAndSetTotalBillsData كـ dependency
+  }, [reports, calculateAndSetTotalBillsData]);
 
   if (loading) {
-    return (
-      <div className="text-center py-4 text-gray-600">...جاري تحميل ملخص الفواتير</div>
-    );
+    return <div className="text-center py-4 text-gray-600">...جاري تحميل ملخص الفواتير</div>;
   }
 
   if (error) {
     return <div className="text-center py-4 text-red-600">{error}</div>;
   }
 
-  if (totalBillsDisplayData.length === 0 && !loading && !error) {
-    return (
-      <div className="text-center py-4 text-gray-500">
-        لا توجد بيانات فواتير لعرض الملخص.
-      </div>
-    );
+  if (totalBillsDisplayData.length === 0) {
+    return <div className="text-center py-4 text-gray-500">لا توجد بيانات فواتير لعرض الملخص.</div>;
   }
 
   return (
@@ -183,16 +155,10 @@ const TotalBills = () => {
         >
           <div className="flex flex-col items-center w-full">
             <div className="mb-2">{item.icon}</div>
-            <div className="text-sm text-gray-500 text-center">
-              {item.title}
-            </div>
+            <div className="text-sm text-gray-500 text-center">{item.title}</div>
             <div className="w-full text-center text-xl mt-2">
-              <div className="font-bold" style={{ color: item.titleColor }}>
-                {item.bills}
-              </div>
-              <div className="text-sm text-gray-500 mt-1">
-                {item.numberOfInvoices} فواتير
-              </div>
+              <div className="font-bold" style={{ color: item.titleColor }}>{item.bills}</div>
+              <div className="text-sm text-gray-500 mt-1">{item.numberOfInvoices} فواتير</div>
             </div>
           </div>
         </div>

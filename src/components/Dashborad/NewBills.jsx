@@ -101,13 +101,13 @@ const NewBills = () => {
   return (
     <div
       className="
-        p-4 rounded-lg bg-white shadow-md overflow-y-auto
-        w-[560px] max-w-[420px] min-w-[360px] h-auto md:h-[450px] mx-auto
+        p-4 rounded-lg bg-white shadow-md overflow-y-auto relative left-[100px]
+        w-[560px] max-w-[520px] min-w-[360px] h-auto md:h-[450px] mx-auto
         transition-all duration-300
         [@media(max-width:600px)]:w-[320px]
         [@media(max-width:600px)]:max-w-[100vw]
         [@media(max-width:600px)]:min-w-0
-        [@media(max-width:600px)]:mr-[36px]
+        [@media(max-width:600px)]:mr-[36px] 
       "
     >
       <h2 className="text-lg font-bold text-center mb-6">الفواتير المضافة حديثاً</h2>

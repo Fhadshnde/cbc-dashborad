@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom"; // Added useNavigate here as it's typically used in Login, but keeping it as the user provided the Login component initially.
-import TotalBills from "./TotalBills"; // Assuming you have a TotalBills component for displaying total bills
+import { Link, useNavigate } from "react-router-dom";
+import TotalBills from "./TotalBills";
+
 const API_URL = "https://hawkama.cbc-api.app/api/reports";
 
 const AccessReports = () => {
@@ -15,7 +16,7 @@ const AccessReports = () => {
   const [userRole, setUserRole] = useState(null);
   const [currentUsername, setCurrentUsername] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 13; // Number of items per page as requested
+  const itemsPerPage = 13;
 
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
@@ -43,9 +44,6 @@ const AccessReports = () => {
       setReports(response.data);
       setFilteredReports(response.data);
     } catch (err) {
-      // Using a custom message box instead of alert()
-      // You would implement a modal or similar component for this in a real app
-      console.error("فشل في تغيير الحالة:", err.response?.data?.message || err.message);
       setError("فشل في تغيير الحالة: " + (err.response?.data?.message || err.message));
     }
   };
@@ -74,7 +72,7 @@ const AccessReports = () => {
         const allReports = response.data;
         setReports(allReports);
         setFilteredReports(allReports);
-        setCurrentPage(1); // Reset to first page on new data fetch
+        setCurrentPage(1);
       } catch (err) {
         setError("حدث خطأ أثناء جلب البيانات: " + (err.response?.data?.message || err.message));
       } finally {
@@ -94,7 +92,7 @@ const AccessReports = () => {
         const adminMatch = admin.trim() === "" || (report.admin && report.admin.toLowerCase().includes(admin.toLowerCase().trim()));
         let dateMatch = true;
         if (startDate || endDate) {
-          const reportDate = new Date(report.date);
+          const reportDate = new Date(report.createdAt);
           reportDate.setHours(0, 0, 0, 0);
           const start = startDate ? new Date(startDate) : null;
           if (start) start.setHours(0, 0, 0, 0);
@@ -112,7 +110,7 @@ const AccessReports = () => {
       });
     }
     setFilteredReports(result);
-    setCurrentPage(1); // Reset to first page after search
+    setCurrentPage(1);
   };
 
   const getCardTypeText = (cardCategory) => {
@@ -123,7 +121,6 @@ const AccessReports = () => {
     return "غير محدد";
   };
 
-  // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredReports.slice(indexOfFirstItem, indexOfLastItem);
@@ -131,13 +128,18 @@ const AccessReports = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  // ** حساب المجاميع حسب البيانات في الصفحة الحالية فقط **
+  const totalQuantity = currentItems.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
+  const totalPaid = currentItems.reduce((acc, item) => acc + Number(item.moneyPaid || 0), 0);
+  const totalRemain = currentItems.reduce((acc, item) => acc + Number(item.moneyRemain || 0), 0);
+
   return (
     <div className="m-4 sm:m-16 p-4 sm:p-6 bg-gray-50 min-h-screen text-right font-sans">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 sm:gap-0">
         <h2 className="text-2xl font-bold text-gray-700">قسم المحاسبة</h2>
       </div>
       <div>
-        <TotalBills  />
+        <TotalBills />
       </div>
       <div className="bg-white shadow rounded-lg p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4 md:gap-6 justify-end flex-wrap">
@@ -215,38 +217,24 @@ const AccessReports = () => {
                     <td colSpan="14" className="px-4 py-4 text-center text-gray-500">لا توجد نتائج</td>
                   </tr>
                 )}
+                <tr className="bg-gray-100 font-bold text-gray-800 border-t">
+                  <td colSpan="3" className="px-2 py-2 text-center">المجاميع للصفحة الحالية</td>
+                  <td className="px-2 py-2">{totalQuantity}</td>
+                  <td className="px-2 py-2">{totalPaid}</td>
+                  <td className="px-2 py-2">{totalRemain}</td>
+                  <td colSpan="8"></td>
+                </tr>
               </tbody>
             </table>
           </div>
 
-          {/* Pagination Controls */}
           {totalPages > 1 && (
             <div className="flex justify-center mt-6 space-x-2">
-              <button
-                onClick={() => paginate(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
-              >
-                السابق
-              </button>
+              <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50">السابق</button>
               {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i + 1}
-                  onClick={() => paginate(i + 1)}
-                  className={`px-4 py-2 rounded-lg ${
-                    currentPage === i + 1 ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
-                >
-                  {i + 1}
-                </button>
+                <button key={i + 1} onClick={() => paginate(i + 1)} className={`px-4 py-2 rounded-lg ${currentPage === i + 1 ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}>{i + 1}</button>
               ))}
-              <button
-                onClick={() => paginate(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
-              >
-                التالي
-              </button>
+              <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50">التالي</button>
             </div>
           )}
         </>

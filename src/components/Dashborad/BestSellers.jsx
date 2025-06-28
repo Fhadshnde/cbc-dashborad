@@ -107,8 +107,8 @@ const BestSellers = () => {
   return (
     <div
       className="
-        p-4 rounded-lg bg-white shadow-md overflow-y-auto
-        w-[420px] max-w-[420px] min-w-[320px] h-auto md:h-[450px] mx-auto
+      p-4 rounded-lg bg-white shadow-md overflow-y-auto relative left-[100px]
+        w-[600px] max-w-[520px] min-w-[360px] h-auto md:h-[450px] mx-auto
         transition-all duration-300
         [@media(max-width:600px)]:w-[320px]
         [@media(max-width:600px)]:max-w-[100vw]

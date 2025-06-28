@@ -12,7 +12,7 @@ const EmployeeReports = () => {
   const [endDate, setEndDate] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState('daily');
   const [statusFilter, setStatusFilter] = useState('');
-
+  
   const fetchEmployeeReports = async () => {
     try {
       setLoading(true);
@@ -50,7 +50,6 @@ const EmployeeReports = () => {
       setLoading(false);
       setError(null);
     } catch (err) {
-      console.error('Error fetching employee reports:', err);
       setError(err.response?.data?.message || `Failed to fetch reports for ${adminUsername}`);
       setLoading(false);
     }
@@ -110,52 +109,35 @@ const EmployeeReports = () => {
     return report.status === 'received' ? getDeliveredCards(report) : 0;
   };
 
-  const getInitialPayment = (report) => {
-    return parseFloat(report.paid) || 0;
+  const getPaidAmount = (report) => {
+    return parseFloat(report.moneyPaid) || 0;
   };
 
-  const getFinalTotal = (report) => {
+  const getTotalAmount = (report) => {
     return parseFloat(report.quantity) || 0;
   };
 
   const getRemainingAmount = (report) => {
-    const total = getFinalTotal(report);
-    const paid = getInitialPayment(report);
-    return total - paid;
+    return parseFloat(report.moneyRemain) || (getTotalAmount(report) - getPaidAmount(report));
   };
 
   const calculateTotals = () => {
     return reports.reduce((acc, report) => {
-      acc.initialPayment += getInitialPayment(report);
+      acc.paidAmount += getPaidAmount(report);
       acc.remainingAmount += getRemainingAmount(report);
-      acc.totalQuantity += getFinalTotal(report);
+      acc.totalAmount += getTotalAmount(report);
       acc.receivedCards += getReceivedCards(report);
       acc.rejectedCards += getRejectedCards(report);
       acc.deliveredCards += getDeliveredCards(report);
       return acc;
     }, {
-      initialPayment: 0,
+      paidAmount: 0,
       remainingAmount: 0,
-      totalQuantity: 0,
+      totalAmount: 0,
       receivedCards: 0,
       rejectedCards: 0,
       deliveredCards: 0,
     });
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-        case "pending":
-            return "قيد الانتظار";
-        case "rejected":
-            return "مرفوضة";
-        case "canceled":
-            return "ملغاة";
-        case "received":
-            return "مستلمة";
-        default:
-            return "غير محدد";
-    }
   };
 
   const totals = calculateTotals();
@@ -179,9 +161,9 @@ const EmployeeReports = () => {
         </Link>
         <h1 className="text-2xl font-bold text-gray-800">التقرير الخاص بـ {decodeURIComponent(adminUsername)}</h1>
         <div className="text-gray-500">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
         </div>
       </div>
 
@@ -234,65 +216,59 @@ const EmployeeReports = () => {
           </button>
 
           <button
-              className="bg-green-500 text-white rounded-md px-4 py-2 text-sm hover:bg-green-600 transition-colors duration-200"
-              onClick={handleSearch}
+            className="bg-green-500 text-white rounded-md px-4 py-2 text-sm hover:bg-green-600 transition-colors duration-200"
+            onClick={handleSearch}
           >
-              بحث
+            بحث
           </button>
         </div>
       </div>
       <div className="flex gap-2 mb-4">
-            <button
-              className={`px-4 py-2 text-sm rounded-md transition-colors duration-200 ${
-                selectedPeriod === 'daily' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-              }`}
-              onClick={() => handlePeriodChange('daily')}
-            >
-              يومي
-            </button>
-            <button
-              className={`px-4 py-2 text-sm rounded-md transition-colors duration-200 ${
-                selectedPeriod === 'weekly' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-              }`}
-              onClick={() => handlePeriodChange('weekly')}
-            >
-              أسبوعي
-            </button>
-            <button
-              className={`px-4 py-2 text-sm rounded-md transition-colors duration-200 ${
-                selectedPeriod === 'monthly' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-              }`}
-              onClick={() => handlePeriodChange('monthly')}
-            >
-              شهري
-            </button>
-            <button
-              className={`px-4 py-2 text-sm rounded-md transition-colors duration-200 ${
-                selectedPeriod === 'halfYearly' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-              }`}
-              onClick={() => handlePeriodChange('halfYearly')}
-            >
-              نصف سنوي
-            </button>
-            <button
-              className={`px-4 py-2 text-sm rounded-md transition-colors duration-200 ${
-                selectedPeriod === 'yearly' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-              }`}
-              onClick={() => handlePeriodChange('yearly')}
-            >
-              سنوي
-            </button>
-          </div>
-      {loading && (
-        <div className="text-center py-4 text-gray-600">...جاري تحميل البيانات</div>
-      )}
-
-      {error && <div className="text-center py-4 text-red-600">{error}</div>}
+        <button
+          className={`px-4 py-2 text-sm rounded-md transition-colors duration-200 ${
+            selectedPeriod === 'daily' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+          }`}
+          onClick={() => handlePeriodChange('daily')}
+        >
+          يومي
+        </button>
+        <button
+          className={`px-4 py-2 text-sm rounded-md transition-colors duration-200 ${
+            selectedPeriod === 'weekly' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+          }`}
+          onClick={() => handlePeriodChange('weekly')}
+        >
+          أسبوعي
+        </button>
+        <button
+          className={`px-4 py-2 text-sm rounded-md transition-colors duration-200 ${
+            selectedPeriod === 'monthly' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+          }`}
+          onClick={() => handlePeriodChange('monthly')}
+        >
+          شهري
+        </button>
+        <button
+          className={`px-4 py-2 text-sm rounded-md transition-colors duration-200 ${
+            selectedPeriod === 'halfYearly' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+          }`}
+          onClick={() => handlePeriodChange('halfYearly')}
+        >
+          نصف سنوي
+        </button>
+        <button
+          className={`px-4 py-2 text-sm rounded-md transition-colors duration-200 ${
+            selectedPeriod === 'yearly' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+          }`}
+          onClick={() => handlePeriodChange('yearly')}
+        >
+          سنوي
+        </button>
+      </div>
 
       {!loading && !error && reports.length === 0 ? (
         <p className="text-center text-gray-500 p-5">لا توجد تقارير لهذا الموظف في الفترة المحددة.</p>
       ) : (
-        !loading && !error && (
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
             <thead className="bg-gray-200">
@@ -309,9 +285,9 @@ const EmployeeReports = () => {
             <tbody>
               {reports.map((report) => (
                 <tr key={report._id} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="py-2 px-4">{getInitialPayment(report)}</td>
-                  <td className="py-2 px-4">{getRemainingAmount(report)}</td>
-                  <td className="py-2 px-4">{getFinalTotal(report)}</td>
+                  <td className="py-2 px-4">{getPaidAmount(report).toFixed(2)}</td>
+                  <td className="py-2 px-4">{getRemainingAmount(report).toFixed(2)}</td>
+                  <td className="py-2 px-4">{getTotalAmount(report).toFixed(2)}</td>
                   <td className="py-2 px-4">{getReceivedCards(report)}</td>
                   <td className="py-2 px-4">{getRejectedCards(report)}</td>
                   <td className="py-2 px-4">{getDeliveredCards(report)}</td>
@@ -321,9 +297,9 @@ const EmployeeReports = () => {
             </tbody>
             <tfoot className="bg-gray-100">
               <tr>
-                <td className="py-3 px-4 font-bold">{totals.initialPayment.toFixed(2)}</td>
+                <td className="py-3 px-4 font-bold">{totals.paidAmount.toFixed(2)}</td>
                 <td className="py-3 px-4 font-bold">{totals.remainingAmount.toFixed(2)}</td>
-                <td className="py-3 px-4 font-bold">{totals.totalQuantity.toFixed(2)}</td>
+                <td className="py-3 px-4 font-bold">{totals.totalAmount.toFixed(2)}</td>
                 <td className="py-3 px-4 font-bold">{totals.receivedCards}</td>
                 <td className="py-3 px-4 font-bold">{totals.rejectedCards}</td>
                 <td className="py-3 px-4 font-bold">{totals.deliveredCards}</td>
@@ -332,7 +308,6 @@ const EmployeeReports = () => {
             </tfoot>
           </table>
         </div>
-        )
       )}
     </div>
   );

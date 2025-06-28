@@ -28,8 +28,7 @@ const AccessPrint = () => {
       setFilteredReports(response.data);
       setCurrentPage(1);
     } catch (err) {
-      // يمكنك إضافة معالجة أفضل للأخطاء هنا
-      console.error("Failed to fetch reports:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -37,7 +36,6 @@ const AccessPrint = () => {
 
   useEffect(() => {
     const loadPdfLibraries = () => {
-      // التحقق من تحميل jsPDF و html2canvas
       if (typeof window.jspdf !== 'undefined' && typeof window.html2canvas !== 'undefined') {
         setPdfLibsLoaded(true);
         return;
@@ -53,15 +51,7 @@ const AccessPrint = () => {
         scriptJsPDF.onload = () => {
           setPdfLibsLoaded(true);
         };
-        scriptJsPDF.onerror = () => {
-          console.error("فشل تحميل jsPDF.");
-          alert("فشل تحميل مكتبة jsPDF. يرجى التحقق من اتصال الإنترنت.");
-        };
         document.head.appendChild(scriptJsPDF);
-      };
-      scriptHtml2Canvas.onerror = () => {
-        console.error("فشل تحميل html2canvas.");
-        alert("فشل تحميل مكتبة html2canvas. يرجى التحقق من اتصال الإنترنت.");
       };
       document.head.appendChild(scriptHtml2Canvas);
     };
@@ -129,18 +119,13 @@ const AccessPrint = () => {
   };
 
   const exportToExcel = (data, fileName = "PrintReports") => {
-    if (!data || data.length === 0) {
-      alert("لا توجد بيانات للتصدير.");
-      return;
-    }
-    if (typeof window.XLSX === 'undefined') {
-      alert("مكتبة XLSX غير متوفرة. يرجى التأكد من تضمينها في ملف HTML.");
+    if (!data || data.length === 0 || typeof window.XLSX === 'undefined') {
       return;
     }
 
     const headers = [
       "اسم الزبون", "الاسم بالإنجليزية", "رقم الهاتف", "اسم المندوب",
-      "المدفوع", "المتبقي", "فئة البطاقة", "العنوان"
+      "المدفوع", "المتبقي", "فئة البطاقة", "العنوان", "ملاحظات"
     ];
 
     const rows = data.map(r => ([
@@ -151,15 +136,14 @@ const AccessPrint = () => {
       r.moneyPaid,
       r.moneyRemain,
       renderCardCategory(r.cardCategory),
-      `${r.address || ''} - ${r.ministry || ''}`
+      `${r.address || ''} - ${r.ministry || ''}`,
+      r.notes || ''
     ]));
 
     const ws = window.XLSX.utils.aoa_to_sheet([headers, ...rows]);
-
-    // Set column widths
     const wscols = [
       { wch: 25 }, { wch: 25 }, { wch: 20 }, { wch: 20 },
-      { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 30 }
+      { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 30 }, { wch: 40 }
     ];
     ws['!cols'] = wscols;
 
@@ -174,38 +158,30 @@ const AccessPrint = () => {
   };
 
   const exportToPdf = async (data, fileName = "PrintReports") => {
-    if (!data || data.length === 0) {
-      alert("لا توجد بيانات للتصدير.");
-      return;
-    }
-
-    if (!pdfLibsLoaded) {
-      alert("مكتبات PDF ما زالت قيد التحميل أو فشل تحميلها. يرجى المحاولة مرة أخرى.");
-      return;
-    }
+    if (!data || data.length === 0 || !pdfLibsLoaded) return;
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // إنشاء جدول مؤقت في الذاكرة لـ html2canvas
     const tempTable = document.createElement('div');
     tempTable.style.position = 'absolute';
-    tempTable.style.left = '-9999px'; // إخفاء العنصر عن الشاشة
-    tempTable.style.width = 'fit-content'; // السماح للعرض بالتوسع
-    tempTable.style.whiteSpace = 'nowrap'; // منع التفاف النص لضمان عرض كامل
+    tempTable.style.left = '-9999px';
+    tempTable.style.width = 'fit-content';
+    tempTable.style.whiteSpace = 'nowrap';
 
     let tableHtml = `
-      <table style="width: auto; border-collapse: collapse; text-align: right; direction: rtl; font-family: 'Arial Unicode MS', 'Arial', sans-serif;">
-        <thead style="background-color: #f1f5f9; color: #4b5563; font-weight: bold;">
+      <table style="width: auto; border-collapse: collapse; text-align: right; direction: rtl;">
+        <thead>
           <tr>
-            <th style="padding: 12px; border: 1px solid #e2e8f0;">اسم الزبون</th>
-            <th style="padding: 12px; border: 1px solid #e2e8f0;">الاسم بالإنجليزية</th>
-            <th style="padding: 12px; border: 1px solid #e2e8f0;">رقم الهاتف</th>
-            <th style="padding: 12px; border: 1px solid #e2e8f0;">اسم المندوب</th>
-            <th style="padding: 12px; border: 1px solid #e2e8f0;">المدفوع</th>
-            <th style="padding: 12px; border: 1px solid #e2e8f0;">المتبقي</th>
-            <th style="padding: 12px; border: 1px solid #e2e8f0;">فئة البطاقة</th>
-            <th style="padding: 12px; border: 1px solid #e2e8f0;">العنوان</th>
+            <th style="padding: 8px; border: 1px solid #ccc;">اسم الزبون</th>
+            <th style="padding: 8px; border: 1px solid #ccc;">الاسم بالإنجليزية</th>
+            <th style="padding: 8px; border: 1px solid #ccc;">رقم الهاتف</th>
+            <th style="padding: 8px; border: 1px solid #ccc;">اسم المندوب</th>
+            <th style="padding: 8px; border: 1px solid #ccc;">المدفوع</th>
+            <th style="padding: 8px; border: 1px solid #ccc;">المتبقي</th>
+            <th style="padding: 8px; border: 1px solid #ccc;">فئة البطاقة</th>
+            <th style="padding: 8px; border: 1px solid #ccc;">العنوان</th>
+            <th style="padding: 8px; border: 1px solid #ccc;">ملاحظات</th>
           </tr>
         </thead>
         <tbody>
@@ -213,15 +189,16 @@ const AccessPrint = () => {
 
     data.forEach(report => {
       tableHtml += `
-        <tr style="border-top: 1px solid #e2e8f0;">
-          <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.name_ar || ""}</td>
-          <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.name_en || ""}</td>
-          <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.phoneNumber || ""}</td>
-          <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.admin || ""}</td>
-          <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.moneyPaid || ""}</td>
-          <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.moneyRemain || ""}</td>
-          <td style="padding: 12px; border: 1px solid #e2e8f0;">${renderCardCategory(report.cardCategory) || ""}</td>
-          <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.address || ""} - ${report.ministry || ""}</td>
+        <tr>
+          <td style="padding: 8px; border: 1px solid #ccc;">${report.name_ar || ""}</td>
+          <td style="padding: 8px; border: 1px solid #ccc;">${report.name_en || ""}</td>
+          <td style="padding: 8px; border: 1px solid #ccc;">${report.phoneNumber || ""}</td>
+          <td style="padding: 8px; border: 1px solid #ccc;">${report.admin || ""}</td>
+          <td style="padding: 8px; border: 1px solid #ccc;">${report.moneyPaid || ""}</td>
+          <td style="padding: 8px; border: 1px solid #ccc;">${report.moneyRemain || ""}</td>
+          <td style="padding: 8px; border: 1px solid #ccc;">${renderCardCategory(report.cardCategory)}</td>
+          <td style="padding: 8px; border: 1px solid #ccc;">${report.address || ""} - ${report.ministry || ""}</td>
+          <td style="padding: 8px; border: 1px solid #ccc; max-width: 300px; white-space: pre-wrap;">${report.notes || ""}</td>
         </tr>
       `;
     });
@@ -231,41 +208,26 @@ const AccessPrint = () => {
     document.body.appendChild(tempTable);
 
     try {
-      // استخدام html2canvas لالتقاط صورة للجدول
-      const canvas = await window.html2canvas(tempTable, {
-        scale: 2, // زيادة الدقة
-        useCORS: true // قد تحتاجها إذا كانت الصور أو الخطوط من مصادر خارجية
-      });
-
+      const canvas = await window.html2canvas(tempTable, { scale: 2, useCORS: true });
       const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 190; // عرض الصورة في PDF (تقريبي لحجم A4 مع هوامش 10mm)
+      const imgWidth = 190;
       const pageHeight = doc.internal.pageSize.getHeight();
       const imgHeight = canvas.height * imgWidth / canvas.width;
       let heightLeft = imgHeight;
-
-      let position = 10; // الموضع الأولي للصورة من الأعلى
-
-      // إضافة العنوان
-      doc.setFont("helvetica"); // أو أي خط آخر قياسي لـ jsPDF
-      doc.setFontSize(14);
-      doc.text("تقارير الطباعة", doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
-
+      let position = 10;
       doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
-
       while (heightLeft >= 0) {
-        position = heightLeft - imgHeight + 10; // ضبط الموضع للصفحة الجديدة
+        position = heightLeft - imgHeight + 10;
         doc.addPage();
         doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
-      
       doc.save(`${fileName}.pdf`);
     } catch (err) {
-      console.error("خطأ في تصدير PDF:", err);
-      alert("فشل في تصدير PDF. يرجى مراجعة وحدة التحكم للمزيد من التفاصيل.");
+      console.error(err);
     } finally {
-      document.body.removeChild(tempTable); 
+      document.body.removeChild(tempTable);
     }
   };
 
@@ -317,6 +279,7 @@ const AccessPrint = () => {
               <th className="px-4 py-3">المبلغ المتبقي</th>
               <th className="px-4 py-3">فئة البطاقة</th>
               <th className="px-4 py-3">العنوان</th>
+              <th className="px-4 py-3">ملاحظات</th>
             </tr>
           </thead>
           <tbody>
@@ -331,6 +294,8 @@ const AccessPrint = () => {
                   <td className="px-4 py-3">{report.moneyRemain}</td>
                   <td className="px-4 py-3">{renderCardCategory(report.cardCategory)}</td>
                   <td className="px-4 py-3">{report.address} - {report.ministry}</td>
+                  <td className="px-4 py-3">{report.notes}</td>
+
                 </tr>
               ))
             ) : (
