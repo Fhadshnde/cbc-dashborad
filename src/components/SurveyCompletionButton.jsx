@@ -53,7 +53,7 @@ const SurveyCompletionButton = ({ surveyId, currentStatus, onCompletionSuccess, 
   if (currentStatus === 'completed' || currentStatus === 'archived') {
     return (
       <div className="text-green-600 font-semibold text-center mt-4">
-        تم إكمال الاستبيان بنجاح
+        تم إكمال الاستبيان بنجاح jkbqwdbjkhjkwdhkqdshqwkhdsq
       </div>
     );
   }

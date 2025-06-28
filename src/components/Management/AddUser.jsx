@@ -259,7 +259,7 @@ const AddUser = () => {
               ذمة الموظف:
             </label>
             <input
-              type="text"
+              type="number"
               id="employeeDebt"
               name="employeeDebt"
               value={formData.employeeDebt}
