@@ -71,7 +71,7 @@ const App = () => {
                     <Route path="/management" element={<Management />} />
                     <Route path="/management/add-user" element={<AddUser />} />
                     <Route path="/management/edit-user/:id" element={<EditUser />} />
-                    <Route path="/management/details/:username" element={<UserDetails />} />
+                    <Route path="/management/details/:id" element={<UserDetails />} />
                     <Route path="/contracts" element={<ContractsPage />} />
                     <Route path="/contracts/create" element={<ContractForm />} />
                     <Route path="/contracts/edit/:id" element={<ContractForm />} />

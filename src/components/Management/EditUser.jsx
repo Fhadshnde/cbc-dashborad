@@ -25,6 +25,7 @@ const EditUser = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [shouldClearImage, setShouldClearImage] = useState(false);
+  const [currentPhoneNumber, setCurrentPhoneNumber] = useState('');
 
   const governorates = [
     "بغداد",
@@ -66,7 +67,7 @@ const EditUser = () => {
         setFormData({
           username: userData.username || '',
           email: userData.email || '',
-          phoneNumber: userData.phoneNumber || '',
+          phoneNumber: '',
           password: '',
           role: userData.role || 'supervisor',
           hireDate: userData.hireDate ? moment(userData.hireDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD'),
@@ -75,6 +76,7 @@ const EditUser = () => {
           employeeDebt: userData.employeeDebt || 0,
           governorate: userData.governorate || '',
         });
+        setCurrentPhoneNumber(userData.phoneNumber || '');
         setCurrentImageUrl(userData.imageUrl ? `https://hawkama.cbc-api.app/${userData.imageUrl}` : '');
         setLoading(false);
       } catch (err) {
@@ -117,6 +119,7 @@ const EditUser = () => {
       const formDataToSend = new FormData();
       for (const key in formData) {
         if (key === 'password' && formData[key] === '') continue;
+        if (key === 'phoneNumber' && formData[key].trim() === '') continue;
         formDataToSend.append(key, formData[key]);
       }
       if (imageFile) {
@@ -197,7 +200,7 @@ const EditUser = () => {
 
           <div>
             <label htmlFor="phoneNumber" className="block text-gray-700 text-sm font-bold mb-2">
-              رقم الهاتف:
+              رقم الهاتف (القديم: {currentPhoneNumber || 'غير متوفر'}):
             </label>
             <input
               type="tel"
@@ -206,7 +209,7 @@ const EditUser = () => {
               value={formData.phoneNumber}
               onChange={handleChange}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"
-              required
+              placeholder="أدخل رقم جديد أو اتركه فارغاً للاحتفاظ بالرقم القديم"
             />
           </div>
 
@@ -290,7 +293,7 @@ const EditUser = () => {
               ذمة الموظف:
             </label>
             <input
-              type="number"
+              type="text"
               id="employeeDebt"
               name="employeeDebt"
               value={formData.employeeDebt}
