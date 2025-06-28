@@ -30,7 +30,7 @@ const AdvancesSection = ({ userId, salaryAdvances }) => {
             setShowAddAdvanceModal(false);
             window.location.reload();
         } catch (err) {
-            setAddAdvanceError(err.response?.data?.message || 'فشل إضافة السلفة.');
+            setAddAdvanceError(err.response?.data?.message || 'فشل إضافة.');
         }
     };
 
@@ -67,6 +67,18 @@ const AdvancesSection = ({ userId, salaryAdvances }) => {
                                     </td>
                                     <td className="py-2 px-3 text-sm text-gray-800">{advance.amount}</td>
                                     <td className="py-2 px-3 text-sm text-gray-800">{moment(advance.date).format('YYYY-MM-DD')}</td>
+                                    <td className="py-2 px-3 text-sm text-gray-800">
+                                        <button
+
+                                            onClick={() => {
+                                                // Handle delete advance logic here
+                                                console.log('Delete advance:', advance._id);
+                                            }}
+                                            className="text-red-600 hover:text-red-800"
+                                        >
+                                            حذف
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

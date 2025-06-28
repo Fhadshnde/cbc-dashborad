@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import TotalBills from "./TotalBills";
 
 const API_URL = "https://hawkama.cbc-api.app/api/reports";
@@ -34,6 +34,18 @@ const AccessReports = () => {
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  };
+
+  const formatDateTime = (dateString) => {
+    if (!dateString) return "";
+    const d = new Date(dateString);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    const seconds = String(d.getSeconds()).padStart(2, "0");
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   };
 
   const handleStatusChange = async (reportId, newStatus) => {
@@ -128,7 +140,6 @@ const AccessReports = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // ** حساب المجاميع حسب البيانات في الصفحة الحالية فقط **
   const totalQuantity = currentItems.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
   const totalPaid = currentItems.reduce((acc, item) => acc + Number(item.moneyPaid || 0), 0);
   const totalRemain = currentItems.reduce((acc, item) => acc + Number(item.moneyRemain || 0), 0);
@@ -173,7 +184,7 @@ const AccessReports = () => {
       {!loading && !error && (
         <>
           <div className="overflow-x-auto bg-white rounded shadow">
-            <table className="w-full sm:min-w-[1400px] text-sm text-right border-collapse">
+            <table className="w-full sm:min-w-[1600px] text-sm text-right border-collapse">
               <thead className="bg-gray-100 text-gray-600 font-bold">
                 <tr>
                   <th className="px-2 py-2">الاسم بالعربي</th>
@@ -190,6 +201,8 @@ const AccessReports = () => {
                   <th className="px-2 py-2">على الراتب</th>
                   <th className="px-2 py-2">تاريخ الفاتورة</th>
                   <th className="px-2 py-2">الحالة</th>
+                  <th className="px-2 py-2">تم التعديل</th>
+                  <th className="px-2 py-2">وقت التعديل</th>
                 </tr>
               </thead>
               <tbody>
@@ -210,11 +223,13 @@ const AccessReports = () => {
                       <td className="px-2 py-2">{report.onPayroll ? "نعم" : "لا"}</td>
                       <td className="px-2 py-2">{formatDateOnly(report.createdAt)}</td>
                       <td className="px-2 py-2">{report.status}</td>
+                      <td className="px-2 py-2">{report.isEdited ? "نعم" : "لا"}</td>
+                      <td className="px-2 py-2">{report.editedAt ? formatDateTime(report.editedAt) : "-"}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="14" className="px-4 py-4 text-center text-gray-500">لا توجد نتائج</td>
+                    <td colSpan="16" className="px-4 py-4 text-center text-gray-500">لا توجد نتائج</td>
                   </tr>
                 )}
                 <tr className="bg-gray-100 font-bold text-gray-800 border-t">
@@ -222,7 +237,7 @@ const AccessReports = () => {
                   <td className="px-2 py-2">{totalQuantity}</td>
                   <td className="px-2 py-2">{totalPaid}</td>
                   <td className="px-2 py-2">{totalRemain}</td>
-                  <td colSpan="8"></td>
+                  <td colSpan="10"></td>
                 </tr>
               </tbody>
             </table>
