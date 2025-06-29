@@ -3,8 +3,7 @@ import { FaUsers } from 'react-icons/fa';
 import NotificationIcon from '../../assets/NotificationIcon.jpeg';
 import axios from 'axios';
 import moment from 'moment';
-import 'moment/locale/ar-sa'; // لضمان التاريخ باللغة العربية
-// تأكد أن هذا السطر غير موجود أو معلق بشكل صحيح: // import jwtDecode from 'jwt-decode';
+import 'moment/locale/ar-sa';
 
 const API_BASE_URL = "https://hawkama.cbc-api.app/api/reports";
 
@@ -20,13 +19,11 @@ const TotalBills = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // دالة لجلب توكن المصادقة واسم المستخدم من localStorage
   const getAuthData = () => {
     const token = localStorage.getItem("token");
-    const userDataString = localStorage.getItem("userData"); // جلب بيانات المستخدم كـ string
+    const userDataString = localStorage.getItem("userData");
 
     if (!token) {
-      console.error("خطأ: توكن المصادقة غير موجود. يرجى تسجيل الدخول.");
       return { headers: {}, username: null };
     }
 
@@ -34,9 +31,9 @@ const TotalBills = () => {
     if (userDataString) {
       try {
         const userData = JSON.parse(userDataString);
-        username = userData.username; // افترض أن اسم المستخدم مخزن في خاصية 'username'
+        username = userData.username;
       } catch (e) {
-        console.error("خطأ في تحليل بيانات المستخدم المخزنة في localStorage:", e);
+        console.error(e);
       }
     }
 
@@ -44,7 +41,7 @@ const TotalBills = () => {
   };
 
   useEffect(() => {
-    moment.locale('ar-sa'); // تفعيل اللغة العربية لـ moment
+    moment.locale('ar-sa');
 
     const fetchBillsData = async () => {
       setLoading(true);
@@ -52,19 +49,18 @@ const TotalBills = () => {
       const { headers, username } = getAuthData();
 
       if (!username) {
-        setError("اسم المستخدم غير متوفر. يرجى التأكد من تسجيل الدخول بشكل صحيح.");
+        setError("اسم المستخدم غير متوفر.");
         setLoading(false);
         return;
       }
 
       try {
-        // جلب جميع التقارير لهذا المستخدم
         const response = await axios.get(`${API_BASE_URL}/by-admin/${username}`, { headers });
         const allReports = response.data;
 
         const now = moment();
-        const startOfWeek = now.clone().startOf('week'); // بداية هذا الأسبوع
-        const startOfMonth = now.clone().startOf('month'); // بداية هذا الشهر
+        const startOfWeek = now.clone().startOf('week');
+        const startOfMonth = now.clone().startOf('month');
 
         let totalWeeklyAmount = 0;
         let countWeeklyInvoices = 0;
@@ -72,60 +68,49 @@ const TotalBills = () => {
         let countMonthlyInvoices = 0;
 
         allReports.forEach(report => {
-          const reportDate = moment(report.createdAt); // تاريخ إنشاء التقرير
-          
-          // ***** التعديل الجديد هنا: إضافة شرط لحالة الفاتورة *****
-          // يجب عليك استبدال 'received' بالقيمة الفعلية للحالة التي تدل على أن الفاتورة "مستلمة" في الباك إند الخاص بك.
-          // على سبيل المثال: 'completed', 'delivered', 'paid', 'approved', 'تم الاستلام', 'Received'
-          // إذا كان حقل الحالة مختلفًا، قم بتعديل report.status هنا.
-          const isReceived = report.status === 'received'; // <-- قم بتعديل 'received' إذا كانت الحالة مختلفة
+          const reportDate = moment(report.createdAt);
+          const isReceived = report.status === 'received';
+          const reportAmount = parseFloat(report.quantity || 0);
 
-          const reportAmount = parseFloat(report.quantity || 0); // استخدم report.quantity كالمبلغ، وافترض 0 إذا كانت غير موجودة أو غير صالحة
-
-          // إذا كان التقرير ضمن هذا الأسبوع وكان "مستلمًا"
           if (reportDate.isSameOrAfter(startOfWeek, 'day') && isReceived) {
             totalWeeklyAmount += reportAmount;
             countWeeklyInvoices += 1;
           }
 
-          // إذا كان التقرير ضمن هذا الشهر وكان "مستلمًا"
           if (reportDate.isSameOrAfter(startOfMonth, 'day') && isReceived) {
             totalMonthlyAmount += reportAmount;
             countMonthlyInvoices += 1;
           }
         });
-        
-        // تحديث حالات المكون
+
         setWeeklyBills({
-          Bills: `${totalWeeklyAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} IQ`, // تنسيق المبلغ كعملة
+          Bills: `${totalWeeklyAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} IQ`,
           NumberOfInvoices: countWeeklyInvoices
         });
 
         setMonthlyBills({
-          Bills: `${totalMonthlyAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} IQ`, // تنسيق المبلغ كعملة
+          Bills: `${totalMonthlyAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} IQ`,
           NumberOfInvoices: countMonthlyInvoices
         });
 
       } catch (err) {
-        setError("حدث خطأ أثناء جلب بيانات الفواتير: " + (err.response?.data?.message || err.message));
-        console.error("تفاصيل الخطأ:", err);
+        setError("حدث خطأ أثناء جلب البيانات.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchBillsData();
-  }, []); 
+  }, []);
 
   if (loading) {
-    return <div className="total-bills-container text-center p-5 text-gray-600">جاري تحميل إحصائيات الفواتير...</div>;
+    return <div className="total-bills-container text-center p-5 text-gray-600">جاري التحميل...</div>;
   }
 
   if (error) {
-    return <div className="total-bills-container text-red-500 text-center p-5">خطأ: {error}</div>;
+    return <div className="total-bills-container text-red-500 text-center p-5">{error}</div>;
   }
 
-  // البيانات التي سيتم عرضها، تستخدم الآن الحالات المستجلبة
   const dataToRender = [
     {
       title: 'فواتير هذا الأسبوع',
@@ -170,7 +155,6 @@ const TotalBills = () => {
       ))}
 
       <style>{`
-        /* حجم الحاوية في اللابتوب */
         @media (min-width: 768px) {
           .total-bills-container {
             width: 600px !important;

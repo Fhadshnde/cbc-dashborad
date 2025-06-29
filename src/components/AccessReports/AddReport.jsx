@@ -9,7 +9,7 @@ const AddReportForm = () => {
     name_ar: "",
     name_en: "",
     phoneNumber: "",
-    quantity: "", // غيرنا القيمة الأولية إلى سلسلة فارغة للسماح بإدخال المستخدم أو البقاء فارغًا
+    quantity: "",
     moneyPaid: "",
     moneyRemain: "",
     address: "",
@@ -18,10 +18,10 @@ const AddReportForm = () => {
     cardCategory: {
       oneYear: 0,
       twoYears: 0,
-      virtual: 0
+      virtual: 0,
     },
     notes: "",
-    onPayroll: false
+    onPayroll: false,
   });
 
   const navigate = useNavigate();
@@ -32,19 +32,19 @@ const AddReportForm = () => {
       try {
         const userData = JSON.parse(storedUserData);
         const username = userData?.username || "مسؤول النظام";
-        setFormData(prev => ({ ...prev, admin: username }));
+        setFormData((prev) => ({ ...prev, admin: username }));
       } catch {
-        setFormData(prev => ({ ...prev, admin: "مسؤول النظام" }));
+        setFormData((prev) => ({ ...prev, admin: "مسؤول النظام" }));
       }
     } else {
-      setFormData(prev => ({ ...prev, admin: "مسؤول النظام" }));
+      setFormData((prev) => ({ ...prev, admin: "مسؤول النظام" }));
     }
   }, []);
 
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("توكن المصادقة غير موجود"); // استخدم واجهة مستخدم مخصصة بدلاً من alert
+      alert("توكن المصادقة غير موجود");
       throw new Error("توكن المصادقة غير موجود");
     }
     return { Authorization: `Bearer ${token}` };
@@ -53,37 +53,25 @@ const AddReportForm = () => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    // التعامل مع فئة البطاقة
     if (name === "cardType") {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         cardCategory: {
           oneYear: value === "oneYear" ? 1 : 0,
           twoYears: value === "twoYears" ? 1 : 0,
-          virtual: value === "virtual" ? 1 : 0
-        }
+          virtual: value === "virtual" ? 1 : 0,
+        },
       }));
-    }
-    // التعامل مع حقل 'على الراتب' (Checkbox)
-    else if (name === "onPayroll") {
-      setFormData(prev => ({
+    } else if (name === "onPayroll") {
+      setFormData((prev) => ({
         ...prev,
-        [name]: checked
+        [name]: checked,
       }));
-    }
-    // التعامل مع الحقول الرقمية ('quantity', 'moneyPaid', 'moneyRemain')
-    else if (name === "quantity" || name === "moneyPaid" || name === "moneyRemain") {
-      setFormData(prev => ({
+    } else {
+      // هنا نعالج جميع الحقول كقيم نصية مباشرة بدون تحويل إلى أرقام
+      setFormData((prev) => ({
         ...prev,
-        // تحويل القيمة إلى رقم. إذا كانت فارغة، اجعلها فارغة بدلاً من 0 لتجنب التحويل التلقائي
-        [name]: value === "" ? "" : Number(value)
-      }));
-    }
-    // التعامل مع الحقول النصية الأخرى
-    else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
@@ -94,20 +82,28 @@ const AddReportForm = () => {
     let card_id = "5";
     if (formData.cardCategory.oneYear === 1) card_id = "1";
     else if (formData.cardCategory.twoYears === 1) card_id = "2";
-    else if (formData.cardCategory.virtual === 1) card_id = "3"; // تأكد من تعيين card_id للبطاقة الافتراضية
+    else if (formData.cardCategory.virtual === 1) card_id = "7";
 
-    const fullData = { ...formData, card_id };
-
-    // إضافة console.log لتتبع البيانات المرسلة
-    console.log("Data being sent to API:", fullData);
+    // تأكد هنا إذا الباك اند يحتاج أرقام فعلية، يمكنك تحويل النصوص إلى أرقام هنا قبل الإرسال
+    // أو تركها نصوص حسب ما يتطلب الباك اند
+    const fullData = {
+      ...formData,
+      card_id,
+      // إذا تريد تحويل إلى أرقام، افعل ذلك هنا، مثلاً:
+      // quantity: Number(formData.quantity) || 0,
+      // moneyPaid: Number(formData.moneyPaid) || 0,
+      // moneyRemain: Number(formData.moneyRemain) || 0,
+    };
 
     try {
       const headers = { headers: getAuthHeader() };
       await axios.post(API_URL, fullData, headers);
-      alert("تم إضافة الفاتورة بنجاح"); // استخدم واجهة مستخدم مخصصة بدلاً من alert
+      alert("تم إضافة الفاتورة بنجاح");
       navigate("/accessreports");
     } catch (error) {
-      alert("حدث خطأ: " + (error.response?.data?.message || error.message)); // استخدم واجهة مستخدم مخصصة بدلاً من alert
+      alert(
+        "حدث خطأ: " + (error.response?.data?.message || error.message)
+      );
       console.error("Error creating report:", error.response?.data || error.message);
     }
   };
@@ -155,12 +151,9 @@ const AddReportForm = () => {
             name="quantity"
             value={formData.quantity}
             onChange={handleChange}
-            type="number"
+            type="text"
             className="w-full border rounded px-4 py-2"
-            // ملاحظة: لا تستخدم required هنا إذا كان يمكن أن تكون القيمة 0، 
-            // لكن إذا أردت أن يجبر المستخدم على إدخال قيمة، فاجعلها true.
-            // لكي يظهر 0 كقيمة افتراضية، يجب أن يرسل 0
-            required 
+            required
           />
         </div>
         <div>
@@ -169,7 +162,7 @@ const AddReportForm = () => {
             name="moneyPaid"
             value={formData.moneyPaid}
             onChange={handleChange}
-            type="number"
+            type="text"
             className="w-full border rounded px-4 py-2"
             required
           />
@@ -180,7 +173,7 @@ const AddReportForm = () => {
             name="moneyRemain"
             value={formData.moneyRemain}
             onChange={handleChange}
-            type="number"
+            type="text"
             className="w-full border rounded px-4 py-2"
             required
           />

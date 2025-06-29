@@ -48,6 +48,11 @@ const AccessReports = () => {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   };
 
+  const formatNumber = (number) => {
+    if (isNaN(number)) return number;
+    return Number(number).toLocaleString("en-US");
+  };
+
   const handleStatusChange = async (reportId, newStatus) => {
     try {
       const headers = { headers: getAuthHeader() };
@@ -155,15 +160,12 @@ const AccessReports = () => {
       <div className="bg-white shadow rounded-lg p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4 md:gap-6 justify-end flex-wrap">
           <div className="flex flex-col">
-            <label htmlFor="startDate" className="text-sm text-gray-600 mb-1">من تاريخ</label>
             <input id="startDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="border px-3 py-2 rounded w-full md:w-auto" />
           </div>
           <div className="flex flex-col">
-            <label htmlFor="endDate" className="text-sm text-gray-600 mb-1">إلى تاريخ</label>
             <input id="endDate" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="border px-3 py-2 rounded w-full md:w-auto" />
           </div>
           <div className="flex flex-col">
-            <label htmlFor="admin" className="text-sm text-gray-600 mb-1">اسم المسؤول</label>
             <input id="admin" type="text" value={admin} onChange={(e) => setAdmin(e.target.value)} className="border px-3 py-2 rounded w-full md:w-auto" />
           </div>
           <button onClick={handleSearch} className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6">بحث</button>
@@ -177,10 +179,8 @@ const AccessReports = () => {
           )}
         </div>
       </div>
-
       {loading && <div className="text-center py-4 text-gray-600">...جاري تحميل البيانات</div>}
       {error && <div className="text-center py-4 text-red-600">{error}</div>}
-
       {!loading && !error && (
         <>
           <div className="overflow-x-auto bg-white rounded shadow">
@@ -212,9 +212,9 @@ const AccessReports = () => {
                       <td className="px-2 py-2">{report.name_ar}</td>
                       <td className="px-2 py-2">{report.name_en}</td>
                       <td className="px-2 py-2">{report.phoneNumber}</td>
-                      <td className="px-2 py-2">{report.quantity}</td>
-                      <td className="px-2 py-2">{report.moneyPaid}</td>
-                      <td className="px-2 py-2">{report.moneyRemain}</td>
+                      <td className="px-2 py-2">{formatNumber(report.quantity)}</td>
+                      <td className="px-2 py-2">{formatNumber(report.moneyPaid)}</td>
+                      <td className="px-2 py-2">{formatNumber(report.moneyRemain)}</td>
                       <td className="px-2 py-2">{report.address}</td>
                       <td className="px-2 py-2">{report.ministry}</td>
                       <td className="px-2 py-2">{getCardTypeText(report.cardCategory)}</td>
@@ -234,15 +234,14 @@ const AccessReports = () => {
                 )}
                 <tr className="bg-gray-100 font-bold text-gray-800 border-t">
                   <td colSpan="3" className="px-2 py-2 text-center">المجاميع للصفحة الحالية</td>
-                  <td className="px-2 py-2">{totalQuantity}</td>
-                  <td className="px-2 py-2">{totalPaid}</td>
-                  <td className="px-2 py-2">{totalRemain}</td>
+                  <td className="px-2 py-2">{formatNumber(totalQuantity)}</td>
+                  <td className="px-2 py-2">{formatNumber(totalPaid)}</td>
+                  <td className="px-2 py-2">{formatNumber(totalRemain)}</td>
                   <td colSpan="10"></td>
                 </tr>
               </tbody>
             </table>
           </div>
-
           {totalPages > 1 && (
             <div className="flex justify-center mt-6 space-x-2">
               <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50">السابق</button>

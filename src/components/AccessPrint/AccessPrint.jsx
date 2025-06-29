@@ -40,7 +40,6 @@ const AccessPrint = () => {
         setPdfLibsLoaded(true);
         return;
       }
-
       const scriptHtml2Canvas = document.createElement('script');
       scriptHtml2Canvas.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
       scriptHtml2Canvas.async = true;
@@ -99,12 +98,11 @@ const AccessPrint = () => {
     return "غير معروف";
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+  const formatNumberWithCommas = (number) => {
+    if (number == null) return "";
+    const num = typeof number === "number" ? number : Number(number);
+    if (isNaN(num)) return number;
+    return num.toLocaleString("en-US");
   };
 
   const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE);
@@ -133,8 +131,8 @@ const AccessPrint = () => {
       r.name_en,
       r.phoneNumber,
       r.admin,
-      r.moneyPaid,
-      r.moneyRemain,
+      formatNumberWithCommas(r.moneyPaid),
+      formatNumberWithCommas(r.moneyRemain),
       renderCardCategory(r.cardCategory),
       `${r.address || ''} - ${r.ministry || ''}`,
       r.notes || ''
@@ -194,8 +192,8 @@ const AccessPrint = () => {
           <td style="padding: 8px; border: 1px solid #ccc;">${report.name_en || ""}</td>
           <td style="padding: 8px; border: 1px solid #ccc;">${report.phoneNumber || ""}</td>
           <td style="padding: 8px; border: 1px solid #ccc;">${report.admin || ""}</td>
-          <td style="padding: 8px; border: 1px solid #ccc;">${report.moneyPaid || ""}</td>
-          <td style="padding: 8px; border: 1px solid #ccc;">${report.moneyRemain || ""}</td>
+          <td style="padding: 8px; border: 1px solid #ccc;">${formatNumberWithCommas(report.moneyPaid)}</td>
+          <td style="padding: 8px; border: 1px solid #ccc;">${formatNumberWithCommas(report.moneyRemain)}</td>
           <td style="padding: 8px; border: 1px solid #ccc;">${renderCardCategory(report.cardCategory)}</td>
           <td style="padding: 8px; border: 1px solid #ccc;">${report.address || ""} - ${report.ministry || ""}</td>
           <td style="padding: 8px; border: 1px solid #ccc; max-width: 300px; white-space: pre-wrap;">${report.notes || ""}</td>
@@ -290,17 +288,16 @@ const AccessPrint = () => {
                   <td className="px-4 py-3">{report.name_en}</td>
                   <td className="px-4 py-3">{report.phoneNumber}</td>
                   <td className="px-4 py-3">{report.admin}</td>
-                  <td className="px-4 py-3">{report.moneyPaid}</td>
-                  <td className="px-4 py-3">{report.moneyRemain}</td>
+                  <td className="px-4 py-3">{formatNumberWithCommas(report.moneyPaid)}</td>
+                  <td className="px-4 py-3">{formatNumberWithCommas(report.moneyRemain)}</td>
                   <td className="px-4 py-3">{renderCardCategory(report.cardCategory)}</td>
                   <td className="px-4 py-3">{report.address} - {report.ministry}</td>
                   <td className="px-4 py-3">{report.notes}</td>
-
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="8" className="px-4 py-4 text-center text-gray-500">لا توجد بيانات</td>
+                <td colSpan="9" className="px-4 py-4 text-center text-gray-500">لا توجد بيانات</td>
               </tr>
             )}
           </tbody>

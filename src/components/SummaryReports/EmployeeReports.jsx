@@ -309,9 +309,9 @@ const EmployeeReports = () => {
                 <tr key={report._id} className="border-b border-gray-200 hover:bg-gray-50">
                   <td className="py-2 px-4">{report.name_ar || 'غير متوفر'}</td>
                   <td className="py-2 px-4">{report.phoneNumber || 'غير متوفر'}</td>
-                  <td className="py-2 px-4">{getPaidAmount(report).toFixed(2)}</td>
-                  <td className="py-2 px-4">{getRemainingAmount(report).toFixed(2)}</td>
-                  <td className="py-2 px-4">{getTotalAmount(report).toFixed(2)}</td>
+                  <td className="py-2 px-4">{getPaidAmount(report).toLocaleString('en-US')}</td>
+                  <td className="py-2 px-4">{getRemainingAmount(report).toLocaleString('en-US')}</td>
+                  <td className="py-2 px-4">{getTotalAmount(report).toLocaleString('en-US')}</td>
                   <td className="py-2 px-4">{getReceivedCards(report)}</td>
                   <td className="py-2 px-4">{getRejectedCards(report)}</td>
                   <td className="py-2 px-4">{getCanceledCards(report)}</td>
@@ -324,9 +324,9 @@ const EmployeeReports = () => {
               <tr>
                 <td className="py-3 px-4"></td>
                 <td className="py-3 px-4"></td>
-                <td className="py-3 px-4">{totals.paidAmount.toFixed(2)}</td>
-                <td className="py-3 px-4">{totals.remainingAmount.toFixed(2)}</td>
-                <td className="py-3 px-4">{totals.totalAmount.toFixed(2)}</td>
+                <td className="py-3 px-4">{totals.paidAmount.toLocaleString('en-US')}</td>
+                <td className="py-3 px-4">{totals.remainingAmount.toLocaleString('en-US')}</td>
+                <td className="py-3 px-4">{totals.totalAmount.toLocaleString('en-US')}</td>
                 <td className="py-3 px-4">{totals.receivedCards}</td>
                 <td className="py-3 px-4">{totals.rejectedCards}</td>
                 <td className="py-3 px-4">{totals.canceledCards}</td>

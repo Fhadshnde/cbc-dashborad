@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = "https://hawkama.cbc-api.app/api/reports";
 
@@ -41,8 +41,7 @@ const SupervisorAccessReports = () => {
       try {
         const userData = JSON.parse(storedUserData);
         setUserRole(userData?.role);
-      } catch (error) {
-        console.error("Error parsing user data from localStorage:", error);
+      } catch {
         setUserRole(null);
       }
     }
@@ -62,12 +61,11 @@ const SupervisorAccessReports = () => {
       setLoading(true);
       setError(null);
       const headers = { headers: getAuthHeader() };
-      const res = await axios.get("https://hawkama.cbc-api.app/api/reports", headers);
+      const res = await axios.get(API_URL, headers);
       setReports(res.data);
       setLoading(false);
     } catch (err) {
       setLoading(false);
-      console.error("خطأ في جلب التقارير:", err.response?.data?.message || err.message);
       setError("فشل في جلب التقارير: " + (err.response?.data?.message || err.message));
     }
   };
@@ -84,7 +82,6 @@ const SupervisorAccessReports = () => {
     setError(null);
     try {
       const headers = { headers: getAuthHeader() };
-
       const formDataToSend = { ...form };
 
       formDataToSend.date = formDataToSend.date
@@ -108,6 +105,7 @@ const SupervisorAccessReports = () => {
       } else {
         await axios.post(API_URL, formDataToSend, headers);
       }
+
       await fetchReports();
       setForm(initialForm);
       setIsEditing(false);
@@ -115,7 +113,6 @@ const SupervisorAccessReports = () => {
       setLoading(false);
     } catch (err) {
       setLoading(false);
-      console.error("خطأ في حفظ التقرير:", err.response?.data?.message || err.message);
       setError("فشل في حفظ التقرير: " + (err.response?.data?.message || err.message));
     }
   };
@@ -168,7 +165,6 @@ const SupervisorAccessReports = () => {
       setLoading(false);
     } catch (err) {
       setLoading(false);
-      console.error("خطأ في تحديث الحالة:", err.response?.data?.message || err.message);
       setError("فشل في تحديث حالة التقرير: " + (err.response?.data?.message || err.message));
     }
   };
@@ -191,7 +187,6 @@ const SupervisorAccessReports = () => {
     setEditId(report._id);
   };
 
-
   const handleDelete = async (id) => {
     if (!window.confirm("هل أنت متأكد من حذف التقرير؟")) return;
     if (userRole !== "supervisor") {
@@ -207,7 +202,6 @@ const SupervisorAccessReports = () => {
       setLoading(false);
     } catch (err) {
       setLoading(false);
-      console.error("فشل في الحذف:", err.response?.data?.message || err.message);
       setError("فشل في حذف التقرير: " + (err.response?.data?.message || err.message));
     }
   };
@@ -221,26 +215,27 @@ const SupervisorAccessReports = () => {
 
   const isFormFieldDisabled = (fieldName) => {
     if (!isEditing) return false;
-
     if (userRole === "supervisor") return false;
-
     const baseDisabled = !isReportEditableForLimitedRoles(form);
-
     if (isReportEditableForLimitedRoles(form)) {
-        const alwaysEditableFields = ["name_ar", "name_en", "phoneNumber", "quantity", "moneyPaid", "moneyRemain", "address", "ministry", "date", "admin", "notes", "onPayroll"];
-        if (alwaysEditableFields.includes(fieldName)) {
-            return false;
-        }
-        if (["oneYear", "twoYears", "virtual"].includes(fieldName)) {
-            return true;
-        }
-        if (fieldName === "status") {
-            return true;
-        }
+      const alwaysEditableFields = ["name_ar", "name_en", "phoneNumber", "quantity", "moneyPaid", "moneyRemain", "address", "ministry", "date", "admin", "notes", "onPayroll"];
+      if (alwaysEditableFields.includes(fieldName)) {
+        return false;
+      }
+      if (["oneYear", "twoYears", "virtual"].includes(fieldName)) {
+        return true;
+      }
+      if (fieldName === "status") {
+        return true;
+      }
     }
     return baseDisabled;
   };
 
+  const formatNumber = (number) => {
+    if (isNaN(number)) return number;
+    return Number(number).toLocaleString("en-US");
+  };
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen text-right font-sans">
@@ -277,9 +272,9 @@ const SupervisorAccessReports = () => {
                   <td className="p-2 border">{r.name_ar}</td>
                   <td className="p-2 border">{r.name_en}</td>
                   <td className="p-2 border">{r.phoneNumber}</td>
-                  <td className="p-2 border">{r.quantity}</td>
-                  <td className="p-2 border">{r.moneyPaid}</td>
-                  <td className="p-2 border">{r.moneyRemain}</td>
+                  <td className="p-2 border">{formatNumber(r.quantity)}</td>
+                  <td className="p-2 border">{formatNumber(r.moneyPaid)}</td>
+                  <td className="p-2 border">{formatNumber(r.moneyRemain)}</td>
                   <td className="p-2 border">{r.address}</td>
                   <td className="p-2 border">{r.ministry}</td>
                   <td className="p-2 border">{r.date}</td>
@@ -288,14 +283,13 @@ const SupervisorAccessReports = () => {
                   <td className="p-2 border">{r.cardCategory?.oneYear}</td>
                   <td className="p-2 border">{r.cardCategory?.twoYears}</td>
                   <td className="p-2 border">{r.cardCategory?.virtual}</td>
-
                   <td className="p-2 border">
                     {(userRole === "supervisor" || userRole === "admin") ? (
                       <select
                         value={r.status}
                         onChange={(event) => {
-                            const { value } = event.target;
-                            handleStatusChange(r._id, r.status, value);
+                          const { value } = event.target;
+                          handleStatusChange(r._id, r.status, value);
                         }}
                         className="border p-1 rounded text-sm w-full"
                       >

@@ -155,7 +155,7 @@ const DeliveryReports = () => {
               <th className="px-4 py-2 whitespace-nowrap">اسم موظف المبيعات</th>
               <th className="px-4 py-2 whitespace-nowrap">مجموع البطاقات</th>
               <th className="px-4 py-2 whitespace-nowrap">العنوان</th>
-              <th className="px-4 py-2 whitespace-nowrap">تاريخ التسليم</th>
+              <th className="px-4 py-2 whitespace-nowrap">تاريخ الانشاء</th>
               <th className="px-4 py-2 whitespace-nowrap"></th>
             </tr>
           </thead>
