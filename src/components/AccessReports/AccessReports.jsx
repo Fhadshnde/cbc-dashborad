@@ -16,7 +16,6 @@ const AccessReports = () => {
   const [userRole, setUserRole] = useState(null);
   const [currentUsername, setCurrentUsername] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [monthlyCount, setMonthlyCount] = useState(null);
   const itemsPerPage = 13;
 
   const getAuthHeader = () => {
@@ -66,16 +65,6 @@ const AccessReports = () => {
     }
   };
 
-  const fetchMonthlyReportCount = async () => {
-    try {
-      const headers = { headers: getAuthHeader() };
-      const response = await axios.get(`${API_URL}/my-reports/monthly/personal`, headers);
-      setMonthlyCount(response.data.monthlyReportCount);
-    } catch (err) {
-      setMonthlyCount(null);
-    }
-  };
-
   useEffect(() => {
     const storedUserData = localStorage.getItem("userData");
     if (storedUserData && storedUserData !== "undefined") {
@@ -110,7 +99,6 @@ const AccessReports = () => {
 
     if (userRole && currentUsername) {
       fetchReports();
-      fetchMonthlyReportCount();
     }
   }, [userRole, currentUsername]);
 
@@ -165,11 +153,6 @@ const AccessReports = () => {
     <div className="m-4 sm:m-16 p-4 sm:p-6 bg-gray-50 min-h-screen text-right font-sans">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 sm:gap-0">
         <h2 className="text-2xl font-bold text-gray-700">قسم المحاسبة</h2>
-        {monthlyCount !== null && (
-          <div className="text-lg text-gray-700 bg-white px-4 py-2 rounded shadow">
-            عدد تقاريرك هذا الشهر: {monthlyCount}
-          </div>
-        )}
       </div>
       <div>
         <TotalBills />
