@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
 import Sidebar from './components/SideBar/Sidebare';
 import Navbar from './components/Navbar/Navbar';
 import Home from './pages/Home';
@@ -17,7 +18,7 @@ import EditUser from './components/Management/EditUser';
 import UserDetails from './components/Management/UserDetails';
 import ContractsPage from './pages/ContractsPage';
 import ContractDetails from './components/ContractDetails';
-import ContractForm from './components/ContractForm'; 
+import ContractForm from './components/ContractForm';
 import FollowUpSurveyList from './components/FollowUp/FollowUpSurveyList';
 import FollowUpSurveyCreate from './components/FollowUp/FollowUpSurveyCreate';
 import FollowUpSurveyDetails from './components/FollowUp/FollowUpSurveyDetails';
@@ -25,8 +26,12 @@ import FollowUpSurveyEdit from './components/FollowUp/FollowUpSurveyEdit';
 import SelectStoreForSurvey from './pages/SelectStoreForSurvey';
 import ContractsWithoutSurveyPage from './pages/ContractsWithoutSurveyPage';
 import MyTasksPage from './pages/MyTasksPage';
-import UpdareReport from './components/AccessReports/UpdareReport'
+import UpdareReport from './components/AccessReports/UpdareReport';
 import AccessPrint from './components/AccessPrint/AccessPrint';
+import Dashboard from './components/Dashboard/Dashboard';
+import DashboardCards from './components/Dashboard/DashboardCards';
+import DashboardPage from './pages/DashboardPage';
+
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -49,6 +54,8 @@ const App = () => {
             )
           }
         />
+
+        <Route path="/dashboard" element={<DashboardPage />} />
 
         <Route
           path="/*"

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate , Link} from "react-router-dom";
 import iconLogin from "../assets/iconLogin.png";
 import folderLogin from "../assets/folderLogin.png";
+
 
 const Login = ({ setIsAuthenticated }) => {
   const [formData, setFormData] = useState({ phoneNumber: "", password: "" });
@@ -113,16 +114,14 @@ const Login = ({ setIsAuthenticated }) => {
                 value={formData.phoneNumber}
                 onChange={handleChange}
                 required
-                placeholder=" رقم الهاتف " // Updated placeholder to match image
+                placeholder=" رقم الهاتف " 
                 className="w-full border border-gray-300 rounded-lg pr-10 pl-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 text-right text-gray-700 placeholder-gray-400"
               />
             </div>
 
-            {/* Password Input Field */}
             <div className="relative">
               <label className="sr-only">كلمة المرور</label>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                {/* Lock icon - using inline SVG */}
                 <svg
                   className="h-5 w-5 text-gray-400"
                   fill="none"
@@ -144,15 +143,13 @@ const Login = ({ setIsAuthenticated }) => {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                placeholder="كلمة المرور" // Updated placeholder to match image
+                placeholder="كلمة المرور" 
                 className="w-full border border-gray-300 rounded-lg pr-10 pl-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 text-right text-gray-700 placeholder-gray-400"
               />
             </div>
 
-            {/* Error message display */}
             {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
 
-            {/* Login Button with gradient and loading state */}
             <button
               type="submit"
               disabled={loading}
@@ -160,6 +157,11 @@ const Login = ({ setIsAuthenticated }) => {
             >
               {loading ? "جارٍ الدخول..." : "تسجيل الدخول"}
             </button>
+            <div className="text-center mt-4">
+              <Link to="/dashboard" className="text-teal-500 hover:underline">
+                قسم العلافات
+              </Link>
+            </div>
           </form>
         </div>
       </div>

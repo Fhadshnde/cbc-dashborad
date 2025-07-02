@@ -5,6 +5,59 @@ import TotalBills from "./TotalBills";
 
 const API_URL = "https://hawkama.cbc-api.app/api/reports";
 
+const fieldArabicNames = {
+  name_ar: "الاسم بالعربي",
+  name_en: "الاسم بالإنجليزي",
+  phoneNumber: "رقم الهاتف",
+  quantity: "المبلغ الكامل",
+  moneyPaid: "المدفوع",
+  moneyRemain: "المتبقي",
+  address: "العنوان",
+  ministry: "الوزارة",
+  cardCategory: "الفئة",
+  admin: "المسؤول",
+  notes: "الملاحظات",
+  onPayroll: "على الراتب",
+  createdAt: "تاريخ الفاتورة",
+  status: "الحالة",
+  isEdited: "تم التعديل",
+  editedAt: "وقت التعديل",
+};
+
+const getCardTypeText = (cardCategory) => {
+  if (!cardCategory) return "غير محدد";
+  if (cardCategory.oneYear === 1) return "بطاقة سنة واحدة";
+  if (cardCategory.twoYears === 1) return "بطاقة سنتين";
+  if (cardCategory.virtual === 1) return "بطاقة افتراضية";
+  return "غير محدد";
+};
+
+const formatDateOnly = (dateString) => {
+  if (!dateString) return "";
+  const d = new Date(dateString);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const formatDateTime = (dateString) => {
+  if (!dateString) return "";
+  const d = new Date(dateString);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  const seconds = String(d.getSeconds()).padStart(2, "0");
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};
+
+const formatNumber = (number) => {
+  if (isNaN(number)) return number;
+  return Number(number).toLocaleString("en-US");
+};
+
 const AccessReports = () => {
   const [reports, setReports] = useState([]);
   const [filteredReports, setFilteredReports] = useState([]);
@@ -27,44 +80,6 @@ const AccessReports = () => {
     return { Authorization: `Bearer ${token}` };
   };
 
-  const formatDateOnly = (dateString) => {
-    if (!dateString) return "";
-    const d = new Date(dateString);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const formatDateTime = (dateString) => {
-    if (!dateString) return "";
-    const d = new Date(dateString);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    const hours = String(d.getHours()).padStart(2, "0");
-    const minutes = String(d.getMinutes()).padStart(2, "0");
-    const seconds = String(d.getSeconds()).padStart(2, "0");
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-  };
-
-  const formatNumber = (number) => {
-    if (isNaN(number)) return number;
-    return Number(number).toLocaleString("en-US");
-  };
-
-  const handleStatusChange = async (reportId, newStatus) => {
-    try {
-      const headers = { headers: getAuthHeader() };
-      await axios.patch(`${API_URL}/${reportId}/status`, { status: newStatus }, headers);
-      const response = await axios.get(`${API_URL}`, headers);
-      setReports(response.data);
-      setFilteredReports(response.data);
-    } catch (err) {
-      setError("فشل في تغيير الحالة: " + (err.response?.data?.message || err.message));
-    }
-  };
-
   useEffect(() => {
     const storedUserData = localStorage.getItem("userData");
     if (storedUserData && storedUserData !== "undefined") {
@@ -83,9 +98,10 @@ const AccessReports = () => {
       setError(null);
       try {
         const headers = { headers: getAuthHeader() };
-        const response = userRole === "admin"
-          ? await axios.get(`${API_URL}/by-admin/${currentUsername}`, headers)
-          : await axios.get(API_URL, headers);
+        const response =
+          userRole === "admin"
+            ? await axios.get(`${API_URL}/by-admin/${currentUsername}`, headers)
+            : await axios.get(API_URL, headers);
         const allReports = response.data;
         setReports(allReports);
         setFilteredReports(allReports);
@@ -106,7 +122,8 @@ const AccessReports = () => {
     let result = reports;
     if (admin.trim() || startDate || endDate) {
       result = reports.filter((report) => {
-        const adminMatch = admin.trim() === "" || (report.admin && report.admin.toLowerCase().includes(admin.toLowerCase().trim()));
+        const adminMatch =
+          admin.trim() === "" || (report.admin && report.admin.toLowerCase().includes(admin.toLowerCase().trim()));
         let dateMatch = true;
         if (startDate || endDate) {
           const reportDate = new Date(report.createdAt);
@@ -128,14 +145,6 @@ const AccessReports = () => {
     }
     setFilteredReports(result);
     setCurrentPage(1);
-  };
-
-  const getCardTypeText = (cardCategory) => {
-    if (!cardCategory) return "غير محدد";
-    if (cardCategory.oneYear === 1) return "بطاقة سنة واحدة";
-    if (cardCategory.twoYears === 1) return "بطاقة سنتين";
-    if (cardCategory.virtual === 1) return "بطاقة افتراضية";
-    return "غير محدد";
   };
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -160,21 +169,48 @@ const AccessReports = () => {
       <div className="bg-white shadow rounded-lg p-4 mb-6">
         <div className="flex flex-col md:flex-row gap-4 md:gap-6 justify-end flex-wrap">
           <div className="flex flex-col">
-            <input id="startDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="border px-3 py-2 rounded w-full md:w-auto" />
+            <input
+              id="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border px-3 py-2 rounded w-full md:w-auto"
+            />
           </div>
           <div className="flex flex-col">
-            <input id="endDate" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="border px-3 py-2 rounded w-full md:w-auto" />
+            <input
+              id="endDate"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="border px-3 py-2 rounded w-full md:w-auto"
+            />
           </div>
           <div className="flex flex-col">
-            <input id="admin" type="text" value={admin} onChange={(e) => setAdmin(e.target.value)} className="border px-3 py-2 rounded w-full md:w-auto" />
+            <input
+              id="admin"
+              type="text"
+              value={admin}
+              onChange={(e) => setAdmin(e.target.value)}
+              className="border px-3 py-2 rounded w-full md:w-auto"
+            />
           </div>
-          <button onClick={handleSearch} className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6">بحث</button>
+          <button
+            onClick={handleSearch}
+            className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6"
+          >
+            بحث
+          </button>
           <Link to={"./add-report"}>
-            <button className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6">اضافة فاتورة جديدة</button>
+            <button className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6">
+              اضافة فاتورة جديدة
+            </button>
           </Link>
           {userRole === "supervisor" && (
             <Link to={"./supervisor/reports"}>
-              <button className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6">تعديل التقارير</button>
+              <button className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6">
+                تعديل التقارير
+              </button>
             </Link>
           )}
         </div>
@@ -184,7 +220,7 @@ const AccessReports = () => {
       {!loading && !error && (
         <>
           <div className="overflow-x-auto bg-white rounded shadow">
-            <table className="w-full sm:min-w-[1600px] text-sm text-right border-collapse">
+            <table className="w-full sm:min-w-[1700px] text-sm text-right border-collapse">
               <thead className="bg-gray-100 text-gray-600 font-bold">
                 <tr>
                   <th className="px-2 py-2">الاسم بالعربي</th>
@@ -203,6 +239,7 @@ const AccessReports = () => {
                   <th className="px-2 py-2">الحالة</th>
                   <th className="px-2 py-2">تم التعديل</th>
                   <th className="px-2 py-2">وقت التعديل</th>
+                  <th className="px-2 py-2">الحقول المعدلة</th>
                 </tr>
               </thead>
               <tbody>
@@ -225,30 +262,67 @@ const AccessReports = () => {
                       <td className="px-2 py-2">{report.status}</td>
                       <td className="px-2 py-2">{report.isEdited ? "نعم" : "لا"}</td>
                       <td className="px-2 py-2">{report.editedAt ? formatDateTime(report.editedAt) : "-"}</td>
+                      <td className="px-2 py-2 whitespace-pre-line">
+                        {Array.isArray(report.editedFields) && report.editedFields.length > 0
+                          ? report.editedFields
+                              .filter(
+                                (field) =>
+                                  field !== "editedAt" &&
+                                  field !== "remainingEditTime" &&
+                                  fieldArabicNames[field]
+                              )
+                              .map((field) => fieldArabicNames[field] || field)
+                              .join("\n")
+                          : "-"}
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="16" className="px-4 py-4 text-center text-gray-500">لا توجد نتائج</td>
+                    <td colSpan="17" className="px-4 py-4 text-center text-gray-500">
+                      لا توجد نتائج
+                    </td>
                   </tr>
                 )}
                 <tr className="bg-gray-100 font-bold text-gray-800 border-t">
-                  <td colSpan="3" className="px-2 py-2 text-center">المجاميع للصفحة الحالية</td>
+                  <td colSpan="3" className="px-2 py-2 text-center">
+                    المجاميع للصفحة الحالية
+                  </td>
                   <td className="px-2 py-2">{formatNumber(totalQuantity)}</td>
                   <td className="px-2 py-2">{formatNumber(totalPaid)}</td>
                   <td className="px-2 py-2">{formatNumber(totalRemain)}</td>
-                  <td colSpan="10"></td>
+                  <td colSpan="11"></td>
                 </tr>
               </tbody>
             </table>
           </div>
           {totalPages > 1 && (
             <div className="flex justify-center mt-6 space-x-2">
-              <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50">السابق</button>
+              <button
+                onClick={() => paginate(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+              >
+                السابق
+              </button>
               {Array.from({ length: totalPages }, (_, i) => (
-                <button key={i + 1} onClick={() => paginate(i + 1)} className={`px-4 py-2 rounded-lg ${currentPage === i + 1 ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}>{i + 1}</button>
+                <button
+                  key={i + 1}
+                  onClick={() => paginate(i + 1)}
+                  className={`px-4 py-2 rounded-lg ${
+                    currentPage === i + 1 ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+                >
+                  {i + 1}
+                </button>
               ))}
-              <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50">التالي</button>
+              <button
+                onClick={() => paginate(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50"
+              >
+                التالي
+              </button>
             </div>
           )}
         </>
