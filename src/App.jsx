@@ -53,7 +53,7 @@ const App = () => {
           path="/login"
           element={
             isAuthenticated ? (
-              <Navigate to="/dashboard" replace />
+              <Navigate to="/" replace />
             ) : (
               <Login setIsAuthenticated={setIsAuthenticated} />
             )
@@ -111,7 +111,7 @@ const App = () => {
 
                     {/* المسارات الخاصة بـ Pages (مثل Dashboard, Stores, Home) */}
                     <Route path="/stores" element={<Stores />} /> {/* هذا هو المسار الذي تريده */}
-                    <Route path="/dashboard" element={<DashboardPage />} />
+                    {/* <Route path="/dashboard" element={<DashboardPage />} /> */}
                     <Route path="/surveys" element={<Surveys />} /> {/* تأكد من أن هذا المسار صحيح */}
                     <Route path="/surveys/add" element={<AddSurvey />} />
                     <Route path="/surveys/edit" element={<EditSurvey />} />
