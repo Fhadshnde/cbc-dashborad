@@ -36,7 +36,7 @@ const Surveys = () => {
       responsibleEmployee: 'علياء احمد',
       attachedImage: true,
       initialRating: 3,
-      followUpStatus: 'مرفوض',
+      followUpStatus: 'غير منجز',
       teamNotes: 'هذه ملاحظات الفريق للمتجر الرابع: العميل رفض بعض التعديلات المقترحة.',
     },
     {
@@ -126,15 +126,15 @@ const Surveys = () => {
             <FaSearch className="text-gray-500 text-lg" />
           </div>
         </div>
-        <button
+        {/* <button
           onClick={toggleFilter}
           className="flex items-center w-20 justify-center p-3 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50 transition duration-150 ease-in-out"
         >
           <FaFilter className="text-xl" />
-        </button>
+        </button> */}
         <Link
           to="/surveys/add"
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-150 ease-in-out"
+          className="flex items-center px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-blue-700 transition duration-150 ease-in-out"
         >
           <FaEdit className="mr-2" />
           إضافة استبيان

@@ -53,7 +53,7 @@ const App = () => {
           path="/login"
           element={
             isAuthenticated ? (
-              <Navigate to="/" replace />
+              <Navigate to="/dashboard" replace />
             ) : (
               <Login setIsAuthenticated={setIsAuthenticated} />
             )
@@ -61,7 +61,7 @@ const App = () => {
         />
 
         <Route
-          path="/*" // هذا المسار يمثل كل شيء غير /login
+          path="/*" 
           element={
             isAuthenticated ? (
               <div className="p-5 flex" dir="rtl">
@@ -69,10 +69,7 @@ const App = () => {
                 <div className="flex-grow overflow-auto">
                   <Navbar setIsAuthenticated={setIsAuthenticated} />
                   <Routes>
-                    {/* ضع المسارات المحددة هنا بترتيب تنازلي حسب التحديد */}
-                    {/* المسارات التي تحتوي على معرفات أو أجزاء متعددة يجب أن تأتي أولاً */}
 
-                    {/* مسارات التقارير والمراجعة */}
                     <Route path="/accessreports/add-report" element={<AddReportForm />} />
                     <Route path="/accessreports/supervisor/reports" element={<SupervisorAccessReports />} />
                     <Route path="/accessreports/print/:id" element={<AccessPrint />} />

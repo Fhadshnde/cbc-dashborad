@@ -202,14 +202,6 @@ const Employees = () => {
     <div className="min-h-screen bg-gray-100 p-8 flex" style={{ direction: 'rtl' }}>
       <div className="flex-1">
         <div className="flex items-center justify-between mb-6 p-4 bg-white rounded-lg shadow-sm">
-          <div className="flex items-center space-x-4 space-x-reverse">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-              <div className="p-3 bg-blue-100 rounded-lg text-blue-600 ml-3">
-                <FaUser className="text-xl" />
-              </div>
-              الموظفين
-            </h2>
-          </div>
           <div className="flex items-center border border-gray-300 rounded-full overflow-hidden flex-grow-0 w-80">
             <input
               type="text"

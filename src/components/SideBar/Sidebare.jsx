@@ -11,11 +11,11 @@ const BASE_ITEMS = [
   { icon: FaFileInvoiceDollar, href: "/archives", text: 'الارشيف' },
   { icon: FaFileInvoiceDollar, href: "/summary-reports", text: 'ملخص تقارير المبيعات' },
   { icon: FaFileInvoiceDollar, href: "/accessreports/print", text: 'قسم الطباعة' },
-  // { icon: FaFileInvoiceDollar, href: "/contracts", text: 'العقود' },
-  //   { icon: FaFileInvoiceDollar, href: "/Stores", text: 'المتاجر' },
-  // { icon: FaFileInvoiceDollar, href: "/surveys", text: ' الاستبيانات' },
-  // { icon: FaFileInvoiceDollar, href: "/employees", text: ' employees' },
-  // { icon: FaFileInvoiceDollar, href: "/reports-and-analytics", text: 'التقارير والتحليلات' },
+  { icon: FaFileInvoiceDollar, href: "/contracts", text: 'العقود' },
+    { icon: FaFileInvoiceDollar, href: "/Stores", text: 'المتاجر' },
+  { icon: FaFileInvoiceDollar, href: "/surveys", text: ' الاستبيانات' },
+  { icon: FaFileInvoiceDollar, href: "/employees", text: ' employees' },
+  { icon: FaFileInvoiceDollar, href: "/reports-and-analytics", text: 'التقارير والتحليلات' },
 
 
 
