@@ -223,6 +223,7 @@ const AccessReports = () => {
             <table className="w-full sm:min-w-[1700px] text-sm text-right border-collapse">
               <thead className="bg-gray-100 text-gray-600 font-bold">
                 <tr>
+                  <th className="px-2 py-2">رقم التقرير</th>
                   <th className="px-2 py-2">الاسم بالعربي</th>
                   <th className="px-2 py-2">الاسم بالإنجليزي</th>
                   <th className="px-2 py-2">رقم الهاتف</th>
@@ -240,12 +241,14 @@ const AccessReports = () => {
                   <th className="px-2 py-2">تم التعديل</th>
                   <th className="px-2 py-2">وقت التعديل</th>
                   <th className="px-2 py-2">الحقول المعدلة</th>
+                  <th className="px-2 py-2">تعديل</th>
                 </tr>
               </thead>
               <tbody>
                 {currentItems.length > 0 ? (
                   currentItems.map((report, i) => (
                     <tr key={i} className="border-t hover:bg-gray-50">
+                      <td className="px-2 py-2">{report.number || "-"}</td>
                       <td className="px-2 py-2">{report.name_ar}</td>
                       <td className="px-2 py-2">{report.name_en}</td>
                       <td className="px-2 py-2">{report.phoneNumber}</td>
@@ -275,23 +278,30 @@ const AccessReports = () => {
                               .join("\n")
                           : "-"}
                       </td>
+                      <td className="px-2 py-2">
+                        <Link to={`/edit-report/${report._id}`}>
+                          <button className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition">
+                            تعديل
+                          </button>
+                        </Link>
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="17" className="px-4 py-4 text-center text-gray-500">
+                    <td colSpan="19" className="px-4 py-4 text-center text-gray-500">
                       لا توجد نتائج
                     </td>
                   </tr>
                 )}
                 <tr className="bg-gray-100 font-bold text-gray-800 border-t">
-                  <td colSpan="3" className="px-2 py-2 text-center">
+                  <td colSpan="4" className="px-2 py-2 text-center">
                     المجاميع للصفحة الحالية
                   </td>
                   <td className="px-2 py-2">{formatNumber(totalQuantity)}</td>
                   <td className="px-2 py-2">{formatNumber(totalPaid)}</td>
                   <td className="px-2 py-2">{formatNumber(totalRemain)}</td>
-                  <td colSpan="11"></td>
+                  <td colSpan="12"></td>
                 </tr>
               </tbody>
             </table>

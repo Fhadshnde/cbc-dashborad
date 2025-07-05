@@ -7,10 +7,13 @@ function DailyScheduleTable() {
     { date: '2025 أبريل / 25', title: 'Al-Harrya', total: '۸۰', employee: 'علي' },
     { date: '2025 أبريل / 25', title: 'Al-Harrya', total: '۸۰', employee: 'علي' },
     { date: '2025 أبريل / 25', title: 'Al-Harrya', total: '۸۰', employee: 'علي' },
+    { date: '2025 أبريل / 25', title: 'Al-Harrya', total: '۸۰', employee: 'علي' },
+    { date: '2025 أبريل / 25', title: 'Al-Harrya', total: '۸۰', employee: 'علي' },
+    { date: '2025 أبريل / 25', title: 'Al-Harrya', total: '۸۰', employee: 'علي' },
   ];
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 w-full flex flex-col text-right rtl overflow-x-auto">
+    <div className="bg-white rounded-xl shadow-md p-6 w-full h-[430px] flex flex-col text-right rtl overflow-x-auto">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold text-gray-800">جدول اليوم</h3>
         <span className="text-gray-400 text-2xl leading-none">...</span>

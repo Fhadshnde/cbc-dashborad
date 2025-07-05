@@ -1,277 +1,290 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Link } from "react-router-dom";
-import TotalBills from "./TotalBills";
 
 const API_URL = "https://hawkama.cbc-api.app/api/reports";
 
-const AccessReports = () => {
-  const [reports, setReports] = useState([]);
-  const [filteredReports, setFilteredReports] = useState([]);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [admin, setAdmin] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [userRole, setUserRole] = useState(null);
-  const [currentUsername, setCurrentUsername] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [monthlyCount, setMonthlyCount] = useState(null);
-  const itemsPerPage = 13;
+const EditReportForm = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-  const getAuthHeader = () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("توكن المصادقة غير موجود. يرجى تسجيل الدخول.");
-      throw new Error("توكن المصادقة غير موجود");
-    }
-    return { Authorization: `Bearer ${token}` };
-  };
+  const [formData, setFormData] = useState({
+    number: "",
+    name_ar: "",
+    name_en: "",
+    phoneNumber: "",
+    quantity: 0,
+    moneyPaid: "",
+    moneyRemain: "",
+    address: "",
+    ministry: "",
+    admin: "",
+    cardCategory: { oneYear: 0, twoYears: 0, virtual: 0 },
+    notes: "",
+    onPayroll: false,
+  });
 
-  const formatDateOnly = (dateString) => {
-    if (!dateString) return "";
-    const d = new Date(dateString);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const formatDateTime = (dateString) => {
-    if (!dateString) return "";
-    const d = new Date(dateString);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    const hours = String(d.getHours()).padStart(2, "0");
-    const minutes = String(d.getMinutes()).padStart(2, "0");
-    const seconds = String(d.getSeconds()).padStart(2, "0");
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-  };
-
-  const formatNumber = (number) => {
-    if (isNaN(number)) return number;
-    return Number(number).toLocaleString("en-US");
-  };
-
-  const handleStatusChange = async (reportId, newStatus) => {
-    try {
-      const headers = { headers: getAuthHeader() };
-      await axios.patch(`${API_URL}/${reportId}/status`, { status: newStatus }, headers);
-      const response = await axios.get(`${API_URL}`, headers);
-      setReports(response.data);
-      setFilteredReports(response.data);
-    } catch (err) {
-      setError("فشل في تغيير الحالة: " + (err.response?.data?.message || err.message));
-    }
-  };
-
-  const fetchMonthlyReportCount = async () => {
-    try {
-      const headers = { headers: getAuthHeader() };
-      const response = await axios.get(`${API_URL}/my-reports/monthly/personal`, headers);
-      setMonthlyCount(response.data.monthlyReportCount);
-    } catch (err) {
-      setMonthlyCount(null);
-    }
-  };
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const storedUserData = localStorage.getItem("userData");
-    if (storedUserData && storedUserData !== "undefined") {
+    const fetchReport = async () => {
       try {
-        const userData = JSON.parse(storedUserData);
-        setUserRole(userData?.role);
-        setCurrentUsername(userData?.username);
-      } catch {
-        setUserRole(null);
-        setCurrentUsername(null);
-      }
-    }
-
-    const fetchReports = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const headers = { headers: getAuthHeader() };
-        const response = userRole === "admin"
-          ? await axios.get(`${API_URL}/by-admin/${currentUsername}`, headers)
-          : await axios.get(API_URL, headers);
-        const allReports = response.data;
-        setReports(allReports);
-        setFilteredReports(allReports);
-        setCurrentPage(1);
-      } catch (err) {
-        setError("حدث خطأ أثناء جلب البيانات: " + (err.response?.data?.message || err.message));
-      } finally {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          alert("يرجى تسجيل الدخول أولاً");
+          navigate("/login");
+          return;
+        }
+        const response = await axios.get(`${API_URL}/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = response.data;
+        if (!data.cardCategory) {
+          data.cardCategory = { oneYear: 0, twoYears: 0, virtual: 0 };
+        } else {
+          if (typeof data.cardCategory.oneYear === "undefined") data.cardCategory.oneYear = 0;
+          if (typeof data.cardCategory.twoYears === "undefined") data.cardCategory.twoYears = 0;
+          if (typeof data.cardCategory.virtual === "undefined") data.cardCategory.virtual = 0;
+        }
+        setFormData(data);
         setLoading(false);
+      } catch {
+        alert("فشل في جلب بيانات التقرير");
+        navigate("/accessreports");
       }
     };
-
-    if (userRole && currentUsername) {
-      fetchReports();
-      fetchMonthlyReportCount();
+    if (id) {
+      fetchReport();
     }
-  }, [userRole, currentUsername]);
+  }, [id, navigate]);
 
-  const handleSearch = () => {
-    let result = reports;
-    if (admin.trim() || startDate || endDate) {
-      result = reports.filter((report) => {
-        const adminMatch = admin.trim() === "" || (report.admin && report.admin.toLowerCase().includes(admin.toLowerCase().trim()));
-        let dateMatch = true;
-        if (startDate || endDate) {
-          const reportDate = new Date(report.createdAt);
-          reportDate.setHours(0, 0, 0, 0);
-          const start = startDate ? new Date(startDate) : null;
-          if (start) start.setHours(0, 0, 0, 0);
-          const end = endDate ? new Date(endDate) : null;
-          if (end) end.setHours(23, 59, 59, 999);
-          if (start && end) {
-            dateMatch = reportDate >= start && reportDate <= end;
-          } else if (start) {
-            dateMatch = reportDate >= start;
-          } else if (end) {
-            dateMatch = reportDate <= end;
-          }
-        }
-        return adminMatch && dateMatch;
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    if (name.startsWith("cardCategory.")) {
+      const key = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        cardCategory: { ...prev.cardCategory, [key]: Number(value) },
+      }));
+    } else if (type === "checkbox") {
+      setFormData((prev) => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("يرجى تسجيل الدخول أولاً");
+        navigate("/login");
+        return;
+      }
+      const payload = {
+        ...formData,
+        quantity: Number(formData.quantity) || 0,
+        moneyPaid: formData.moneyPaid.toString(),
+        moneyRemain: formData.moneyRemain.toString(),
+        cardCategory: {
+          oneYear: Number(formData.cardCategory.oneYear) || 0,
+          twoYears: Number(formData.cardCategory.twoYears) || 0,
+          virtual: Number(formData.cardCategory.virtual) || 0,
+        },
+      };
+      if ("date" in payload) {
+        delete payload.date;
+      }
+      await axios.put(`${API_URL}/${id}`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
       });
+      alert("تم تعديل التقرير بنجاح");
+      navigate("/access-reports");
+    } catch {
+      setError("فشل في تعديل التقرير");
     }
-    setFilteredReports(result);
-    setCurrentPage(1);
   };
 
-  const getCardTypeText = (cardCategory) => {
-    if (!cardCategory) return "غير محدد";
-    if (cardCategory.oneYear === 1) return "بطاقة سنة واحدة";
-    if (cardCategory.twoYears === 1) return "بطاقة سنتين";
-    if (cardCategory.virtual === 1) return "بطاقة افتراضية";
-    return "غير محدد";
-  };
-
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredReports.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  const totalQuantity = currentItems.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
-  const totalPaid = currentItems.reduce((acc, item) => acc + Number(item.moneyPaid || 0), 0);
-  const totalRemain = currentItems.reduce((acc, item) => acc + Number(item.moneyRemain || 0), 0);
+  if (loading) {
+    return <p>جاري تحميل بيانات التقرير...</p>;
+  }
 
   return (
-    <div className="m-4 sm:m-16 p-4 sm:p-6 bg-gray-50 min-h-screen text-right font-sans">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 sm:gap-0">
-        <h2 className="text-2xl font-bold text-gray-700">قسم المحاسبة</h2>
-        {monthlyCount !== null && (
-          <div className="text-lg text-gray-700 bg-white px-4 py-2 rounded shadow">
-            عدد تقاريرك هذا الشهر: {monthlyCount}
-          </div>
-        )}
-      </div>
-      <div>
-        <TotalBills />
-      </div>
-      <div className="bg-white shadow rounded-lg p-4 mb-6">
-        <div className="flex flex-col md:flex-row gap-4 md:gap-6 justify-end flex-wrap">
-          <div className="flex flex-col">
-            <input id="startDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="border px-3 py-2 rounded w-full md:w-auto" />
-          </div>
-          <div className="flex flex-col">
-            <input id="endDate" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="border px-3 py-2 rounded w-full md:w-auto" />
-          </div>
-          <div className="flex flex-col">
-            <input id="admin" type="text" value={admin} onChange={(e) => setAdmin(e.target.value)} className="border px-3 py-2 rounded w-full md:w-auto" />
-          </div>
-          <button onClick={handleSearch} className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6">بحث</button>
-          <Link to={"./add-report"}>
-            <button className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6">اضافة فاتورة جديدة</button>
-          </Link>
-          {userRole === "supervisor" && (
-            <Link to={"./supervisor/reports"}>
-              <button className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6">تعديل التقارير</button>
-            </Link>
-          )}
+    <div className="edit-report-form max-w-4xl mx-auto p-6 bg-white rounded shadow mt-10 font-sans text-right">
+      <h2 className="text-xl font-bold mb-6">تعديل التقرير</h2>
+      {error && <p className="text-red-600 mb-4">{error}</p>}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* <div>
+          <label className="block mb-1">رقم التقرير:</label>
+          <input
+            type="text"
+            name="number"
+            value={formData.number || ""}
+            disabled
+            className="border rounded w-full px-3 py-2"
+          />
+        </div> */}
+        <div>
+          <label className="block mb-1">الاسم بالعربي:</label>
+          <input
+            type="text"
+            name="name_ar"
+            value={formData.name_ar}
+            onChange={handleChange}
+            required
+            className="border rounded w-full px-3 py-2"
+          />
         </div>
-      </div>
-      {loading && <div className="text-center py-4 text-gray-600">...جاري تحميل البيانات</div>}
-      {error && <div className="text-center py-4 text-red-600">{error}</div>}
-      {!loading && !error && (
-        <>
-          <div className="overflow-x-auto bg-white rounded shadow">
-            <table className="w-full sm:min-w-[1600px] text-sm text-right border-collapse">
-              <thead className="bg-gray-100 text-gray-600 font-bold">
-                <tr>
-                  <th className="px-2 py-2">الاسم بالعربي</th>
-                  <th className="px-2 py-2">الاسم بالإنجليزي</th>
-                  <th className="px-2 py-2">رقم الهاتف</th>
-                  <th className="px-2 py-2">المبلغ الكامل</th>
-                  <th className="px-2 py-2">المدفوع</th>
-                  <th className="px-2 py-2">المتبقي</th>
-                  <th className="px-2 py-2">العنوان</th>
-                  <th className="px-2 py-2">الوزارة</th>
-                  <th className="px-2 py-2">الفئة</th>
-                  <th className="px-2 py-2">المسؤول</th>
-                  <th className="px-2 py-2">الملاحظات</th>
-                  <th className="px-2 py-2">على الراتب</th>
-                  <th className="px-2 py-2">تاريخ الفاتورة</th>
-                  <th className="px-2 py-2">الحالة</th>
-                  <th className="px-2 py-2">تم التعديل</th>
-                  <th className="px-2 py-2">وقت التعديل</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentItems.length > 0 ? (
-                  currentItems.map((report, i) => (
-                    <tr key={i} className="border-t hover:bg-gray-50">
-                      <td className="px-2 py-2">{report.name_ar}</td>
-                      <td className="px-2 py-2">{report.name_en}</td>
-                      <td className="px-2 py-2">{report.phoneNumber}</td>
-                      <td className="px-2 py-2">{formatNumber(report.quantity)}</td>
-                      <td className="px-2 py-2">{formatNumber(report.moneyPaid)}</td>
-                      <td className="px-2 py-2">{formatNumber(report.moneyRemain)}</td>
-                      <td className="px-2 py-2">{report.address}</td>
-                      <td className="px-2 py-2">{report.ministry}</td>
-                      <td className="px-2 py-2">{getCardTypeText(report.cardCategory)}</td>
-                      <td className="px-2 py-2">{report.admin}</td>
-                      <td className="px-2 py-2">{report.notes}</td>
-                      <td className="px-2 py-2">{report.onPayroll ? "نعم" : "لا"}</td>
-                      <td className="px-2 py-2">{formatDateOnly(report.createdAt)}</td>
-                      <td className="px-2 py-2">{report.status}</td>
-                      <td className="px-2 py-2">{report.isEdited ? "نعم" : "لا"}</td>
-                      <td className="px-2 py-2">{report.editedAt ? formatDateTime(report.editedAt) : "-"}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="16" className="px-4 py-4 text-center text-gray-500">لا توجد نتائج</td>
-                  </tr>
-                )}
-                <tr className="bg-gray-100 font-bold text-gray-800 border-t">
-                  <td colSpan="3" className="px-2 py-2 text-center">المجاميع للصفحة الحالية</td>
-                  <td className="px-2 py-2">{formatNumber(totalQuantity)}</td>
-                  <td className="px-2 py-2">{formatNumber(totalPaid)}</td>
-                  <td className="px-2 py-2">{formatNumber(totalRemain)}</td>
-                  <td colSpan="10"></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          {totalPages > 1 && (
-            <div className="flex justify-center mt-6 space-x-2">
-              <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50">السابق</button>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button key={i + 1} onClick={() => paginate(i + 1)} className={`px-4 py-2 rounded-lg ${currentPage === i + 1 ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}>{i + 1}</button>
-              ))}
-              <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-50">التالي</button>
-            </div>
-          )}
-        </>
-      )}
+        <div>
+          <label className="block mb-1">الاسم بالإنجليزي:</label>
+          <input
+            type="text"
+            name="name_en"
+            value={formData.name_en}
+            onChange={handleChange}
+            required
+            className="border rounded w-full px-3 py-2"
+          />
+        </div>
+        <div>
+          <label className="block mb-1">رقم الهاتف:</label>
+          <input
+            type="text"
+            name="phoneNumber"
+            value={formData.phoneNumber}
+            onChange={handleChange}
+            required
+            className="border rounded w-full px-3 py-2"
+          />
+        </div>
+        <div>
+          <label className="block mb-1">المبلغ الكامل:</label>
+          <input
+            type="number"
+            name="quantity"
+            value={formData.quantity}
+            onChange={handleChange}
+            min="0"
+            required
+            className="border rounded w-full px-3 py-2"
+          />
+        </div>
+        <div>
+          <label className="block mb-1">المبلغ المدفوع:</label>
+          <input
+            type="text"
+            name="moneyPaid"
+            value={formData.moneyPaid}
+            onChange={handleChange}
+            required
+            className="border rounded w-full px-3 py-2"
+          />
+        </div>
+        <div>
+          <label className="block mb-1">المبلغ المتبقي:</label>
+          <input
+            type="text"
+            name="moneyRemain"
+            value={formData.moneyRemain}
+            onChange={handleChange}
+            required
+            className="border rounded w-full px-3 py-2"
+          />
+        </div>
+        <div>
+          <label className="block mb-1">العنوان:</label>
+          <input
+            type="text"
+            name="address"
+            value={formData.address}
+            onChange={handleChange}
+            required
+            className="border rounded w-full px-3 py-2"
+          />
+        </div>
+        <div>
+          <label className="block mb-1">الوزارة:</label>
+          <input
+            type="text"
+            name="ministry"
+            value={formData.ministry}
+            onChange={handleChange}
+            required
+            className="border rounded w-full px-3 py-2"
+          />
+        </div>
+        <div>
+          <label className="block mb-1">المسؤول:</label>
+          <input
+            type="text"
+            name="admin"
+            value={formData.admin}
+            disabled
+            className="border rounded w-full px-3 py-2 bg-gray-100"
+          />
+        </div>
+        <fieldset className="border p-3 rounded">
+  <legend className="font-semibold mb-2">فئة البطاقة:</legend>
+  <select
+    name="cardCategorySelect"
+    value={
+      formData.cardCategory.oneYear
+        ? "oneYear"
+        : formData.cardCategory.twoYears
+        ? "twoYears"
+        : formData.cardCategory.virtual
+        ? "virtual"
+        : "none"
+    }
+    onChange={(e) => {
+      const val = e.target.value;
+      let newCardCategory = { oneYear: 0, twoYears: 0, virtual: 0 };
+      if (val === "oneYear") newCardCategory.oneYear = 1;
+      else if (val === "twoYears") newCardCategory.twoYears = 1;
+      else if (val === "virtual") newCardCategory.virtual = 1;
+      setFormData((prev) => ({ ...prev, cardCategory: newCardCategory }));
+    }}
+    className="border rounded px-2 py-1 w-48"
+  >
+    <option value="none">لا يوجد</option>
+    <option value="oneYear">سنة واحدة</option>
+    <option value="twoYears">سنتان</option>
+    <option value="virtual">افتراضية</option>
+  </select>
+</fieldset>
+
+        <div>
+          <label className="block mb-1">ملاحظات:</label>
+          <textarea
+            name="notes"
+            value={formData.notes}
+            onChange={handleChange}
+            className="border rounded w-full px-3 py-2"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label>على الراتب:</label>
+          <input
+            type="checkbox"
+            name="onPayroll"
+            checked={formData.onPayroll}
+            onChange={handleChange}
+          />
+        </div>
+        <button
+          type="submit"
+          className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition"
+        >
+          حفظ التعديلات
+        </button>
+      </form>
     </div>
   );
 };
 
-export default AccessReports;
+export default EditReportForm;

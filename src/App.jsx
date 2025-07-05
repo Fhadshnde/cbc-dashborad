@@ -16,8 +16,6 @@ import Management from './components/Management/Management';
 import AddUser from './components/Management/AddUser';
 import EditUser from './components/Management/EditUser';
 import UserDetails from './components/Management/UserDetails';
-import ContractsPage from './pages/ContractsPage';
-import ContractDetails from './components/ContractDetails';
 import ContractForm from './components/ContractForm';
 import FollowUpSurveyList from './components/FollowUp/FollowUpSurveyList';
 import FollowUpSurveyCreate from './components/FollowUp/FollowUpSurveyCreate';
@@ -26,11 +24,18 @@ import FollowUpSurveyEdit from './components/FollowUp/FollowUpSurveyEdit';
 import SelectStoreForSurvey from './pages/SelectStoreForSurvey';
 import ContractsWithoutSurveyPage from './pages/ContractsWithoutSurveyPage';
 import MyTasksPage from './pages/MyTasksPage';
-import UpdareReport from './components/AccessReports/UpdareReport';
 import AccessPrint from './components/AccessPrint/AccessPrint';
-import Dashboard from './components/Dashboard/Dashboard';
-import DashboardCards from './components/Dashboard/DashboardCards';
 import DashboardPage from './pages/DashboardPage';
+import ChoicePage from './pages/ChoicePage';
+import Contracts from './components/Contract/Contracts';
+import AddContract from './components/Contract/AddContract';
+import ContractDetails from './components/Contract/ContractDetails';
+import Stores from './components/Stores/Stores'; 
+import Surveys from './components/Surveys/Surveys'; 
+import AddSurvey from './components/Surveys/AddSurvey';
+import EditSurvey from './components/Surveys/EditSurvey'; 
+import Employees from './components/Employees/Employees';
+import ReportsAndAnalytics from './components/RelationsDepartment/RelationsDepartment'; // Assuming you have this component
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -55,10 +60,8 @@ const App = () => {
           }
         />
 
-        <Route path="/dashboard" element={<DashboardPage />} />
-
         <Route
-          path="/*"
+          path="/*" // هذا المسار يمثل كل شيء غير /login
           element={
             isAuthenticated ? (
               <div className="p-5 flex" dir="rtl">
@@ -66,33 +69,64 @@ const App = () => {
                 <div className="flex-grow overflow-auto">
                   <Navbar setIsAuthenticated={setIsAuthenticated} />
                   <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/accessreports" element={<AccessReports />} />
+                    {/* ضع المسارات المحددة هنا بترتيب تنازلي حسب التحديد */}
+                    {/* المسارات التي تحتوي على معرفات أو أجزاء متعددة يجب أن تأتي أولاً */}
+
+                    {/* مسارات التقارير والمراجعة */}
                     <Route path="/accessreports/add-report" element={<AddReportForm />} />
-                    <Route path="/edit-report/:id" element={<EditReport />} />
                     <Route path="/accessreports/supervisor/reports" element={<SupervisorAccessReports />} />
-                    <Route path="/supervisor/reports/edit/:id" element={<EditReport />} />
-                    <Route path="/archives" element={<Archives />} />
-                    <Route path="/summary-reports" element={<SummaryReports />} />
-                    <Route path="/reports/admin/:adminUsername" element={<EmployeeReports />} />
-                    <Route path="/management" element={<Management />} />
+                    <Route path="/accessreports/print/:id" element={<AccessPrint />} />
+                    <Route path="/accessreports/print" element={<AccessPrint />} />
+                    <Route path="/accessreports" element={<AccessReports />} />
+                    <Route path="/edit-report/:id" element={<EditReport />} />
+                    {/* <Route path="/supervisor/reports/edit/:id" element={<EditReport />} /> */}
+
+                    {/* مسارات العقود */}
+                    <Route path="/contracts/create" element={<AddContract />} /> {/* استخدام AddContract هنا إذا كان ContractForm هو نفسه AddContract */}
+                    <Route path="/contracts/edit/:id" element={<ContractForm />} /> {/* إذا كان ContractForm يستخدم للتعديل */}
+                    <Route path="/contracts/:id" element={<ContractDetails />} />
+                    <Route path="/contracts/without-survey" element={<ContractsWithoutSurveyPage />} />
+                    <Route path="/contracts" element={<Contracts />} />
+                    <Route path="/add-contract" element={<AddContract />} /> {/* إذا كان هذا مسار منفصل لإضافة عقد */}
+                    <Route path="/contract-details" element={<ContractDetails />} />
+
+                    {/* مسارات المتابعة والاستبيانات */}
+                    <Route path="/followupsurveys/create/:contractId" element={<FollowUpSurveyCreate />} />
+                    <Route path="/followupsurveys/new" element={<FollowUpSurveyCreate />} />
+                    <Route path="/followupsurveys/:id/edit" element={<FollowUpSurveyEdit />} />
+                    <Route path="/followupsurveys/:id" element={<FollowUpSurveyDetails />} />
+                    <Route path="/followupsurveys" element={<FollowUpSurveyList />} />
+                    <Route path="/select-store-for-survey" element={<SelectStoreForSurvey />} />
+
+                    {/* مسارات الإدارة والمستخدمين */}
                     <Route path="/management/add-user" element={<AddUser />} />
                     <Route path="/management/edit-user/:id" element={<EditUser />} />
                     <Route path="/management/details/:id" element={<UserDetails />} />
-                    <Route path="/contracts" element={<ContractsPage />} />
-                    <Route path="/contracts/create" element={<ContractForm />} />
-                    <Route path="/contracts/edit/:id" element={<ContractForm />} />
-                    <Route path="/contracts/:id" element={<ContractDetails />} />
-                    <Route path="/followupsurveys" element={<FollowUpSurveyList />} />
-                    <Route path="/select-store-for-survey" element={<SelectStoreForSurvey />} />
-                    <Route path="/followupsurveys/create/:contractId" element={<FollowUpSurveyCreate />} />
-                    <Route path="/followupsurveys/new" element={<FollowUpSurveyCreate />} />
-                    <Route path="/followupsurveys/:id" element={<FollowUpSurveyDetails />} />
-                    <Route path="/followupsurveys/:id/edit" element={<FollowUpSurveyEdit />} />
-                    <Route path="/contracts/without-survey" element={<ContractsWithoutSurveyPage />} />
+                    <Route path="/management" element={<Management />} />
+
+                    {/* مسارات تقارير المبيعات */}
+                    <Route path="/reports/admin/:adminUsername" element={<EmployeeReports />} />
+                    <Route path="/summary-reports" element={<SummaryReports />} />
+
+                    {/* المسارات الأخرى */}
+                    <Route path="/archives" element={<Archives />} />
                     <Route path="/my-tasks" element={<MyTasksPage />} />
-                    <Route path="/accessreports/print/:id" element={<AccessPrint />} />
-                    <Route path="/accessreports/print" element={<AccessPrint />} />
+
+                    {/* المسارات الخاصة بـ Pages (مثل Dashboard, Stores, Home) */}
+                    <Route path="/stores" element={<Stores />} /> {/* هذا هو المسار الذي تريده */}
+                    <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/surveys" element={<Surveys />} /> {/* تأكد من أن هذا المسار صحيح */}
+                    <Route path="/surveys/add" element={<AddSurvey />} />
+                    <Route path="/surveys/edit" element={<EditSurvey />} />
+                    <Route path="/employees" element={<Employees />} />
+                    <Route path="/choice" element={<ChoicePage />} />
+                    <Route path="/reports-and-analytics" element={<ReportsAndAnalytics />} /> {/* Assuming you have this component */}
+
+                    {/* المسار الجذر: يجب أن يكون في النهاية أو قبل الـ catch-all */}
+                    <Route path="/" element={<Home />} /> {/* المسار الجذر يجب أن يكون في النهاية أو قبل الـ catch-all */}
+
+                    {/* المسار الشامل: يجب أن يكون في النهاية ليتأكد من أن جميع المسارات الأخرى قد حظيت بفرصتها */}
+                    <Route path="*" element={<Navigate to="/choice" replace />} />
                   </Routes>
                 </div>
               </div>

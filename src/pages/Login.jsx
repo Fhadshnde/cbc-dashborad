@@ -37,7 +37,7 @@ const Login = ({ setIsAuthenticated }) => {
         localStorage.setItem("userData", JSON.stringify(user));
         localStorage.setItem("token", token);
         setIsAuthenticated(true);
-        navigate("/");
+        navigate("/choice");
       }
     } catch (err) {
       if (err.response) {
@@ -53,19 +53,15 @@ const Login = ({ setIsAuthenticated }) => {
   };
 
   return (
-    // Main container for the entire page, setting up a gradient background to match the image's overall dark aesthetic
-    <div className="min-h-screen bg-gradient-to-br  flex items-center justify-center p-4 font-sans " dir="rtl">
-      {/* Container for the content, using flexbox for responsive layout: column on small screens, row on larger screens */}
+    <div className="min-h-screen bg-gradient-to-br flex items-center justify-center p-4 font-sans " dir="rtl">
       <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center justify-around gap-8">
-        {/* Right section (or left in LTR) with descriptive text and the folder image, aligning content to the end (right) */}
-        <div className="flex flex-col items-center lg:items-end  text-right space-y-6 lg:max-w-xl">
-          <h1 className="text-3xl md:text-4xl font-extrabold leading-tight  drop-shadow-lg">
+        <div className="flex flex-col items-center lg:items-end text-right space-y-6 lg:max-w-xl">
+          <h1 className="text-3xl md:text-4xl font-extrabold leading-tight drop-shadow-lg">
             تطبيق مخصص لعرض الطلبات
             <br />
             ومتابعتها من خلال
             <span className="text-teal-400"> الاشعارات الفورية !</span>
           </h1>
-          {/* Folder image with appropriate styling for responsiveness and shadow */}
           <img
             src={folderLogin}
             alt="Folder Icon"
@@ -74,9 +70,7 @@ const Login = ({ setIsAuthenticated }) => {
           />
         </div>
 
-        {/* Login Form Card - styled to match the white card in the image */}
         <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-sm flex flex-col items-center border border-gray-200">
-          {/* Top icon and text for the login form */}
           <img
             src={iconLogin}
             alt="Login Icon"
@@ -86,13 +80,10 @@ const Login = ({ setIsAuthenticated }) => {
           <h3 className="text-sm font-semibold text-gray-500 mb-1">نظام فواتير cbc</h3>
           <h2 className="text-2xl font-bold text-gray-800 mb-6">تسجيل الدخول لبوابة النظام</h2>
 
-          {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-5 w-full">
-            {/* Phone Number Input Field */}
             <div className="relative">
               <label className="sr-only">رقم الهاتف</label>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                {/* User icon - using inline SVG for flexibility and no external dependencies */}
                 <svg
                   className="h-5 w-5 text-gray-400"
                   fill="none"
@@ -114,7 +105,7 @@ const Login = ({ setIsAuthenticated }) => {
                 value={formData.phoneNumber}
                 onChange={handleChange}
                 required
-                placeholder=" رقم الهاتف " 
+                placeholder=" رقم الهاتف "
                 className="w-full border border-gray-300 rounded-lg pr-10 pl-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 text-right text-gray-700 placeholder-gray-400"
               />
             </div>
@@ -143,7 +134,7 @@ const Login = ({ setIsAuthenticated }) => {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                placeholder="كلمة المرور" 
+                placeholder="كلمة المرور"
                 className="w-full border border-gray-300 rounded-lg pr-10 pl-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 text-right text-gray-700 placeholder-gray-400"
               />
             </div>
@@ -158,8 +149,8 @@ const Login = ({ setIsAuthenticated }) => {
               {loading ? "جارٍ الدخول..." : "تسجيل الدخول"}
             </button>
             <div className="text-center mt-4">
-              <Link to="/dashboard" className="text-teal-500 hover:underline">
-                قسم العلافات
+              <Link to="/choice" className="text-teal-500 hover:underline">
+                اختر قسمك
               </Link>
             </div>
           </form>

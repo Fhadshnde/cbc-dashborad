@@ -7,12 +7,13 @@ function MapLocationCard() {
         <h3 className="text-lg font-semibold text-gray-800">مواقع المتاجر</h3>
         <span className="text-gray-400 text-2xl leading-none">...</span>
       </div>
-      <div className="w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 text-sm overflow-hidden">
-        <img
-          src="https://via.placeholder.com/400x256?text=Map+Placeholder"
-          alt="Map Placeholder"
-          className="w-full h-full object-cover"
-        />
+      <div className="w-full h-64 rounded-lg overflow-hidden">
+      <img
+  src="https://wpdatatables.com/wp-content/uploads/2019/07/store.jpg"
+  alt="Store Locations Map"
+  className="w-full h-full object-cover"
+/>
+
       </div>
     </div>
   );

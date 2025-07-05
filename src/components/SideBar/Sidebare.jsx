@@ -10,10 +10,14 @@ const BASE_ITEMS = [
   { icon: FaFileInvoiceDollar, href: "/accessreports", text: 'قسم المحاسبة' },
   { icon: FaFileInvoiceDollar, href: "/archives", text: 'الارشيف' },
   { icon: FaFileInvoiceDollar, href: "/summary-reports", text: 'ملخص تقارير المبيعات' },
-  // { icon: FaFileInvoiceDollar, href: "/contracts", text: 'العقود' },
-  // { icon: FaFileInvoiceDollar, href: "/followupsurveys", text: 'متابعة الاستبيانات' },
-  // { icon: FaFileInvoiceDollar, href: "/my-tasks", text: 'مهامي' },
   { icon: FaFileInvoiceDollar, href: "/accessreports/print", text: 'قسم الطباعة' },
+  // { icon: FaFileInvoiceDollar, href: "/contracts", text: 'العقود' },
+  //   { icon: FaFileInvoiceDollar, href: "/Stores", text: 'المتاجر' },
+  // { icon: FaFileInvoiceDollar, href: "/surveys", text: ' الاستبيانات' },
+  // { icon: FaFileInvoiceDollar, href: "/employees", text: ' employees' },
+  // { icon: FaFileInvoiceDollar, href: "/reports-and-analytics", text: 'التقارير والتحليلات' },
+
+
 
 ];
 
@@ -63,9 +67,9 @@ const Sidebar = () => {
           <AnimatePresence>
             {open && (
               <motion.div
-                initial={{ x: -300 }}
+                initial={{ x: -200 }}
                 animate={{ x: 0 }}
-                exit={{ x: -300 }}
+                exit={{ x: -200 }}
                 transition={{ duration: 0.3 }}
                 className="fixed top-[56px] right-0 bg-white z-50 shadow-lg border-l overflow-y-auto rounded-bl-lg rounded-tl-lg"
               >
