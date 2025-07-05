@@ -104,7 +104,7 @@ const EditReportForm = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       alert("تم تعديل التقرير بنجاح");
-      navigate("/access-reports");
+      navigate("/accessreports");
     } catch {
       setError("فشل في تعديل التقرير");
     }
