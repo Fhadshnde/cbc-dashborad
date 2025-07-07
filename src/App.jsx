@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from 'react-router-dom';
 
 import Sidebar from './components/SideBar/Sidebare';
 import Navbar from './components/Navbar/Navbar';
@@ -47,7 +53,10 @@ const ProtectedLayout = ({ setIsAuthenticated }) => {
         <Routes>
           <Route path="/accessreports" element={<AccessReports />} />
           <Route path="/accessreports/add-report" element={<AddReportForm />} />
-          <Route path="/accessreports/supervisor/reports" element={<SupervisorAccessReports />} />
+          <Route
+            path="/accessreports/supervisor/reports"
+            element={<SupervisorAccessReports />}
+          />
           <Route path="/edit-report/:id" element={<EditReport />} />
           <Route path="/accessreports/print" element={<AccessPrint />} />
 
@@ -55,13 +64,25 @@ const ProtectedLayout = ({ setIsAuthenticated }) => {
           <Route path="/contracts/create" element={<AddContract />} />
           <Route path="/contracts/edit/:id" element={<ContractForm />} />
           <Route path="/contracts/:id" element={<ContractDetails />} />
-          <Route path="/contracts/without-survey" element={<ContractsWithoutSurveyPage />} />
+          <Route
+            path="/contracts/without-survey"
+            element={<ContractsWithoutSurveyPage />}
+          />
 
           <Route path="/followupsurveys" element={<FollowUpSurveyList />} />
           <Route path="/followupsurveys/new" element={<FollowUpSurveyCreate />} />
-          <Route path="/followupsurveys/create/:contractId" element={<FollowUpSurveyCreate />} />
-          <Route path="/followupsurveys/:id" element={<FollowUpSurveyDetails />} />
-          <Route path="/followupsurveys/:id/edit" element={<FollowUpSurveyEdit />} />
+          <Route
+            path="/followupsurveys/create/:contractId"
+            element={<FollowUpSurveyCreate />}
+          />
+          <Route
+            path="/followupsurveys/:id"
+            element={<FollowUpSurveyDetails />}
+          />
+          <Route
+            path="/followupsurveys/:id/edit"
+            element={<FollowUpSurveyEdit />}
+          />
 
           <Route path="/stores" element={<Stores />} />
           <Route path="/surveys" element={<Surveys />} />
@@ -77,8 +98,14 @@ const ProtectedLayout = ({ setIsAuthenticated }) => {
 
           <Route path="/archives" element={<Archives />} />
           <Route path="/summary-reports" element={<SummaryReports />} />
-          <Route path="/reports/admin/:adminUsername" element={<EmployeeReports />} />
-          <Route path="/reports-and-analytics" element={<ReportsAndAnalytics />} />
+          <Route
+            path="/reports/admin/:adminUsername"
+            element={<EmployeeReports />}
+          />
+          <Route
+            path="/reports-and-analytics"
+            element={<ReportsAndAnalytics />}
+          />
           <Route path="/notification" element={<Notification />} />
           <Route path="/my-account" element={<MyAccount />} />
 
@@ -93,15 +120,18 @@ const ProtectedLayout = ({ setIsAuthenticated }) => {
 
 const AppContent = ({ isAuthenticated, setIsAuthenticated }) => {
   const location = useLocation();
-  const selectedDepartment = localStorage.getItem("selectedDepartment");
+  const selectedDepartment = localStorage.getItem('selectedDepartment');
 
-  if (!selectedDepartment && location.pathname !== "/choice") {
+  // شرط التوجيه:
+  // - لو ما تم اختيار قسم ويريد المستخدم الدخول لأي صفحة غير صفحة الاختيار => يوجه للاختيار
+  if (!selectedDepartment && location.pathname !== '/choice') {
     return <Navigate to="/choice" replace />;
   }
 
   return (
     <Routes>
       <Route path="/choice" element={<ChoicePage />} />
+
       <Route
         path="/login"
         element={
@@ -112,6 +142,7 @@ const AppContent = ({ isAuthenticated, setIsAuthenticated }) => {
           )
         }
       />
+
       <Route
         path="/*"
         element={
@@ -137,7 +168,10 @@ const App = () => {
 
   return (
     <Router>
-      <AppContent isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
+      <AppContent
+        isAuthenticated={isAuthenticated}
+        setIsAuthenticated={setIsAuthenticated}
+      />
     </Router>
   );
 };
