@@ -123,7 +123,7 @@ const Surveys = () => {
             className="flex-grow p-2 outline-none focus:ring-0 text-right"
           />
           <div className="bg-gray-50 p-2 border-l border-gray-300">
-            <FaSearch className="text-gray-500 text-lg" />
+            <FaSearch className="text-[#25BC9D] text-lg" />
           </div>
         </div>
         {/* <button

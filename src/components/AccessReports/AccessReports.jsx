@@ -226,6 +226,7 @@ const AccessReports = () => {
                   <th className="px-2 py-2">رقم التقرير</th>
                   <th className="px-2 py-2">الاسم بالعربي</th>
                   <th className="px-2 py-2">الاسم بالإنجليزي</th>
+                  <th className="px-2 py-2">الاسم بالاختبار</th>
                   <th className="px-2 py-2">رقم الهاتف</th>
                   <th className="px-2 py-2">المبلغ الكامل</th>
                   <th className="px-2 py-2">المدفوع</th>
@@ -250,6 +251,8 @@ const AccessReports = () => {
                     <tr key={i} className="border-t hover:bg-gray-50">
                       <td className="px-2 py-2">{report.number || "-"}</td>
                       <td className="px-2 py-2">{report.name_ar}</td>
+                      <td className="px-2 py-2">{report.nameـtest}</td>
+
                       <td className="px-2 py-2">{report.name_en}</td>
                       <td className="px-2 py-2">{report.phoneNumber}</td>
                       <td className="px-2 py-2">{formatNumber(report.quantity)}</td>

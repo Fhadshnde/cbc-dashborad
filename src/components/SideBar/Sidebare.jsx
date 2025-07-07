@@ -5,26 +5,30 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTableColumns, faBars, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FaFileInvoiceDollar } from "react-icons/fa";
 
-const BASE_ITEMS = [
+const SALES_ITEMS = [
   { icon: () => <FontAwesomeIcon icon={faTableColumns} className="text-black" />, href: "/", text: 'لوحة التحكم' },
   { icon: FaFileInvoiceDollar, href: "/accessreports", text: 'قسم المحاسبة' },
   { icon: FaFileInvoiceDollar, href: "/archives", text: 'الارشيف' },
   { icon: FaFileInvoiceDollar, href: "/summary-reports", text: 'ملخص تقارير المبيعات' },
   { icon: FaFileInvoiceDollar, href: "/accessreports/print", text: 'قسم الطباعة' },
-  // { icon: FaFileInvoiceDollar, href: "/contracts", text: 'العقود' },
-  //   { icon: FaFileInvoiceDollar, href: "/Stores", text: 'المتاجر' },
-  // { icon: FaFileInvoiceDollar, href: "/surveys", text: ' الاستبيانات' },
-  // { icon: FaFileInvoiceDollar, href: "/employees", text: ' employees' },
-  // { icon: FaFileInvoiceDollar, href: "/reports-and-analytics", text: 'التقارير والتحليلات' },
+];
 
-
-
+const FOLLOWUP_ITEMS = [
+  { icon: FaFileInvoiceDollar, href: "/dashboard", text: 'الصفحة الرئيسية' },
+  { icon: FaFileInvoiceDollar, href: "/contracts", text: 'العقود' },
+  { icon: FaFileInvoiceDollar, href: "/Stores", text: 'المتاجر' },
+  { icon: FaFileInvoiceDollar, href: "/surveys", text: 'الاستبيانات' },
+  { icon: FaFileInvoiceDollar, href: "/employees", text: 'الموظفات' },
+  { icon: FaFileInvoiceDollar, href: "/reports-and-analytics", text: 'التقارير والتحليلات' },
+  { icon: FaFileInvoiceDollar, href: "/MyTasksPage", text: 'مهامي' },
+  { icon: FaFileInvoiceDollar, href: "/notification", text: 'الإشعارات' },
+  { icon: FaFileInvoiceDollar, href: "/my-account", text: 'حسابي' },
 ];
 
 const Sidebar = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [open, setOpen] = useState(false);
-  const [userRole, setUserRole] = useState(null);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 900);
@@ -34,25 +38,18 @@ const Sidebar = () => {
   }, []);
 
   useEffect(() => {
-    const stored = localStorage.getItem("userData");
-    if (stored && stored !== "undefined") {
-      try {
-        const user = JSON.parse(stored);
-        setUserRole(user?.role || null);
-      } catch {
-        setUserRole(null);
-      }
-    }
+    const department = localStorage.getItem("selectedDepartment");
+    setSelectedDepartment(department);
   }, []);
 
   const handleClose = () => setOpen(false);
 
-  const sidebarItems = [
-    ...BASE_ITEMS,
-    ...(userRole === "supervisor"
-      ? [{ icon: FaFileInvoiceDollar, href: "/management", text: 'قسم الادارة' }]
-      : []),
-  ];
+  const sidebarItems =
+    selectedDepartment === "sales"
+      ? SALES_ITEMS
+      : selectedDepartment === "followup"
+      ? FOLLOWUP_ITEMS
+      : [];
 
   return (
     <>

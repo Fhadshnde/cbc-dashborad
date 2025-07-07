@@ -45,7 +45,7 @@ const Contracts = () => {
               </button>
             </Link>
 
-            <button className="flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg shadow-md hover:bg-gray-300 transition-colors">
+            <button className="flex items-center text-[#25BC9D] px-4 py-2 bg-gray-200 rounded-lg shadow-md hover:bg-gray-300 transition-colors">
               <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
               <span>تصدير</span>
             </button>

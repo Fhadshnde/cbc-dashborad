@@ -130,13 +130,13 @@ const ReportsAndAnalytics = () => {
       {/* Header Section */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-          <div className="p-3 bg-blue-100 rounded-lg text-blue-600 ml-3">
+          <div className="p-3 bg-blue-100 rounded-lg text-[#25BC9D] ml-3">
             <FaChartBar className="text-xl" />
           </div>
           التقارير والتحليلات
         </h2>
         <button className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 transition flex items-center">
-          <FaDownload className="ml-2" />
+          <FaDownload className="ml-2 text-[#25BC9D]" />
           تصدير
         </button>
       </div>

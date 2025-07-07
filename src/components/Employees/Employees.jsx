@@ -138,7 +138,6 @@ const Employees = () => {
 
   const openRatingModal = (employeeId) => {
     setEmployeeToRateId(employeeId);
-    // Find the current monthly rating of the employee to pre-fill the stars
     const employee = employeesData.find(emp => emp.id === employeeId);
     setCurrentRating(employee ? employee.monthlyRating : 0);
     setIsRatingModalOpen(true);
@@ -209,14 +208,14 @@ const Employees = () => {
               className="flex-grow p-2 outline-none focus:ring-0 text-right"
             />
             <div className="bg-gray-50 p-2 border-l border-gray-300">
-              <FaSearch className="text-gray-500 text-lg" />
+              <FaSearch className="text-[#2EC19F] text-lg" />
             </div>
           </div>
           <button
             onClick={toggleFilterSidebar}
             className="flex items-center p-3 border border-gray-300 rounded-full text-gray-600 hover:bg-gray-50 transition duration-150 ease-in-out mr-4"
           >
-            <FaFilter className="text-xl" />
+            <FaFilter className="text-xl text-[#2EC19F]" />
           </button>
         </div>
 
@@ -412,18 +411,32 @@ const Employees = () => {
         </div>
       )}
 
+      {/* تصميم الفلتر الجانبي المدمج */}
       {isFilterSidebarOpen && (
         <div
           className="fixed inset-0 flex justify-end z-40"
           onClick={closeFilterSidebar}
         >
           <div
-            className={`w-80 bg-white shadow-lg p-6 transform transition-transform duration-300 ease-in-out h-full
+            className={`w-80 shadow-lg p-6 transform transition-transform duration-300 ease-in-out h-full
               ${isFilterSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
-            style={{ direction: 'rtl', background: 'linear-gradient(180deg, #f0f8f8 0%, #d0e0e0 100%)' }}
+            style={{ direction: 'rtl', background: 'linear-gradient(to bottom, #eff8f7, #c1e0e8)', borderRadius: '0 1.5rem 1.5rem 0' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-8">
+            {/* الشريط الأخضر الجانبي */}
+            <div className="absolute top-0 left-0 h-full w-2 rounded-tl-3xl rounded-bl-3xl bg-gradient-to-b from-teal-400 to-green-400"></div>
+
+            {/* رأس الفلتر مع عنوان "الفلاتر" وزر الإغلاق */}
+            <div
+              className="relative px-6 py-4 flex items-center justify-between"
+              style={{
+                background: 'linear-gradient(to left, #e8f5f2, #d1e7e4)',
+                borderRadius: '1.5rem 0 0 0',
+                marginTop: '-1.5rem',
+                marginLeft: '-1.5rem',
+                marginRight: '-1.5rem',
+              }}
+            >
               <h3 className="text-xl font-bold text-gray-800">الفلاتر</h3>
               <button
                 onClick={closeFilterSidebar}
@@ -433,103 +446,119 @@ const Employees = () => {
               </button>
             </div>
 
-            <div className="mb-6">
-              <label htmlFor="filterSearch" className="block text-md font-medium text-gray-700 mb-2">
-                البحث
-              </label>
-              <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
-                <input
-                  type="text"
-                  id="filterSearch"
-                  placeholder="ابحث عن .."
-                  className="flex-grow p-2 outline-none focus:ring-0 text-right"
-                  value={filterSearch}
-                  onChange={(e) => setFilterSearch(e.target.value)}
-                />
-                <div className="bg-gray-50 p-2 border-l border-gray-300">
-                  <FaSearch className="text-gray-500 text-lg" />
+            {/* محتوى الفلتر: البحث، القسم، المنطقة، الأداء العام */}
+            <div className="flex-1 overflow-y-auto pt-6 px-4">
+              <div className="mb-6">
+                <label htmlFor="filterSearch" className="block text-md font-medium text-gray-700 mb-2">
+                  البحث
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="filterSearch"
+                    placeholder="ابحث عن .."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white"
+                    style={{ background: '#eaf4f7', border: 'none' }}
+                    value={filterSearch}
+                    onChange={(e) => setFilterSearch(e.target.value)}
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <FaSearch className="w-5 h-5 text-gray-400" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <label htmlFor="filterDepartment" className="block text-md font-medium text-gray-700">
+                    القسم
+                  </label>
+                  <button onClick={clearFilterDepartment} className="text-[#25BC9D] text-sm hover:underline">
+                    مسح
+                  </button>
+                </div>
+                <div className="relative">
+                  <select
+                    id="filterDepartment"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white appearance-none"
+                    style={{ background: '#eaf4f7', border: 'none' }}
+                    value={filterDepartment}
+                    onChange={(e) => setFilterDepartment(e.target.value)}
+                  >
+                    <option value="">اختر</option>
+                    <option value="قسم التقنية">قسم التقنية</option>
+                    <option value="قسم المبيعات">قسم المبيعات</option>
+                  </select>
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <FaChevronDown className="w-5 h-5 text-gray-400" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <label htmlFor="filterRegion" className="block text-md font-medium text-gray-700">
+                    المنطقة
+                  </label>
+                  <button onClick={clearFilterRegion} className="text-[#25BC9D] text-sm hover:underline">
+                    مسح
+                  </button>
+                </div>
+                <div className="relative">
+                  <select
+                    id="filterRegion"
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white appearance-none"
+                    style={{ background: '#eaf4f7', border: 'none' }}
+                    value={filterRegion}
+                    onChange={(e) => setFilterRegion(e.target.value)}
+                  >
+                    <option value="">اختر</option>
+                    <option value="بغداد">بغداد</option>
+                    <option value="البصرة">البصرة</option>
+                  </select>
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <FaChevronDown className="w-5 h-5 text-gray-400" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-8">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="block text-md font-medium text-gray-700">
+                    الأداء العام
+                  </label>
+                  <button onClick={clearFilterPerformance} className="text-[#25BC9D] text-sm hover:underline">
+                    مسح
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {[1, 2, 3, 4, 5].map((rating) => (
+                    <label key={rating} className="flex items-center justify-end">
+                      <span>({rating})</span>
+                      {renderStars(rating)}
+                      <input
+                        type="checkbox"
+                        className="form-checkbox h-5 w-5 text-teal-600 transition duration-150 ease-in-out rounded-sm mr-3"
+                        checked={filterPerformance.includes(rating)}
+                        onChange={() => handleFilterPerformanceChange(rating)}
+                      />
+                    </label>
+                  ))}
                 </div>
               </div>
             </div>
 
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <label htmlFor="filterDepartment" className="block text-md font-medium text-gray-700">
-                  القسم
-                </label>
-                <button onClick={clearFilterDepartment} className="text-blue-500 text-sm hover:underline">
-                  مسح
-                </button>
-              </div>
-              <select
-                id="filterDepartment"
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-right bg-white"
-                value={filterDepartment}
-                onChange={(e) => setFilterDepartment(e.target.value)}
-              >
-                <option value="">اختر</option>
-                <option value="قسم التقنية">قسم التقنية</option>
-                <option value="قسم المبيعات">قسم المبيعات</option>
-              </select>
-            </div>
-
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <label htmlFor="filterRegion" className="block text-md font-medium text-gray-700">
-                  المنطقة
-                </label>
-                <button onClick={clearFilterRegion} className="text-blue-500 text-sm hover:underline">
-                  مسح
-                </button>
-              </div>
-              <select
-                id="filterRegion"
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-right bg-white"
-                value={filterRegion}
-                onChange={(e) => setFilterRegion(e.target.value)}
-              >
-                <option value="">اختر</option>
-                <option value="بغداد">بغداد</option>
-                <option value="البصرة">البصرة</option>
-              </select>
-            </div>
-
-            <div className="mb-8">
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-md font-medium text-gray-700">
-                  الأداء العام
-                </label>
-                <button onClick={clearFilterPerformance} className="text-blue-500 text-sm hover:underline">
-                  مسح
-                </button>
-              </div>
-              <div className="space-y-3">
-                {[1, 2, 3, 4, 5].map((rating) => (
-                  <label key={rating} className="flex items-center justify-end">
-                    <span>({rating})</span>
-                    {renderStars(rating)}
-                    <input
-                      type="checkbox"
-                      className="form-checkbox h-5 w-5 text-blue-600 rounded-md mr-3"
-                      checked={filterPerformance.includes(rating)}
-                      onChange={() => handleFilterPerformanceChange(rating)}
-                    />
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex justify-center space-x-4 space-x-reverse">
+            <div className="px-6 py-4 flex justify-between space-x-4 space-x-reverse border-t border-gray-200">
               <button
                 onClick={clearAllFilters}
-                className="px-6 py-2 bg-gray-300 text-gray-800 rounded-full hover:bg-gray-400 transition"
+                className="w-1/2 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                style={{ background: '#eaf4f7', border: 'none' }}
               >
                 مسح الكل
               </button>
               <button
                 onClick={applyFilters}
-                className="px-6 py-2 rounded-full text-white transition"
-                style={{ background: 'linear-gradient(90deg, #25BC9D, #308F87)' }}
+                className="w-1/2 py-2 bg-gradient-to-r from-teal-400 to-green-500 text-white rounded-lg shadow-md hover:from-teal-500 hover:to-green-600 transition-colors"
               >
                 تطبيق ({getAppliedFilterCount()})
               </button>

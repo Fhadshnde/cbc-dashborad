@@ -1,9 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate , Link} from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import iconLogin from "../assets/iconLogin.png";
 import folderLogin from "../assets/folderLogin.png";
-
 
 const Login = ({ setIsAuthenticated }) => {
   const [formData, setFormData] = useState({ phoneNumber: "", password: "" });
@@ -37,7 +36,15 @@ const Login = ({ setIsAuthenticated }) => {
         localStorage.setItem("userData", JSON.stringify(user));
         localStorage.setItem("token", token);
         setIsAuthenticated(true);
-        navigate("/choice");
+
+        const selectedDepartment = localStorage.getItem("selectedDepartment");
+        if (selectedDepartment === "sales") {
+          navigate("/", { replace: true });
+        } else if (selectedDepartment === "followup") {
+          navigate("/dashboard", { replace: true });
+        } else {
+          navigate("/choice", { replace: true });
+        }
       }
     } catch (err) {
       if (err.response) {
@@ -53,7 +60,7 @@ const Login = ({ setIsAuthenticated }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br flex items-center justify-center p-4 font-sans " dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br flex items-center justify-center p-4 font-sans" dir="rtl">
       <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center justify-around gap-8">
         <div className="flex flex-col items-center lg:items-end text-right space-y-6 lg:max-w-xl">
           <h1 className="text-3xl md:text-4xl font-extrabold leading-tight drop-shadow-lg">
@@ -84,19 +91,8 @@ const Login = ({ setIsAuthenticated }) => {
             <div className="relative">
               <label className="sr-only">رقم الهاتف</label>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <svg
-                  className="h-5 w-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  ></path>
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
               <input
@@ -113,19 +109,8 @@ const Login = ({ setIsAuthenticated }) => {
             <div className="relative">
               <label className="sr-only">كلمة المرور</label>
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <svg
-                  className="h-5 w-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                  ></path>
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
               <input
@@ -148,6 +133,7 @@ const Login = ({ setIsAuthenticated }) => {
             >
               {loading ? "جارٍ الدخول..." : "تسجيل الدخول"}
             </button>
+
             <div className="text-center mt-4">
               <Link to="/choice" className="text-teal-500 hover:underline">
                 اختر قسمك
