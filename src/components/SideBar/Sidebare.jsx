@@ -11,6 +11,8 @@ const SALES_ITEMS = [
   { icon: FaFileInvoiceDollar, href: "/archives", text: 'الارشيف' },
   { icon: FaFileInvoiceDollar, href: "/summary-reports", text: 'ملخص تقارير المبيعات' },
   { icon: FaFileInvoiceDollar, href: "/accessreports/print", text: 'قسم الطباعة' },
+  { icon: FaFileInvoiceDollar, href: "/management", text: 'إدارة المستخدمين' },
+
 ];
 
 const FOLLOWUP_ITEMS = [
