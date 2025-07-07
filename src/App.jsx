@@ -26,7 +26,6 @@ import ContractsWithoutSurveyPage from './pages/ContractsWithoutSurveyPage';
 import MyTasksPage from './pages/MyTasksPage';
 import AccessPrint from './components/AccessPrint/AccessPrint';
 import DashboardPage from './pages/DashboardPage';
-import ChoicePage from './pages/ChoicePage';
 import Contracts from './components/Contract/Contracts';
 import AddContract from './components/Contract/AddContract';
 import ContractDetails from './components/Contract/ContractDetails';
@@ -48,12 +47,43 @@ const AppContent = ({ isAuthenticated, setIsAuthenticated }) => {
         path="/login"
         element={
           isAuthenticated ? (
-            <Navigate to="/" replace />
+            <Navigate to="/sales" replace />
           ) : (
             <Login setIsAuthenticated={setIsAuthenticated} />
           )
         }
       />
+
+      <Route
+        path="/sales"
+        element={
+          isAuthenticated ? (
+            <div className="p-5 flex" dir="rtl">
+              <Sidebar />
+              <div className="flex-grow overflow-auto">
+                <Navbar setIsAuthenticated={setIsAuthenticated} />
+                <Home />
+              </div>
+            </div>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+
+      <Route
+        path="/followup"
+        element={
+          <div className="p-5 flex" dir="rtl">
+            <Sidebar />
+            <div className="flex-grow overflow-auto">
+              <Navbar setIsAuthenticated={setIsAuthenticated} />
+              <DashboardPage />
+            </div>
+          </div>
+        }
+      />
+
       <Route
         path="/*"
         element={
@@ -94,9 +124,7 @@ const AppContent = ({ isAuthenticated, setIsAuthenticated }) => {
                   <Route path="/reports-and-analytics" element={<ReportsAndAnalytics />} />
                   <Route path="/notification" element={<Notification />} />
                   <Route path="/my-account" element={<MyAccount />} />
-                  <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/" element={<Home />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
+                  <Route path="*" element={<Navigate to="/sales" replace />} />
                 </Routes>
               </div>
             </div>
