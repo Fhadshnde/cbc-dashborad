@@ -48,7 +48,7 @@ const AppContent = ({ isAuthenticated, setIsAuthenticated }) => {
 
   return (
     <Routes>
-      <Route path="/choice" element={<ChoicePage />} />
+      {/* <Route path="/choice" element={<ChoicePage />} /> */}
       <Route
         path="/login"
         element={
