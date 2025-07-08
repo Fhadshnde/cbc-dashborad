@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const ChoicePage = () => {
   const navigate = useNavigate();
@@ -14,10 +14,13 @@ const ChoicePage = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#F5F7FA]">
+    <div
+      className="flex flex-col items-center justify-center min-h-screen bg-[#F5F7FA]"
+      dir="rtl"
+    >
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-[#2C3E50] mb-2">اختر المستخدم</h1>
-        <p className="text-lg text-[#6B778C]">مرحباً! اختر المستخدم من المربع ادناه</p>
+        <p className="text-lg text-[#6B778C]">مرحباً! اختر المستخدم من المربع أدناه</p>
       </div>
       <div className="flex space-x-6">
         <button

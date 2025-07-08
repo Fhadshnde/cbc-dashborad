@@ -1,48 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
   useLocation,
-} from 'react-router-dom';
+  useNavigate,
+} from "react-router-dom";
 
-import Sidebar from './components/SideBar/Sidebare';
-import Navbar from './components/Navbar/Navbar';
-import Home from './pages/Home';
-import AccessReports from './components/AccessReports/AccessReports';
-import AddReportForm from './components/AccessReports/AddReport';
-import Login from './pages/Login';
-import SupervisorAccessReports from './components/AccessReports/SupervisorAccessReports';
-import EditReport from './components/AccessReports/EditReport';
-import Archives from './components/Archives/Archives';
-import SummaryReports from './components/SummaryReports/SummaryReports';
-import EmployeeReports from './components/SummaryReports/EmployeeReports';
-import Management from './components/Management/Management';
-import AddUser from './components/Management/AddUser';
-import EditUser from './components/Management/EditUser';
-import UserDetails from './components/Management/UserDetails';
-import ContractForm from './components/ContractForm';
-import FollowUpSurveyList from './components/FollowUp/FollowUpSurveyList';
-import FollowUpSurveyCreate from './components/FollowUp/FollowUpSurveyCreate';
-import FollowUpSurveyDetails from './components/FollowUp/FollowUpSurveyDetails';
-import FollowUpSurveyEdit from './components/FollowUp/FollowUpSurveyEdit';
-import ContractsWithoutSurveyPage from './pages/ContractsWithoutSurveyPage';
-import MyTasksPage from './pages/MyTasksPage';
-import AccessPrint from './components/AccessPrint/AccessPrint';
-import DashboardPage from './pages/DashboardPage';
-import ChoicePage from './pages/ChoicePage';
-import Contracts from './components/Contract/Contracts';
-import AddContract from './components/Contract/AddContract';
-import ContractDetails from './components/Contract/ContractDetails';
-import Stores from './components/Stores/Stores';
-import Surveys from './components/Surveys/Surveys';
-import AddSurvey from './components/Surveys/AddSurvey';
-import EditSurvey from './components/Surveys/EditSurvey';
-import Employees from './components/Employees/Employees';
-import ReportsAndAnalytics from './components/RelationsDepartment/RelationsDepartment';
-import Notification from './components/notification/notification';
-import MyAccount from './components/MyAccount/MyAccount';
+import Sidebar from "./components/SideBar/Sidebare";
+import Navbar from "./components/Navbar/Navbar";
+import Home from "./pages/Home";
+import AccessReports from "./components/AccessReports/AccessReports";
+import AddReportForm from "./components/AccessReports/AddReport";
+import Login from "./pages/Login";
+import SupervisorAccessReports from "./components/AccessReports/SupervisorAccessReports";
+import EditReport from "./components/AccessReports/EditReport";
+import Archives from "./components/Archives/Archives";
+import SummaryReports from "./components/SummaryReports/SummaryReports";
+import EmployeeReports from "./components/SummaryReports/EmployeeReports";
+import Management from "./components/Management/Management";
+import AddUser from "./components/Management/AddUser";
+import EditUser from "./components/Management/EditUser";
+import UserDetails from "./components/Management/UserDetails";
+import ContractForm from "./components/ContractForm";
+import FollowUpSurveyList from "./components/FollowUp/FollowUpSurveyList";
+import FollowUpSurveyCreate from "./components/FollowUp/FollowUpSurveyCreate";
+import FollowUpSurveyDetails from "./components/FollowUp/FollowUpSurveyDetails";
+import FollowUpSurveyEdit from "./components/FollowUp/FollowUpSurveyEdit";
+import ContractsWithoutSurveyPage from "./pages/ContractsWithoutSurveyPage";
+import MyTasksPage from "./pages/MyTasksPage";
+import AccessPrint from "./components/AccessPrint/AccessPrint";
+import DashboardPage from "./pages/DashboardPage";
+import ChoicePage from "./pages/ChoicePage";
+import Contracts from "./components/Contract/Contracts";
+import AddContract from "./components/Contract/AddContract";
+import ContractDetails from "./components/Contract/ContractDetails";
+import Stores from "./components/Stores/Stores";
+import Surveys from "./components/Surveys/Surveys";
+import AddSurvey from "./components/Surveys/AddSurvey";
+import EditSurvey from "./components/Surveys/EditSurvey";
+import Employees from "./components/Employees/Employees";
+import ReportsAndAnalytics from "./components/RelationsDepartment/RelationsDepartment";
+import Notification from "./components/notification/notification";
+import MyAccount from "./components/MyAccount/MyAccount";
 
 const ProtectedLayout = ({ setIsAuthenticated }) => {
   return (
@@ -120,18 +121,19 @@ const ProtectedLayout = ({ setIsAuthenticated }) => {
 
 const AppContent = ({ isAuthenticated, setIsAuthenticated }) => {
   const location = useLocation();
-  const selectedDepartment = localStorage.getItem('selectedDepartment');
+  const selectedDepartment = localStorage.getItem("selectedDepartment");
 
-  // شرط التوجيه:
-  // - لو ما تم اختيار قسم ويريد المستخدم الدخول لأي صفحة غير صفحة الاختيار => يوجه للاختيار
-  if (!selectedDepartment && location.pathname !== '/choice') {
+  // لو لم يتم اختيار قسم وأي محاولة للوصول لصفحات أخرى توجه لاختيار القسم
+  if (!selectedDepartment && location.pathname !== "/choice") {
     return <Navigate to="/choice" replace />;
   }
 
   return (
     <Routes>
+      {/* صفحة اختيار القسم تظهر أولاً */}
       <Route path="/choice" element={<ChoicePage />} />
 
+      {/* صفحة تسجيل الدخول */}
       <Route
         path="/login"
         element={
@@ -143,6 +145,7 @@ const AppContent = ({ isAuthenticated, setIsAuthenticated }) => {
         }
       />
 
+      {/* باقي الصفحات المحمية */}
       <Route
         path="/*"
         element={
@@ -161,8 +164,8 @@ const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    const token = localStorage.getItem('token');
+    const loggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const token = localStorage.getItem("token");
     setIsAuthenticated(loggedIn && !!token);
   }, []);
 

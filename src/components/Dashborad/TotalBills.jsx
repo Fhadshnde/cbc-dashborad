@@ -56,14 +56,15 @@ const TotalBills = () => {
 
         allReports.forEach(report => {
           const reportDate = moment(report.createdAt);
+          const isReceived = report.status === 'received'; // التحقق من الحالة "مستلمة"
           const reportQuantity = parseFloat(report.quantity || 0);
 
-          if (reportDate.isSameOrAfter(startOfWeek, 'day')) {
+          if (reportDate.isSameOrAfter(startOfWeek, 'day') && isReceived) {
             totalWeeklyAmount += reportQuantity;
             countWeeklyInvoices += 1;
           }
 
-          if (reportDate.isSameOrAfter(startOfMonth, 'day')) {
+          if (reportDate.isSameOrAfter(startOfMonth, 'day') && isReceived) {
             totalMonthlyAmount += reportQuantity;
             countMonthlyInvoices += 1;
           }
@@ -136,7 +137,6 @@ const TotalBills = () => {
               <div className="text-sm mt-4 text-gray-500 text-center md:text-right">
                 {item.title}
               </div>
-              {/* تم التعديل هنا: استخدام flexbox لضمان بقاء الرقم والـ IQ في سطر واحد */}
               <div className="w-full text-center md:text-left text-xl flex justify-around mt-2">
                 <div className="font-bold whitespace-nowrap" style={{ color: item.titleBills }}>
                   {item.Bills}

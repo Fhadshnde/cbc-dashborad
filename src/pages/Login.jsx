@@ -1,7 +1,7 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import iconLogin from "../assets/iconLogin.png";
+import iconLogin from "../assets/iconLogin.png"; // تأكد من مسار الصور عندك
 import folderLogin from "../assets/folderLogin.png";
 
 const Login = ({ setIsAuthenticated }) => {

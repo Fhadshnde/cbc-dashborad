@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import NotificationIcon from '../../assets/NotificationIcon.jpeg';
-import { FaUsers } from 'react-icons/fa';
+import {
+  FaCalendarWeek,
+  FaCalendarAlt,
+  FaCalendarCheck,
+  FaMoneyBillWave,
+  FaClock,
+} from 'react-icons/fa';
 
 const API_URL = "https://hawkama.cbc-api.app/api/reports";
 
@@ -13,7 +18,8 @@ const TotalBills = () => {
   const [totalBillsDisplayData, setTotalBillsDisplayData] = useState([]);
   const [filterType, setFilterType] = useState({
     paid: 'monthly',
-    unpaid: 'monthly'
+    unpaid: 'monthly',
+    month: 'monthly'
   });
 
   const navigate = useNavigate();
@@ -100,10 +106,14 @@ const TotalBills = () => {
 
   const calculateAndSetTotalBillsData = useCallback(() => {
     const now = new Date();
+
     const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
     startOfWeek.setHours(0, 0, 0, 0);
     const endOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay() + 6);
     endOfWeek.setHours(23, 59, 59, 999);
+
+    const { start: monthStart, end: monthEnd } = getDateRange(filterType.month);
+
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     startOfMonth.setHours(0, 0, 0, 0);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -116,6 +126,8 @@ const TotalBills = () => {
     let weeklyCount = 0;
     let monthlyBills = 0;
     let monthlyCount = 0;
+    let filteredMonthBills = 0;
+    let filteredMonthCount = 0;
     let paidBills = 0;
     let paidCount = 0;
     let unpaidBills = 0;
@@ -131,14 +143,22 @@ const TotalBills = () => {
         weeklyBills += quantity;
         weeklyCount++;
       }
+
       if (reportDate >= startOfMonth && reportDate <= endOfMonth) {
         monthlyBills += quantity;
         monthlyCount++;
       }
+
+      if (reportDate >= monthStart && reportDate <= monthEnd) {
+        filteredMonthBills += quantity;
+        filteredMonthCount++;
+      }
+
       if (report.status === "received" && reportDate >= paidStart && reportDate <= paidEnd) {
         paidBills += quantity;
         paidCount++;
       }
+
       if (report.status !== "received" && remaining > 0 && reportDate >= unpaidStart && reportDate <= unpaidEnd) {
         unpaidBills += remaining;
         unpaidCount++;
@@ -149,23 +169,31 @@ const TotalBills = () => {
       {
         id: 'week',
         title: 'فواتير هذا الأسبوع',
-        icon: <img src={NotificationIcon} alt="Notification" className="w-12 h-12" />,
+        icon: <FaCalendarWeek className="text-[#25BC9D] text-4xl" />,
         bills: `${weeklyBills.toLocaleString('ar-IQ')} IQD`,
         numberOfInvoices: weeklyCount,
         titleColor: "#25BC9D"
       },
+      // {
+      //   id: 'monthFixed',
+      //   title: 'فواتير الشهر الحالي (ثابت)',
+      //   icon: <FaCalendarAlt className="text-[#b51a00] text-4xl" />,
+      //   bills: `${monthlyBills.toLocaleString('ar-IQ')} IQD`,
+      //   numberOfInvoices: monthlyCount,
+      //   titleColor: "#b51a00"
+      // },
       {
         id: 'month',
-        title: 'فواتير هذا الشهر',
-        icon: <FaUsers className="text-[#b51a00] text-3xl w-12 h-12" />,
-        bills: `${monthlyBills.toLocaleString('ar-IQ')} IQD`,
-        numberOfInvoices: monthlyCount,
+        title: 'فواتير الشهر الحالي',
+        icon: <FaCalendarCheck className="text-[#b51a00] text-4xl" />,
+        bills: `${filteredMonthBills.toLocaleString('ar-IQ')} IQD`,
+        numberOfInvoices: filteredMonthCount,
         titleColor: "#b51a00"
       },
       {
         id: 'paid',
         title: 'فواتير مدفوعة',
-        icon: <img src={NotificationIcon} alt="Notification" className="w-12 h-12" />,
+        icon: <FaMoneyBillWave className="text-[#25BC9D] text-4xl" />,
         bills: `${paidBills.toLocaleString('ar-IQ')} IQD`,
         numberOfInvoices: paidCount,
         titleColor: "#25BC9D"
@@ -173,7 +201,7 @@ const TotalBills = () => {
       {
         id: 'unpaid',
         title: 'فواتير غير مدفوعة',
-        icon: <FaUsers className="text-[#b51a00] text-3xl w-12 h-12" />,
+        icon: <FaClock className="text-[#b51a00] text-4xl" />,
         bills: `${unpaidBills.toLocaleString('ar-IQ')} IQD`,
         numberOfInvoices: unpaidCount,
         titleColor: "#b51a00"
@@ -219,7 +247,8 @@ const TotalBills = () => {
               <div className="font-bold" style={{ color: item.titleColor }}>{item.bills}</div>
               <div className="text-sm text-gray-500 mt-1">{item.numberOfInvoices} فواتير</div>
             </div>
-            {(item.id === 'paid' || item.id === 'unpaid') && (
+
+            {(item.id === 'paid' || item.id === 'unpaid' || item.id === 'month') && (
               <select
                 className="mt-3 border border-gray-300 rounded p-1 text-sm w-full"
                 value={filterType[item.id]}
