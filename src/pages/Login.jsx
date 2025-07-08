@@ -21,6 +21,7 @@ const Login = ({ setIsAuthenticated }) => {
 
     try {
       const selectedDepartment = localStorage.getItem("selectedDepartment");
+
       if (selectedDepartment === "followup") {
         if (formData.phoneNumber !== "0909" || formData.password !== "4321") {
           setError("مسموح الدخول لقسم المتابعة فقط للمستخدم المصرح.");
@@ -41,6 +42,15 @@ const Login = ({ setIsAuthenticated }) => {
 
       if (response.status === 200) {
         const { token, user } = response.data;
+
+        if (selectedDepartment === "sales") {
+          if (user.role !== "supervisor") {
+            setError("مسموح الدخول لقسم المبيعات فقط للمشرفين.");
+            setLoading(false);
+            return;
+          }
+        }
+
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("userData", JSON.stringify(user));
         localStorage.setItem("token", token);
@@ -68,7 +78,10 @@ const Login = ({ setIsAuthenticated }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br flex items-center justify-center p-4 font-sans" dir="rtl">
+    <div
+      className="min-h-screen bg-gradient-to-br flex items-center justify-center p-4 font-sans"
+      dir="rtl"
+    >
       <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center justify-around gap-8">
         <div className="flex flex-col items-center lg:items-end text-right space-y-6 lg:max-w-xl">
           <h1 className="text-3xl md:text-4xl font-extrabold leading-tight drop-shadow-lg">
@@ -81,7 +94,11 @@ const Login = ({ setIsAuthenticated }) => {
             src={folderLogin}
             alt="Folder Icon"
             className="w-full max-w-xs md:max-w-md h-auto mt-8 drop-shadow-2xl"
-            onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/300x200/cccccc/333333?text=Folder+Image+Missing"; }}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src =
+                "https://placehold.co/300x200/cccccc/333333?text=Folder+Image+Missing";
+            }}
           />
         </div>
 
@@ -90,10 +107,16 @@ const Login = ({ setIsAuthenticated }) => {
             src={iconLogin}
             alt="Login Icon"
             className="w-20 h-20 mb-4"
-            onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/80x80/cccccc/333333?text=Login+Icon"; }}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src =
+                "https://placehold.co/80x80/cccccc/333333?text=Login+Icon";
+            }}
           />
           <h3 className="text-sm font-semibold text-gray-500 mb-1">نظام فواتير cbc</h3>
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">تسجيل الدخول لبوابة النظام</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">
+            تسجيل الدخول لبوابة النظام
+          </h2>
 
           <form onSubmit={handleSubmit} className="space-y-5 w-full">
             <div className="relative">
@@ -107,8 +130,18 @@ const Login = ({ setIsAuthenticated }) => {
                 className="w-full border border-gray-300 rounded-lg pr-10 pl-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 text-right text-gray-700 placeholder-gray-400"
               />
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                <svg
+                  className="h-5 w-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
                 </svg>
               </div>
             </div>
@@ -124,8 +157,18 @@ const Login = ({ setIsAuthenticated }) => {
                 className="w-full border border-gray-300 rounded-lg pr-10 pl-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 text-right text-gray-700 placeholder-gray-400"
               />
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                <svg
+                  className="h-5 w-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
                 </svg>
               </div>
             </div>

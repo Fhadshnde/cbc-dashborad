@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaUserCircle } from "react-icons/fa"; // أيقونة مستخدم عامة للبديل
+import { FaUserCircle } from "react-icons/fa";
 
-const API_URL = "https://hawkama.cbc-api.app/api/reports"; // نقطة نهاية API لجلب التقارير
+const API_REPORTS_URL = "https://hawkama.cbc-api.app/api/reports";
+const API_USERS_URL = "https://hawkama.cbc-api.app/api/users"; // نقطة نهاية API لجلب بيانات المستخدمين
+const API_STATIC_BASE_URL = "https://hawkama.cbc-api.app"; // المسار الأساسي لجلب الملفات الثابتة مثل الصور
 
 const BestSellers = () => {
   const [bestSellersData, setBestSellersData] = useState([]);
@@ -30,32 +32,41 @@ const BestSellers = () => {
         return;
       }
 
-      const response = await axios.get(API_URL, { headers });
-      const allReports = response.data;
+      // جلب جميع التقارير
+      const reportsResponse = await axios.get(`${API_REPORTS_URL}/`, { headers });
+      const allReports = reportsResponse.data;
+
+      // جلب جميع المستخدمين للحصول على صورهم
+      const usersResponse = await axios.get(`${API_USERS_URL}/`, { headers });
+      const allUsers = usersResponse.data;
+
+      // إنشاء خريطة لربط اسم المستخدم برابط صورته
+      const userImageMap = new Map();
+      allUsers.forEach(user => {
+        if (user.username && user.imageUrl) {
+          // بناء رابط الصورة باستخدام المسار الأساسي للملفات الثابتة
+          userImageMap.set(user.username, `${API_STATIC_BASE_URL}${user.imageUrl}`);
+        }
+      });
 
       // تجميع الفواتير المستلمة حسب المسؤول (admin)
-      // Map<adminId_or_name, {name, total, imageUrl}>
       const sellersMap = new Map();
 
       allReports.forEach(report => {
+        // التحقق من أن التقرير مستلم وأن له مسؤولاً (admin)
         if (report.status === "received" && report.admin) {
-          const adminKey = report.admin._id || report.admin;
-          const adminName = report.admin.username || report.admin;
-          // هنا نضيف منطق تعديل رابط الصورة مثل UserDetails:
-          const rawImageUrl = report.admin.imageUrl || null;
-          const adminImageUrl = rawImageUrl
-            ? `https://hawkama.cbc-api.app/api${rawImageUrl}`
-            : null;
+          const adminUsername = report.admin;
 
-          let sellerData = sellersMap.get(adminKey);
+          let sellerData = sellersMap.get(adminUsername);
           if (!sellerData) {
-            sellerData = { name: adminName, total: 0, imageUrl: adminImageUrl };
-            sellersMap.set(adminKey, sellerData);
+            sellerData = { name: adminUsername, total: 0, imageUrl: userImageMap.get(adminUsername) || null };
+            sellersMap.set(adminUsername, sellerData);
           }
           sellerData.total += 1;
         }
       });
 
+      // تحويل الخريطة إلى مصفوفة وفرزها بناءً على إجمالي المبيعات (المستلمة) بترتيب تنازلي
       const sortedSellers = Array.from(sellersMap.values())
         .sort((a, b) => b.total - a.total);
 
@@ -129,7 +140,7 @@ const BestSellers = () => {
                       alt={item.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.src = 'https://placehold.co/32x32/cccccc/ffffff?text=U'; 
+                        e.target.src = 'https://placehold.co/32x32/cccccc/ffffff?text=U';
                       }}
                     />
                   ) : (

@@ -12,32 +12,24 @@ const TotalBills = () => {
     Bills: "0 IQ",
     NumberOfInvoices: 0
   });
+
   const [monthlyBills, setMonthlyBills] = useState({
     Bills: "0 IQ",
     NumberOfInvoices: 0
   });
+
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState(null);
 
   const getAuthData = () => {
     const token = localStorage.getItem("token");
-    const userDataString = localStorage.getItem("userData");
 
     if (!token) {
-      return { headers: {}, username: null };
+      return { headers: {} };
     }
 
-    let username = null;
-    if (userDataString) {
-      try {
-        const userData = JSON.parse(userDataString);
-        username = userData.username;
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    return { headers: { Authorization: `Bearer ${token}` }, username: username };
+    return { headers: { Authorization: `Bearer ${token}` } };
   };
 
   useEffect(() => {
@@ -46,16 +38,11 @@ const TotalBills = () => {
     const fetchBillsData = async () => {
       setLoading(true);
       setError(null);
-      const { headers, username } = getAuthData();
 
-      if (!username) {
-        setError("اسم المستخدم غير متوفر.");
-        setLoading(false);
-        return;
-      }
+      const { headers } = getAuthData();
 
       try {
-        const response = await axios.get(`${API_BASE_URL}/by-admin/${username}`, { headers });
+        const response = await axios.get(`${API_BASE_URL}/`, { headers });
         const allReports = response.data;
 
         const now = moment();
@@ -69,32 +56,32 @@ const TotalBills = () => {
 
         allReports.forEach(report => {
           const reportDate = moment(report.createdAt);
-          const isReceived = report.status === 'received';
-          const reportAmount = parseFloat(report.quantity || 0);
+          const reportQuantity = parseFloat(report.quantity || 0);
 
-          if (reportDate.isSameOrAfter(startOfWeek, 'day') && isReceived) {
-            totalWeeklyAmount += reportAmount;
+          if (reportDate.isSameOrAfter(startOfWeek, 'day')) {
+            totalWeeklyAmount += reportQuantity;
             countWeeklyInvoices += 1;
           }
 
-          if (reportDate.isSameOrAfter(startOfMonth, 'day') && isReceived) {
-            totalMonthlyAmount += reportAmount;
+          if (reportDate.isSameOrAfter(startOfMonth, 'day')) {
+            totalMonthlyAmount += reportQuantity;
             countMonthlyInvoices += 1;
           }
         });
 
         setWeeklyBills({
-          Bills: `${totalWeeklyAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} IQ`,
+          Bills: `${totalWeeklyAmount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} IQ`,
           NumberOfInvoices: countWeeklyInvoices
         });
 
         setMonthlyBills({
-          Bills: `${totalMonthlyAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} IQ`,
+          Bills: `${totalMonthlyAmount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} IQ`,
           NumberOfInvoices: countMonthlyInvoices
         });
 
       } catch (err) {
-        setError("حدث خطأ أثناء جلب البيانات.");
+        console.error("خطأ في جلب بيانات الفواتير:", err);
+        setError("حدث خطأ أثناء جلب البيانات. يرجى المحاولة مرة أخرى.");
       } finally {
         setLoading(false);
       }
@@ -104,11 +91,19 @@ const TotalBills = () => {
   }, []);
 
   if (loading) {
-    return <div className="total-bills-container text-center p-5 text-gray-600">جاري التحميل...</div>;
+    return (
+      <div className="total-bills-container text-center p-5 text-gray-600">
+        جاري التحميل...
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="total-bills-container text-red-500 text-center p-5">{error}</div>;
+    return (
+      <div className="total-bills-container text-red-500 text-center p-5">
+        {error}
+      </div>
+    );
   }
 
   const dataToRender = [
@@ -141,8 +136,9 @@ const TotalBills = () => {
               <div className="text-sm mt-4 text-gray-500 text-center md:text-right">
                 {item.title}
               </div>
+              {/* تم التعديل هنا: استخدام flexbox لضمان بقاء الرقم والـ IQ في سطر واحد */}
               <div className="w-full text-center md:text-left text-xl flex justify-around mt-2">
-                <div className="font-bold" style={{ color: item.titleBills }}>
+                <div className="font-bold whitespace-nowrap" style={{ color: item.titleBills }}>
                   {item.Bills}
                 </div>
                 <div className="md:mr-[120px]">

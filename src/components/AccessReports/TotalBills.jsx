@@ -11,6 +11,10 @@ const TotalBills = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [totalBillsDisplayData, setTotalBillsDisplayData] = useState([]);
+  const [filterType, setFilterType] = useState({
+    paid: 'monthly',
+    unpaid: 'monthly'
+  });
 
   const navigate = useNavigate();
 
@@ -49,6 +53,51 @@ const TotalBills = () => {
     fetchReports();
   }, [fetchReports]);
 
+  const getDateRange = (type) => {
+    const now = new Date();
+    let start = new Date();
+    let end = new Date();
+    switch (type) {
+      case 'daily':
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
+        break;
+      case 'weekly':
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+        start.setHours(0, 0, 0, 0);
+        end = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay() + 6);
+        end.setHours(23, 59, 59, 999);
+        break;
+      case 'monthly':
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        start.setHours(0, 0, 0, 0);
+        end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        end.setHours(23, 59, 59, 999);
+        break;
+      case 'quarter':
+        start = new Date(now);
+        start.setMonth(now.getMonth() - 3);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
+        break;
+      case 'semiannual':
+        start = new Date(now);
+        start.setMonth(now.getMonth() - 6);
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
+        break;
+      case 'yearly':
+        start = new Date(now.getFullYear(), 0, 1);
+        start.setHours(0, 0, 0, 0);
+        end = new Date(now.getFullYear(), 11, 31);
+        end.setHours(23, 59, 59, 999);
+        break;
+      default:
+        break;
+    }
+    return { start, end };
+  };
+
   const calculateAndSetTotalBillsData = useCallback(() => {
     const now = new Date();
     const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
@@ -59,6 +108,9 @@ const TotalBills = () => {
     startOfMonth.setHours(0, 0, 0, 0);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     endOfMonth.setHours(23, 59, 59, 999);
+
+    const { start: paidStart, end: paidEnd } = getDateRange(filterType.paid);
+    const { start: unpaidStart, end: unpaidEnd } = getDateRange(filterType.unpaid);
 
     let weeklyBills = 0;
     let weeklyCount = 0;
@@ -83,19 +135,19 @@ const TotalBills = () => {
         monthlyBills += quantity;
         monthlyCount++;
       }
-      if (report.status === "received") {
+      if (report.status === "received" && reportDate >= paidStart && reportDate <= paidEnd) {
         paidBills += quantity;
         paidCount++;
-      } else {
-        if (remaining > 0) {
-          unpaidBills += remaining;
-          unpaidCount++;
-        }
+      }
+      if (report.status !== "received" && remaining > 0 && reportDate >= unpaidStart && reportDate <= unpaidEnd) {
+        unpaidBills += remaining;
+        unpaidCount++;
       }
     });
 
     setTotalBillsDisplayData([
       {
+        id: 'week',
         title: 'فواتير هذا الأسبوع',
         icon: <img src={NotificationIcon} alt="Notification" className="w-12 h-12" />,
         bills: `${weeklyBills.toLocaleString('ar-IQ')} IQD`,
@@ -103,6 +155,7 @@ const TotalBills = () => {
         titleColor: "#25BC9D"
       },
       {
+        id: 'month',
         title: 'فواتير هذا الشهر',
         icon: <FaUsers className="text-[#b51a00] text-3xl w-12 h-12" />,
         bills: `${monthlyBills.toLocaleString('ar-IQ')} IQD`,
@@ -110,6 +163,7 @@ const TotalBills = () => {
         titleColor: "#b51a00"
       },
       {
+        id: 'paid',
         title: 'فواتير مدفوعة',
         icon: <img src={NotificationIcon} alt="Notification" className="w-12 h-12" />,
         bills: `${paidBills.toLocaleString('ar-IQ')} IQD`,
@@ -117,6 +171,7 @@ const TotalBills = () => {
         titleColor: "#25BC9D"
       },
       {
+        id: 'unpaid',
         title: 'فواتير غير مدفوعة',
         icon: <FaUsers className="text-[#b51a00] text-3xl w-12 h-12" />,
         bills: `${unpaidBills.toLocaleString('ar-IQ')} IQD`,
@@ -124,7 +179,7 @@ const TotalBills = () => {
         titleColor: "#b51a00"
       },
     ]);
-  }, [reports]);
+  }, [reports, filterType]);
 
   useEffect(() => {
     if (reports.length > 0) {
@@ -133,6 +188,10 @@ const TotalBills = () => {
       setTotalBillsDisplayData([]);
     }
   }, [reports, calculateAndSetTotalBillsData]);
+
+  const handleFilterChange = (id, value) => {
+    setFilterType(prev => ({ ...prev, [id]: value }));
+  };
 
   if (loading) {
     return <div className="text-center py-4 text-gray-600">...جاري تحميل ملخص الفواتير</div>;
@@ -148,10 +207,10 @@ const TotalBills = () => {
 
   return (
     <div className="w-full flex flex-wrap justify-between gap-4 mb-8">
-      {totalBillsDisplayData.map((item, index) => (
+      {totalBillsDisplayData.map((item) => (
         <div
-          key={index}
-          className="bg-white flex-1 min-w-[200px] h-[150px] rounded-lg p-4 shadow flex flex-col items-center"
+          key={item.id}
+          className="bg-white flex-1 min-w-[200px] h-[200px] rounded-lg p-4 shadow flex flex-col items-center"
         >
           <div className="flex flex-col items-center w-full">
             <div className="mb-2">{item.icon}</div>
@@ -160,6 +219,20 @@ const TotalBills = () => {
               <div className="font-bold" style={{ color: item.titleColor }}>{item.bills}</div>
               <div className="text-sm text-gray-500 mt-1">{item.numberOfInvoices} فواتير</div>
             </div>
+            {(item.id === 'paid' || item.id === 'unpaid') && (
+              <select
+                className="mt-3 border border-gray-300 rounded p-1 text-sm w-full"
+                value={filterType[item.id]}
+                onChange={(e) => handleFilterChange(item.id, e.target.value)}
+              >
+                <option value="daily">يومي</option>
+                <option value="weekly">أسبوعي</option>
+                <option value="monthly">شهري</option>
+                <option value="quarter">٣ أشهر</option>
+                <option value="semiannual">نصف سنوي</option>
+                <option value="yearly">سنوي</option>
+              </select>
+            )}
           </div>
         </div>
       ))}

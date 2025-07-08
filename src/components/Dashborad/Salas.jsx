@@ -11,7 +11,6 @@ const Salas = () => {
   const [totalInvoices, setTotalInvoices] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentUsername, setCurrentUsername] = useState(null); // لتخزين اسم المستخدم الحالي
 
   const RADIAN = Math.PI / 180;
 
@@ -26,65 +25,44 @@ const Salas = () => {
     centerTextSmallFontSize: 14,
   });
 
-  // دالة لجلب توكن المصادقة واسم المستخدم من localStorage
   const getAuthData = () => {
     const token = localStorage.getItem("token");
-    const userDataString = localStorage.getItem("userData"); // جلب بيانات المستخدم كـ string
 
     if (!token) {
       console.error("خطأ: توكن المصادقة غير موجود. يرجى تسجيل الدخول.");
-      return { headers: {}, username: null };
+      return { headers: {} };
     }
 
-    let username = null;
-    if (userDataString) {
-      try {
-        const userData = JSON.parse(userDataString); // تحويل بيانات المستخدم من string إلى كائن JavaScript
-        username = userData.username; // افترض أن اسم المستخدم مخزن في خاصية 'username'
-        // تأكد من أن 'username' هو الاسم الصحيح للحقل الذي يحتوي على اسم المستخدم في كائن user
-      } catch (e) {
-        console.error("خطأ في تحليل بيانات المستخدم المخزنة في localStorage:", e);
-      }
-    }
-
-    return { headers: { Authorization: `Bearer ${token}` }, username: username };
+    return { headers: { Authorization: `Bearer ${token}` } };
   };
 
   useEffect(() => {
-    moment.locale('ar-sa'); // تفعيل اللغة العربية لـ moment
-
-    // جلب بيانات المصادقة واسم المستخدم عند تحميل المكون
-    const { headers, username } = getAuthData();
-    if (username) {
-      setCurrentUsername(username); // تخزين اسم المستخدم في حالة المكون
-    } else {
-      setLoading(false);
-      setError("اسم المستخدم غير متوفر. يرجى التأكد من تسجيل الدخول بشكل صحيح.");
-      return; // توقف عن جلب البيانات إذا لم يتوفر اسم المستخدم
-    }
+    moment.locale('ar-sa');
 
     const fetchChartData = async () => {
       setLoading(true);
       setError(null);
       try {
-        // استخدام نقطة النهاية المخصصة لجلب تقارير المستخدم
-        const API_URL_BY_ADMIN = `${API_BASE_URL}/by-admin/${username}`;
-        
-        const response = await axios.get(API_URL_BY_ADMIN, { headers });
-        const userReports = response.data; // هذه هي التقارير الخاصة بالمستخدم الحالي
+        const { headers } = getAuthData();
 
-        // حساب الإجمالي لكل فئة بناءً على بيانات الـ API
-        const totalPending = userReports.reduce((sum, report) => sum + (report.cardCategory?.oneYear || 0), 0);
-        const totalApproved = userReports.reduce((sum, report) => sum + (report.cardCategory?.twoYears || 0), 0);
-        const totalRejected = userReports.reduce((sum, report) => sum + (report.cardCategory?.virtual || 0), 0);
+        // استخدام نقطة النهاية لجلب الإحصائيات لجميع المسؤولين
+        const response = await axios.get(`${API_BASE_URL}/admins/stats`, { headers });
+        const { totals } = response.data; // جلب كائن 'totals' الذي يحتوي على الإجماليات الشهرية
 
-        const calculatedTotalOverall = totalPending + totalApproved + totalRejected;
-        setTotalInvoices(calculatedTotalOverall); // تحديث حالة إجمالي الفواتير بالعدد الفعلي
+        // استخراج القيم الشهرية لجميع المستخدمين
+        const totalOneYearMonthly = totals.totalOneYearMonthly || 0;
+        const totalTwoYearsMonthly = totals.totalTwoYearsMonthly || 0;
+        const totalVirtualMonthly = totals.totalVirtualMonthly || 0;
+        const totalReportsThisMonth = totals.totalReportsThisMonth || 0;
+
+        // حساب الإجمالي الكلي للفواتير الشهرية من الفئات
+        const calculatedTotalOverall = totalOneYearMonthly + totalTwoYearsMonthly + totalVirtualMonthly;
+        setTotalInvoices(totalReportsThisMonth); // تحديث إجمالي الفواتير بالعدد الفعلي للتقارير الشهرية
 
         const dataForChart = [
-          { name: 'بانتظار المراجعة', value: totalPending, color: '#34B3F1' },
-          { name: 'تمت الموافقة', value: totalApproved, color: '#DEECF6' },
-          { name: 'مرفوضة', value: totalRejected, color: '#ADD8E6' },
+          { name: 'بانتظار المراجعة', value: totalOneYearMonthly, color: '#34B3F1' },
+          { name: 'تمت الموافقة', value: totalTwoYearsMonthly, color: '#DEECF6' },
+          { name: 'مرفوضة', value: totalVirtualMonthly, color: '#ADD8E6' },
         ];
 
         const dataWithPercentages = dataForChart.map(item => ({
@@ -102,13 +80,8 @@ const Salas = () => {
       }
     };
 
-    // تأكد من أن لدينا اسم مستخدم قبل محاولة جلب البيانات
-    if (currentUsername) {
-      fetchChartData();
-    }
+    fetchChartData();
 
-
-    // جزء التعامل مع حجم الشاشة (ريسبونسيف) - لم يتم تغييره
     function handleResize() {
       if (window.innerWidth <= 360) {
         setDimensions({
@@ -133,9 +106,8 @@ const Salas = () => {
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [currentUsername]); // أضف currentUsername كـ dependency ليتم إعادة تشغيل useEffect عند تحديثه
+  }, []); // تم إزالة currentUsername من التبعيات لأنه لم يعد يستخدم لتصفية البيانات
 
-  // دالة لعرض النسبة المئوية داخل شريحة الدائرة - لم يتم تغييرها
   const renderValueInside = ({ cx, cy, midAngle, innerRadius, outerRadius, percentage }) => {
     const radius = innerRadius + (outerRadius - innerRadius) / 2;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -156,7 +128,6 @@ const Salas = () => {
     );
   };
 
-  // دالة لعرض أسماء الشرائح خارج الدائرة - لم يتم تغييرها
   const renderCustomNameLabels = ({ cx, cy, outerRadius, index }) => {
     if (!chartData[index]) return null;
 

@@ -4,39 +4,18 @@ import { useNavigate } from "react-router-dom";
 
 const API_URL = "https://hawkama.cbc-api.app/api/reports";
 
-const initialForm = {
-  name_ar: "",
-  name_en: "",
-  phoneNumber: "",
-  quantity: 0,
-  moneyPaid: "0",
-  moneyRemain: "0",
-  address: "",
-  ministry: "",
-  date: "",
-  admin: "",
-  status: "pending",
-  cardCategory: {
-    oneYear: 0,
-    twoYears: 0,
-    virtual: 0,
-  },
-  notes: "",
-  onPayroll: false,
-};
-
 const SupervisorAccessReports = () => {
   const [reports, setReports] = useState([]);
-  const [form, setForm] = useState(initialForm);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const reportsPerPage = 10;
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedUserData = localStorage.getItem('userData');
+    const storedUserData = localStorage.getItem("userData");
     if (storedUserData && storedUserData !== "undefined") {
       try {
         const userData = JSON.parse(storedUserData);
@@ -76,69 +55,10 @@ const SupervisorAccessReports = () => {
     }
   }, [userRole]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      const headers = { headers: getAuthHeader() };
-      const formDataToSend = { ...form };
-
-      formDataToSend.date = formDataToSend.date
-        ? `${formDataToSend.date.substring(0, 4)}/${formDataToSend.date.substring(5, 7)}`
-        : "";
-
-      formDataToSend.quantity = Number(formDataToSend.quantity);
-      formDataToSend.moneyPaid = String(formDataToSend.moneyPaid);
-      formDataToSend.moneyRemain = String(formDataToSend.moneyRemain);
-
-      if (!isEditing && userRole !== "supervisor") {
-      }
-
-      if (isEditing && userRole !== "supervisor") {
-        const { cardCategory, status, ...rest } = formDataToSend;
-        Object.assign(formDataToSend, rest);
-      }
-
-      if (isEditing) {
-        await axios.put(`${API_URL}/${editId}`, formDataToSend, headers);
-      } else {
-        await axios.post(API_URL, formDataToSend, headers);
-      }
-
-      await fetchReports();
-      setForm(initialForm);
-      setIsEditing(false);
-      setEditId(null);
-      setLoading(false);
-    } catch (err) {
-      setLoading(false);
-      setError("فشل في حفظ التقرير: " + (err.response?.data?.message || err.message));
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    if (["oneYear", "twoYears", "virtual"].includes(name)) {
-      setForm((prev) => ({
-        ...prev,
-        cardCategory: {
-          ...prev.cardCategory,
-          [name]: parseInt(value) || 0,
-        },
-      }));
-    } else if (type === "checkbox") {
-      setForm((prev) => ({ ...prev, [name]: checked }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
   const handleStatusChange = async (id, currentStatus, newStatus) => {
     if (userRole === "supervisor") {
-      const validStatusesForSupervisor = ["pending", "rejected", "canceled", "received", "processing", "approved"];
-      if (!validStatusesForSupervisor.includes(newStatus)) {
+      const validStatuses = ["pending", "rejected", "canceled", "received", "processing", "approved"];
+      if (!validStatuses.includes(newStatus)) {
         setError("المشرف لا يمكنه تغيير الحالة إلى هذه القيمة.");
         return;
       }
@@ -153,83 +73,18 @@ const SupervisorAccessReports = () => {
     }
 
     if (currentStatus === newStatus) return;
-
-    if (!window.confirm(`هل أنت متأكد من تغيير حالة التقرير إلى "${newStatus}"؟`)) return;
+    if (!window.confirm(`هل أنت متأكد من تغيير الحالة إلى "${newStatus}"؟`)) return;
 
     try {
       setLoading(true);
-      setError(null);
       const headers = { headers: getAuthHeader() };
       await axios.patch(`${API_URL}/${id}/status`, { status: newStatus }, headers);
       await fetchReports();
       setLoading(false);
     } catch (err) {
       setLoading(false);
-      setError("فشل في تحديث حالة التقرير: " + (err.response?.data?.message || err.message));
+      setError("فشل في تحديث الحالة: " + (err.response?.data?.message || err.message));
     }
-  };
-
-  const handleEdit = (report) => {
-    const formattedDateForInput = report.date
-      ? `${report.date.substring(0, 4)}-${report.date.substring(5, 7)}-01`
-      : "";
-
-    setForm({
-      ...report,
-      date: formattedDateForInput,
-      moneyPaid: String(report.moneyPaid),
-      moneyRemain: String(report.moneyRemain),
-      cardCategory: report.cardCategory || { oneYear: 0, twoYears: 0, virtual: 0 },
-      notes: report.notes || "",
-      onPayroll: typeof report.onPayroll === "boolean" ? report.onPayroll : false,
-    });
-    setIsEditing(true);
-    setEditId(report._id);
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("هل أنت متأكد من حذف التقرير؟")) return;
-    if (userRole !== "supervisor") {
-      setError("ليس لديك صلاحية لحذف التقرير.");
-      return;
-    }
-    try {
-      setLoading(true);
-      setError(null);
-      const headers = { headers: getAuthHeader() };
-      await axios.delete(`${API_URL}/${id}`, headers);
-      await fetchReports();
-      setLoading(false);
-    } catch (err) {
-      setLoading(false);
-      setError("فشل في حذف التقرير: " + (err.response?.data?.message || err.message));
-    }
-  };
-
-  const isReportEditableForLimitedRoles = (report) => {
-    const now = Date.now();
-    const createdTime = new Date(report.createdAt).getTime();
-    const ALLOWED_EDIT_HOURS = 6 * 60 * 60 * 1000;
-    return report.status === "pending" && (now - createdTime <= ALLOWED_EDIT_HOURS);
-  };
-
-  const isFormFieldDisabled = (fieldName) => {
-    if (!isEditing) return false;
-    if (userRole === "supervisor") return false;
-    const baseDisabled = !isReportEditableForLimitedRoles(form);
-    if (isReportEditableForLimitedRoles(form)) {
-      const alwaysEditableFields = ["name_ar", "name_en", "phoneNumber", "quantity", "moneyPaid", "moneyRemain", "address", "ministry", "date", "admin", "notes", "onPayroll"];
-      if (alwaysEditableFields.includes(fieldName)) {
-        return false;
-      }
-      if (["oneYear", "twoYears", "virtual"].includes(fieldName)) {
-        return true;
-      }
-      if (fieldName === "status") {
-        return true;
-      }
-    }
-    return baseDisabled;
   };
 
   const formatNumber = (number) => {
@@ -237,12 +92,36 @@ const SupervisorAccessReports = () => {
     return Number(number).toLocaleString("en-US");
   };
 
+  const filteredReports = reports.filter((r) =>
+    r.name_ar?.includes(searchQuery) ||
+    r.name_en?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    r.phoneNumber?.includes(searchQuery) ||
+    r.admin?.includes(searchQuery)
+  );
+
+  const totalPages = Math.ceil(filteredReports.length / reportsPerPage);
+  const indexOfLast = currentPage * reportsPerPage;
+  const indexOfFirst = indexOfLast - reportsPerPage;
+  const currentReports = filteredReports.slice(indexOfFirst, indexOfLast);
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  };
+
   return (
     <div className="p-4 bg-gray-50 min-h-screen text-right font-sans">
       <h1 className="text-2xl font-bold mb-4 text-gray-800">تقارير المشرف</h1>
 
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="ابحث بالاسم أو رقم الهاتف أو المندوب"
+        className="mb-4 px-4 py-2 border rounded w-full max-w-md"
+      />
+
       {loading && <p className="text-center py-4 text-gray-600">جاري التحميل...</p>}
-      {error && <div className="text-center py-4 text-red-600">{error}</div>}
+      {error && <p className="text-center py-4 text-red-600">{error}</p>}
 
       <div className="overflow-x-auto bg-white rounded shadow">
         <table className="min-w-full border-collapse text-sm">
@@ -259,15 +138,12 @@ const SupervisorAccessReports = () => {
               <th className="p-2 border">التاريخ</th>
               <th className="p-2 border">المندوب</th>
               <th className="p-2 border">الحالة</th>
-              <th className="p-2 border">بطاقة سنة</th>
-              <th className="p-2 border">بطاقة سنتين</th>
-              <th className="p-2 border">بطاقة افتراضية</th>
               <th className="p-2 border">تغيير الحالة</th>
             </tr>
           </thead>
           <tbody>
-            {reports.length > 0 ? (
-              reports.map((r) => (
+            {currentReports.length > 0 ? (
+              currentReports.map((r) => (
                 <tr key={r._id} className="border-t hover:bg-gray-50">
                   <td className="p-2 border">{r.name_ar}</td>
                   <td className="p-2 border">{r.name_en}</td>
@@ -280,17 +156,11 @@ const SupervisorAccessReports = () => {
                   <td className="p-2 border">{r.date}</td>
                   <td className="p-2 border">{r.admin}</td>
                   <td className="p-2 border">{r.status}</td>
-                  <td className="p-2 border">{r.cardCategory?.oneYear}</td>
-                  <td className="p-2 border">{r.cardCategory?.twoYears}</td>
-                  <td className="p-2 border">{r.cardCategory?.virtual}</td>
                   <td className="p-2 border">
                     {(userRole === "supervisor" || userRole === "admin") ? (
                       <select
                         value={r.status}
-                        onChange={(event) => {
-                          const { value } = event.target;
-                          handleStatusChange(r._id, r.status, value);
-                        }}
+                        onChange={(e) => handleStatusChange(r._id, r.status, e.target.value)}
                         className="border p-1 rounded text-sm w-full"
                       >
                         {userRole === "supervisor" && <option value="pending">قيد الانتظار</option>}
@@ -299,9 +169,6 @@ const SupervisorAccessReports = () => {
                         {userRole === "supervisor" && <option value="received">تم الاستلام</option>}
                         {userRole === "supervisor" && <option value="processing">قيد المعالجة</option>}
                         {userRole === "supervisor" && <option value="approved">موافق عليها</option>}
-                        {userRole === "admin" && r.status !== "canceled" && (
-                          <option value={r.status} disabled>{r.status}</option>
-                        )}
                       </select>
                     ) : (
                       <span className="text-gray-500">{r.status}</span>
@@ -310,13 +177,27 @@ const SupervisorAccessReports = () => {
                 </tr>
               ))
             ) : (
-              <tr>
-                <td colSpan="16" className="p-4 text-center text-gray-500">لا توجد تقارير</td>
-              </tr>
+              <tr><td colSpan="12" className="text-center py-4">لا توجد تقارير</td></tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-6 space-x-2 rtl:space-x-reverse">
+          <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50">السابق</button>
+          {[...Array(totalPages).keys()].map((n) => (
+            <button
+              key={n + 1}
+              onClick={() => goToPage(n + 1)}
+              className={`px-3 py-1 rounded ${currentPage === n + 1 ? "bg-blue-500 text-white" : "bg-gray-100"}`}
+            >
+              {n + 1}
+            </button>
+          ))}
+          <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50">التالي</button>
+        </div>
+      )}
     </div>
   );
 };
