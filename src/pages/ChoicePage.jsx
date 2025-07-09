@@ -8,7 +8,7 @@ const ChoicePage = () => {
     localStorage.setItem("selectedDepartment", department);
     if (department === "followup") {
       navigate("/dashboard", { replace: true });
-    } else {
+    } else if (department === "sales") {
       navigate("/login", { replace: true });
     }
   };

@@ -23,8 +23,8 @@ const FOLLOWUP_ITEMS = [
   { icon: FaFileInvoiceDollar, href: "/employees", text: 'الموظفات' },
   { icon: FaFileInvoiceDollar, href: "/reports-and-analytics", text: 'التقارير والتحليلات' },
   { icon: FaFileInvoiceDollar, href: "/MyTasksPage", text: 'مهامي' },
-  { icon: FaFileInvoiceDollar, href: "/notification", text: 'الإشعارات' },
   { icon: FaFileInvoiceDollar, href: "/my-account", text: 'حسابي' },
+  { icon: FaFileInvoiceDollar, href: "/employees-with-unfinished-surveys", text: 'الموظفات مع الاستبيانات غير المكتملة' },
 ];
 
 const Sidebar = () => {

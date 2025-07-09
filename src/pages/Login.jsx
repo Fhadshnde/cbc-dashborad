@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import iconLogin from "../assets/iconLogin.png"; // تأكد من مسار الصور عندك
+import iconLogin from "../assets/iconLogin.png";
 import folderLogin from "../assets/folderLogin.png";
 
 const Login = ({ setIsAuthenticated }) => {
@@ -56,10 +56,10 @@ const Login = ({ setIsAuthenticated }) => {
         localStorage.setItem("token", token);
         setIsAuthenticated(true);
 
-        if (selectedDepartment === "sales") {
-          navigate("/", { replace: true });
-        } else if (selectedDepartment === "followup") {
+        if (selectedDepartment === "followup") {
           navigate("/dashboard", { replace: true });
+        } else if (selectedDepartment === "sales") {
+          navigate("/", { replace: true });
         } else {
           navigate("/choice", { replace: true });
         }

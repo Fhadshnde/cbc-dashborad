@@ -11,11 +11,11 @@ const ContractDetails = () => {
           <span className="mx-2">/</span>
           <span className="text-teal-600">تفاصيل العقد</span>
         </div>
-        <div className="flex space-x-3 space-x-reverse">
+        {/* <div className="flex space-x-3 space-x-reverse">
           <button className="px-4 py-2 bg-blue-500 text-gray-800 rounded-lg shadow-md hover:bg-gray-400 transition-colors flex items-center">
             <span>تعديل</span>
           </button>
-        </div>
+        </div> */}
       </div>
 
       <h1 className="text-2xl font-bold text-gray-800 mb-6">تفاصيل العقد</h1>

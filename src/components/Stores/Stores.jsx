@@ -1,17 +1,33 @@
 import React, { useState } from 'react';
-import { FaHome, FaAngleRight, FaFilter, FaSearch, FaChevronDown, FaStar, FaEllipsisV, FaCheckCircle, FaTimesCircle, FaRegStar } from 'react-icons/fa';
+import {
+  FaSearch,
+  FaFilter,
+  FaTimesCircle,
+  FaChevronDown,
+  FaStar,
+  FaRegStar,
+  FaCheckCircle,
+  FaEllipsisV,
+} from 'react-icons/fa';
 
 const Stores = () => {
   const [tableData, setTableData] = useState([
-    { id: 1, ownerName: 'احمد سالم', visits: 3, rating: 3, cooperation: '21%', lastVisit: '12/2/2025', status: 'فعال' },
-    { id: 2, ownerName: 'احمد سالم', visits: 3, rating: 3, cooperation: '21%', lastVisit: '12/2/2025', status: 'متوقف' },
-    { id: 3, ownerName: 'احمد سالم', visits: 3, rating: 3, cooperation: '21%', lastVisit: '12/2/2025', status: 'فعال' },
-    { id: 4, ownerName: 'احمد سالم', visits: 3, rating: 3, cooperation: '21%', lastVisit: '12/2/2025', status: 'متوقف' },
-    { id: 5, ownerName: 'احمد سالم', visits: 3, rating: 3, cooperation: '21%', lastVisit: '12/2/2025', status: 'فعال' },
-    { id: 6, ownerName: 'احمد سالم', visits: 3, rating: 3, cooperation: '21%', lastVisit: '12/2/2025', status: 'متوقف' },
-    { id: 7, ownerName: 'احمد سالم', visits: 3, rating: 3, cooperation: '21%', lastVisit: '12/2/2025', status: 'فعال' },
-    { id: 8, ownerName: 'احمد سالم', visits: 3, rating: 3, cooperation: '21%', lastVisit: '12/2/2025', status: 'متوقف' },
-    { id: 9, ownerName: 'احمد سالم', visits: 3, rating: 3, cooperation: '21%', lastVisit: '12/2/2025', status: 'فعال' },
+    { id: 1, storeName: 'متجر بغداد المركزي', ownerName: 'احمد سالم', visits: 3, rating: 3, cooperation: '21%', lastVisit: '12/2/2025', status: 'فعال', province: 'بغداد', area: 'الرصافة', section: 'إلكترونيات', employee: 'علياء احمد', followUpStatus: 'تمت المتابعة' },
+    { id: 2, storeName: 'متجر التقنية بغداد', ownerName: 'سارة كاظم', visits: 2, rating: 4, cooperation: '33%', lastVisit: '1/2/2025', status: 'فعال', province: 'بغداد', area: 'الكرادة', section: 'ملابس', employee: 'فاطمة الزهراء', followUpStatus: 'قيد الانتظار' },
+    { id: 3, storeName: 'متجر السالمية', ownerName: 'محمد جاسم', visits: 4, rating: 2, cooperation: '12%', lastVisit: '3/2/2025', status: 'متوقف', province: 'بغداد', area: 'الأعظمية', section: 'مواد غذائية', employee: 'محمد جاسم', followUpStatus: 'لم يتم البدء' },
+    { id: 4, storeName: 'متجر شمال بغداد', ownerName: 'عبير حسن', visits: 5, rating: 5, cooperation: '90%', lastVisit: '4/2/2025', status: 'فعال', province: 'بغداد', area: 'الكاظمية', section: 'إلكترونيات', employee: 'ليلى خالد', followUpStatus: 'تمت المتابعة' },
+    { id: 5, storeName: 'متجر الجنوب', ownerName: 'علاء خالد', visits: 1, rating: 3, cooperation: '45%', lastVisit: '5/2/2025', status: 'فعال', province: 'بغداد', area: 'البياع', section: 'أثاث', employee: 'أحمد علي', followUpStatus: 'قيد الانتظار' },
+    { id: 6, storeName: 'متجر الغربية', ownerName: 'نور زيد', visits: 2, rating: 4, cooperation: '55%', lastVisit: '6/2/2025', status: 'متوقف', province: 'بغداد', area: 'العامرية', section: 'ملابس', employee: 'سارة يوسف', followUpStatus: 'لم يتم البدء' },
+    { id: 7, storeName: 'متجر الشرق', ownerName: 'إياد محمود', visits: 3, rating: 1, cooperation: '20%', lastVisit: '7/2/2025', status: 'فعال', province: 'بغداد', area: 'مدينة الصدر', section: 'مواد غذائية', employee: 'مصطفى قاسم', followUpStatus: 'تمت المتابعة' },
+    { id: 8, storeName: 'متجر زهور بغداد', ownerName: 'صفاء علي', visits: 4, rating: 5, cooperation: '75%', lastVisit: '8/2/2025', status: 'فعال', province: 'بغداد', area: 'المنصور', section: 'إلكترونيات', employee: 'زينب هادي', followUpStatus: 'قيد الانتظار' },
+    { id: 9, storeName: 'متجر الحياة', ownerName: 'حسن عبد', visits: 3, rating: 2, cooperation: '31%', lastVisit: '9/2/2025', status: 'متوقف', province: 'بغداد', area: 'الدورة', section: 'أثاث', employee: 'علياء احمد', followUpStatus: 'لم يتم البدء' },
+    { id: 10, storeName: 'متجر الكرادة', ownerName: 'أحمد جواد', visits: 2, rating: 3, cooperation: '38%', lastVisit: '10/2/2025', status: 'فعال', province: 'بغداد', area: 'الكرادة', section: 'ملابس', employee: 'فاطمة الزهراء', followUpStatus: 'تمت المتابعة' },
+    { id: 11, storeName: 'متجر البصرة الأول', ownerName: 'كريم يوسف', visits: 4, rating: 4, cooperation: '65%', lastVisit: '12/2/2025', status: 'فعال', province: 'البصرة', area: 'المدينة', section: 'مواد غذائية', employee: 'محمد جاسم', followUpStatus: 'قيد الانتظار' },
+    { id: 12, storeName: 'متجر البصرة الجنوبي', ownerName: 'ليلى حسن', visits: 1, rating: 3, cooperation: '40%', lastVisit: '10/2/2025', status: 'متوقف', province: 'البصرة', area: 'الكرامة', section: 'إلكترونيات', employee: 'ليلى خالد', followUpStatus: 'لم يتم البدء' },
+    { id: 13, storeName: 'متجر أربيل التجاري', ownerName: 'رعد مصطفى', visits: 5, rating: 5, cooperation: '90%', lastVisit: '8/2/2025', status: 'فعال', province: 'أربيل', area: 'المدينة', section: 'ملابس', employee: 'أحمد علي', followUpStatus: 'تمت المتابعة' },
+    { id: 14, storeName: 'متجر أربيل الغربي', ownerName: 'شيماء عبد', visits: 2, rating: 2, cooperation: '30%', lastVisit: '9/2/2025', status: 'فعال', province: 'أربيل', area: 'المنطقة الصناعية', section: 'أثاث', employee: 'سارة يوسف', followUpStatus: 'قيد الانتظار' },
+    { id: 15, storeName: 'متجر نينوى المركزي', ownerName: 'أكرم سامي', visits: 3, rating: 3, cooperation: '50%', lastVisit: '11/2/2025', status: 'فعال', province: 'نينوى', area: 'الموصل', section: 'مواد غذائية', employee: 'مصطفى قاسم', followUpStatus: 'لم يتم البدء' },
+    { id: 16, storeName: 'متجر ديالى الجديد', ownerName: 'سامي فاضل', visits: 4, rating: 4, cooperation: '70%', lastVisit: '12/2/2025', status: 'متوقف', province: 'ديالى', area: 'بعقوبة', section: 'إلكترونيات', employee: 'زينب هادي', followUpStatus: 'تمت المتابعة' },
   ]);
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -19,25 +35,39 @@ const Stores = () => {
   const [currentRating, setCurrentRating] = useState(0);
   const [selectedStoreIdForRating, setSelectedStoreIdForRating] = useState(null);
 
+  const [search, setSearch] = useState('');
+  const [filterProvince, setFilterProvince] = useState('');
+  const [filterArea, setFilterArea] = useState('');
+  const [filterSection, setFilterSection] = useState('');
+  const [filterRating, setFilterRating] = useState(0);
+  const [filterEmployee, setFilterEmployee] = useState('');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
+  const [filterFollowUpStatus, setFilterFollowUpStatus] = useState('');
+
+  const provinceAreas = {
+    بغداد: ['الرصافة', 'الكرادة', 'الأعظمية', 'الكاظمية', 'البياع', 'العامرية', 'مدينة الصدر', 'المنصور', 'الدورة'],
+    البصرة: ['المدينة', 'الكرامة'],
+    أربيل: ['المدينة', 'المنطقة الصناعية'],
+    نينوى: ['الموصل'],
+    ديالى: ['بعقوبة'],
+  };
+
+  const sections = ['إلكترونيات', 'ملابس', 'مواد غذائية', 'أثاث'];
+  const employees = [...new Set(tableData.map(item => item.employee))];
+  const followUpStatuses = [...new Set(tableData.map(item => item.followUpStatus))];
+
   const activateStore = (id) => {
-    setTableData(prevData =>
-      prevData.map(row =>
-        row.id === id ? { ...row, status: 'فعال' } : row
-      )
-    );
+    setTableData((prev) => prev.map(row => row.id === id ? {...row, status: 'فعال'} : row));
   };
 
   const deactivateStore = (id) => {
-    setTableData(prevData =>
-      prevData.map(row =>
-        row.id === id ? { ...row, status: 'متوقف' } : row
-      )
-    );
+    setTableData((prev) => prev.map(row => row.id === id ? {...row, status: 'متوقف'} : row));
   };
 
-  const openRatingModal = (id, initialRating) => {
+  const openRatingModal = (id, rating) => {
     setSelectedStoreIdForRating(id);
-    setCurrentRating(initialRating);
+    setCurrentRating(rating);
     setIsRatingModalOpen(true);
   };
 
@@ -49,8 +79,8 @@ const Stores = () => {
 
   const submitRating = () => {
     if (selectedStoreIdForRating) {
-      setTableData(prevData =>
-        prevData.map(row =>
+      setTableData((prev) =>
+        prev.map(row =>
           row.id === selectedStoreIdForRating ? { ...row, rating: currentRating } : row
         )
       );
@@ -63,14 +93,68 @@ const Stores = () => {
     setIsFilterOpen(!isFilterOpen);
   };
 
+  const filteredData = tableData.filter(row => {
+    const matchesSearch =
+      row.storeName.includes(search) || row.ownerName.includes(search);
+
+    const matchesProvince = filterProvince ? row.province === filterProvince : true;
+    const matchesArea = filterArea ? row.area === filterArea : true;
+    const matchesSection = filterSection ? row.section === filterSection : true;
+    const matchesRating = filterRating ? row.rating === filterRating : true;
+    const matchesEmployee = filterEmployee ? row.employee === filterEmployee : true;
+    const matchesFollowUpStatus = filterFollowUpStatus ? row.followUpStatus === filterFollowUpStatus : true;
+
+    const lastVisitDate = new Date(row.lastVisit);
+    const fromDate = filterDateFrom ? new Date(filterDateFrom) : null;
+    const toDate = filterDateTo ? new Date(filterDateTo) : null;
+
+    const matchesDateFrom = fromDate ? lastVisitDate >= fromDate : true;
+    const matchesDateTo = toDate ? lastVisitDate <= toDate : true;
+
+    return matchesSearch && matchesProvince && matchesArea && matchesSection && matchesRating && matchesEmployee && matchesFollowUpStatus && matchesDateFrom && matchesDateTo;
+  });
+
+  const currentAreas = filterProvince ? provinceAreas[filterProvince] || [] : [];
+
+  const getFilterCount = (filterType, value) => {
+    if (filterType === 'province') {
+      return tableData.filter(row => row.province === value).length;
+    } else if (filterType === 'area' && filterProvince) {
+      return tableData.filter(row => row.province === filterProvince && row.area === value).length;
+    } else if (filterType === 'section') {
+      return tableData.filter(row => row.section === value).length;
+    } else if (filterType === 'rating') {
+      return tableData.filter(row => row.rating === value).length;
+    } else if (filterType === 'employee') {
+      return tableData.filter(row => row.employee === value).length;
+    } else if (filterType === 'followUpStatus') {
+      return tableData.filter(row => row.followUpStatus === value).length;
+    }
+    return 0;
+  };
+
+  const resetAllFilters = () => {
+    setSearch('');
+    setFilterProvince('');
+    setFilterArea('');
+    setFilterSection('');
+    setFilterRating(0);
+    setFilterEmployee('');
+    setFilterDateFrom('');
+    setFilterDateTo('');
+    setFilterFollowUpStatus('');
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-8" style={{ direction: 'rtl' }}>
       <div className="flex items-center justify-between mb-6 p-4 rounded-lg shadow-sm">
-        <div className="flex items-center border border-gray-300 rounded-[40px] overflow-hidden flex-grow-0 w-80">
+        <div className="flex items-center border border-gray-300 rounded-[40px] overflow-hidden w-80">
           <input
             type="text"
             placeholder="البحث ماذا تبحث عن..."
             className="flex-grow rounded-[60px] p-2 outline-none focus:ring-0 text-right"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
           />
           <div className="p-2 border-l border-gray-300">
             <FaSearch className="text-lg text-[#25BC9D]" />
@@ -88,51 +172,31 @@ const Stores = () => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <input type="checkbox" className="form-checkbox h-4 w-4 text-blue-600 rounded" />
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <div className="flex items-center justify-end">
-                  <span>اسم المالك</span>
-                </div>
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <div className="flex items-center justify-end">
-                  <span>عدد الزيارات</span>
-                </div>
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <div className="flex items-center justify-end">
-                  <span>تقييم التعاون</span>
-                </div>
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <div className="flex items-center justify-end">
-                  <span>نسبة التفاعل</span>
-                </div>
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <div className="flex items-center justify-end">
-                  <span>آخر زيارة</span>
-                </div>
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <div className="flex items-center justify-end">
-                  <span>حالة التفعيل</span>
-                </div>
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                الإجراءات
-              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">اسم المتجر</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">اسم المالك</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المحافظة</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">المنطقة</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">القسم</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الموظف</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">حالة المتابعة</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عدد الزيارات</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">تقييم التعاون</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نسبة التفاعل</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">آخر زيارة</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">حالة التفعيل</th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {tableData.map((row) => (
+            {filteredData.map(row => (
               <tr key={row.id} className="bg-white border-b hover:bg-gray-50 transition duration-150 ease-in-out">
-                <td className="px-6 py-4 text-center">
-                  <input type="checkbox" className="form-checkbox h-4 w-4 text-blue-600 rounded" />
-                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-800">{row.storeName}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-800">{row.ownerName}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-600">{row.province}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-600">{row.area}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-600">{row.section}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-600">{row.employee}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-600">{row.followUpStatus}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-600">{row.visits}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-600">
                   <div className="flex items-center justify-end">
@@ -183,11 +247,15 @@ const Stores = () => {
                 </td>
               </tr>
             ))}
+            {filteredData.length === 0 && (
+              <tr>
+                <td colSpan="13" className="text-center py-8 text-gray-400 text-sm">لا توجد بيانات مطابقة للبحث والفلتر.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* تصميم الفلتر الجانبي المدمج من Contracts.jsx */}
       <div
         className={`fixed inset-y-0 left-0 w-80 shadow-lg transform transition-transform duration-300 z-50 p-6 rtl
           ${isFilterOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -215,16 +283,17 @@ const Stores = () => {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto pt-6 px-4">
-          <div className="mb-6">
+        <div className="flex-1 overflow-y-auto pt-6 px-4 space-y-6">
+          <div>
             <label htmlFor="searchFilter" className="block text-gray-700 text-sm font-medium mb-2">البحث</label>
             <div className="relative">
               <input
                 type="text"
                 id="searchFilter"
-                placeholder="ابحث عن .."
+                placeholder="ابحث عن اسم المتجر أو اسم المالك..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white"
-                style={{ background: '#eaf4f7', border: 'none' }}
+                value={search}
+                onChange={e => setSearch(e.target.value)}
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                 <FaSearch className="w-5 h-5 text-gray-400" />
@@ -232,17 +301,30 @@ const Stores = () => {
             </div>
           </div>
 
-          <div className="mb-6">
+          <div>
             <div className="flex items-center justify-between mb-2">
               <label htmlFor="province" className="block text-gray-700 text-sm font-medium">المحافظة</label>
-              <button className="text-gray-400 text-xs hover:text-gray-600">مسح</button>
+              <button
+                className="text-gray-400 text-xs hover:text-gray-600"
+                onClick={() => { setFilterProvince(''); setFilterArea(''); }}
+              >
+                مسح
+              </button>
             </div>
             <div className="relative">
-              <select id="province" className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white appearance-none" style={{ background: '#eaf4f7', border: 'none' }}>
-                <option>اختر</option>
-                <option>بغداد</option>
-                <option>البصرة</option>
-                <option>أربيل</option>
+              <select
+                id="province"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white appearance-none"
+                value={filterProvince}
+                onChange={(e) => {
+                  setFilterProvince(e.target.value);
+                  setFilterArea('');
+                }}
+              >
+                <option value="">اختر</option>
+                {Object.keys(provinceAreas).map(prov => (
+                  <option key={prov} value={prov}>{prov} ({getFilterCount('province', prov)})</option>
+                ))}
               </select>
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <FaChevronDown className="w-5 h-5 text-gray-400" />
@@ -250,16 +332,29 @@ const Stores = () => {
             </div>
           </div>
 
-          <div className="mb-6">
+          <div>
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor="subscriptionType" className="block text-gray-700 text-sm font-medium">نوع الاشتراك</label>
-              <button className="text-gray-400 text-xs hover:text-gray-600">مسح</button>
+              <label htmlFor="area" className="block text-gray-700 text-sm font-medium">المنطقة</label>
+              <button
+                className="text-gray-400 text-xs hover:text-gray-600"
+                onClick={() => setFilterArea('')}
+                disabled={!filterProvince}
+              >
+                مسح
+              </button>
             </div>
             <div className="relative">
-              <select id="subscriptionType" className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white appearance-none" style={{ background: '#eaf4f7', border: 'none' }}>
-                <option>اختر</option>
-                <option>شهري</option>
-                <option>سنوي</option>
+              <select
+                id="area"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white appearance-none"
+                value={filterArea}
+                onChange={(e) => setFilterArea(e.target.value)}
+                disabled={!filterProvince}
+              >
+                <option value="">اختر</option>
+                {currentAreas.map(area => (
+                  <option key={area} value={area}>{area} ({getFilterCount('area', area)})</option>
+                ))}
               </select>
               <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                 <FaChevronDown className="w-5 h-5 text-gray-400" />
@@ -267,26 +362,173 @@ const Stores = () => {
             </div>
           </div>
 
-          {/* تم تعديل هذا القسم ليناسب محتوى Stores (التقييم بدلاً من حالة العقد) */}
-          <div className="mb-8">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="section" className="block text-gray-700 text-sm font-medium">القسم</label>
+              <button
+                className="text-gray-400 text-xs hover:text-gray-600"
+                onClick={() => setFilterSection('')}
+              >
+                مسح
+              </button>
+            </div>
+            <div className="relative">
+              <select
+                id="section"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white appearance-none"
+                value={filterSection}
+                onChange={(e) => setFilterSection(e.target.value)}
+              >
+                <option value="">اختر</option>
+                {sections.map(sec => (
+                  <option key={sec} value={sec}>{sec} ({getFilterCount('section', sec)})</option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <FaChevronDown className="w-5 h-5 text-gray-400" />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="employee" className="block text-gray-700 text-sm font-medium">الموظف</label>
+              <button
+                className="text-gray-400 text-xs hover:text-gray-600"
+                onClick={() => setFilterEmployee('')}
+              >
+                مسح
+              </button>
+            </div>
+            <div className="relative">
+              <select
+                id="employee"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white appearance-none"
+                value={filterEmployee}
+                onChange={(e) => setFilterEmployee(e.target.value)}
+              >
+                <option value="">اختر</option>
+                {employees.map(emp => (
+                  <option key={emp} value={emp}>{emp} ({getFilterCount('employee', emp)})</option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <FaChevronDown className="w-5 h-5 text-gray-400" />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="followUpStatus" className="block text-gray-700 text-sm font-medium">حالة المتابعة</label>
+              <button
+                className="text-gray-400 text-xs hover:text-gray-600"
+                onClick={() => setFilterFollowUpStatus('')}
+              >
+                مسح
+              </button>
+            </div>
+            <div className="relative">
+              <select
+                id="followUpStatus"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white appearance-none"
+                value={filterFollowUpStatus}
+                onChange={(e) => setFilterFollowUpStatus(e.target.value)}
+              >
+                <option value="">اختر</option>
+                {followUpStatuses.map(status => (
+                  <option key={status} value={status}>{status} ({getFilterCount('followUpStatus', status)})</option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <FaChevronDown className="w-5 h-5 text-gray-400" />
+              </div>
+            </div>
+          </div>
+
+          <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-gray-700 text-sm font-medium">التقييم</label>
-              <button className="text-gray-400 text-xs hover:text-gray-600">مسح</button>
+              <button
+                className="text-gray-400 text-xs hover:text-gray-600"
+                onClick={() => setFilterRating(0)}
+              >
+                مسح
+              </button>
             </div>
-            {/* خيارات النجوم للتقييم */}
-            {[1, 2, 3, 4, 5].map((starCount) => (
-              <div key={starCount} className="flex items-center justify-end mb-2">
-                <span className="text-sm text-gray-700 mr-2">({starCount})</span>
-                <FaStar className="text-yellow-400 ml-1" />
-                <input type="checkbox" className="form-checkbox h-4 w-4 text-teal-600 transition duration-150 ease-in-out rounded-sm" />
+            {[0, 1, 2, 3, 4, 5].map(r => (
+              <div key={r} className="flex items-center justify-end mb-2 cursor-pointer" onClick={() => setFilterRating(r)}>
+                {r === 0 ? (
+                  <span className={`text-sm mr-2 ${filterRating === 0 ? 'font-semibold text-teal-600' : 'text-gray-700'}`}>الكل</span>
+                ) : (
+                  <>
+                    <span className={`text-sm mr-2 ${filterRating === r ? 'font-semibold text-teal-600' : 'text-gray-700'}`}>({getFilterCount('rating', r)})</span>
+                    <FaStar className={`text-yellow-400 ml-1 ${filterRating === r ? 'scale-110' : ''}`} />
+                  </>
+                )}
+                <input
+                  type="radio"
+                  name="ratingFilter"
+                  className="form-radio h-4 w-4 text-teal-600 rounded-sm"
+                  checked={filterRating === r}
+                  onChange={() => setFilterRating(r)}
+                />
               </div>
             ))}
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="dateFrom" className="block text-gray-700 text-sm font-medium">تاريخ الزيارة من</label>
+              <button
+                className="text-gray-400 text-xs hover:text-gray-600"
+                onClick={() => setFilterDateFrom('')}
+              >
+                مسح
+              </button>
+            </div>
+            <input
+              type="date"
+              id="dateFrom"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white"
+              value={filterDateFrom}
+              onChange={(e) => setFilterDateFrom(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="dateTo" className="block text-gray-700 text-sm font-medium">تاريخ الزيارة إلى</label>
+              <button
+                className="text-gray-400 text-xs hover:text-gray-600"
+                onClick={() => setFilterDateTo('')}
+              >
+                مسح
+              </button>
+            </div>
+            <input
+              type="date"
+              id="dateTo"
+              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-right bg-white"
+              value={filterDateTo}
+              onChange={(e) => setFilterDateTo(e.target.value)}
+            />
           </div>
         </div>
 
         <div className="px-6 py-4 flex justify-between space-x-4 space-x-reverse border-t border-gray-200">
-          <button className="w-1/2 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors" style={{ background: '#eaf4f7', border: 'none' }}>مسح الكل</button>
-          <button className="w-1/2 py-2 bg-gradient-to-r from-teal-400 to-green-500 text-white rounded-lg shadow-md hover:from-teal-500 hover:to-green-600 transition-colors">تطبيق (3)</button>
+          <button
+            onClick={resetAllFilters}
+            className="w-1/2 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+          >
+            مسح الكل
+          </button>
+          <button
+            onClick={toggleFilter}
+            className="w-1/2 py-2 bg-gradient-to-r from-teal-400 to-green-500 text-white rounded-lg shadow-md hover:from-teal-500 hover:to-green-600 transition-colors"
+          >
+            تطبيق ({filteredData.length})
+          </button>
         </div>
       </div>
 
@@ -308,7 +550,7 @@ const Stores = () => {
             <h3 className="text-2xl font-semibold text-gray-800 mb-2">قم بتقييم المتجر</h3>
             <p className="text-gray-600 mb-6">يساعدنا تقييمك للمتجر</p>
             <div className="flex justify-center space-x-1 space-x-reverse mb-8">
-              {[1, 2, 3, 4, 5].map((star) => (
+              {[1, 2, 3, 4, 5].map(star => (
                 <FaStar
                   key={star}
                   className={`cursor-pointer text-4xl ${star <= currentRating ? 'text-yellow-400' : 'text-gray-300'}`}

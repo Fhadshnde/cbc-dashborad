@@ -5,7 +5,6 @@ import {
   Route,
   Navigate,
   useLocation,
-  useNavigate,
 } from "react-router-dom";
 
 import Sidebar from "./components/SideBar/Sidebare";
@@ -44,6 +43,9 @@ import Employees from "./components/Employees/Employees";
 import ReportsAndAnalytics from "./components/RelationsDepartment/RelationsDepartment";
 import Notification from "./components/notification/notification";
 import MyAccount from "./components/MyAccount/MyAccount";
+import MonthlyPlanDetails from "./components/Dashboard/MonthlyPlanDetails";
+import UrgentComplaintsPage from "./components/Dashboard/UrgentComplaintsPage";
+import EmployeesWithUnfinishedSurveys from "./components/EmployeesWithUnfinishedSurveys/EmployeesWithUnfinishedSurveys";
 
 const ProtectedLayout = ({ setIsAuthenticated }) => {
   return (
@@ -103,12 +105,19 @@ const ProtectedLayout = ({ setIsAuthenticated }) => {
             path="/reports/admin/:adminUsername"
             element={<EmployeeReports />}
           />
+          <Route path="/monthly-plan/:employeeName" element={<MonthlyPlanDetails />} />
+          <Route path="/urgent-complaints" element={<UrgentComplaintsPage />} />
+
           <Route
             path="/reports-and-analytics"
             element={<ReportsAndAnalytics />}
           />
           <Route path="/notification" element={<Notification />} />
           <Route path="/my-account" element={<MyAccount />} />
+          <Route
+            path="/employees-with-unfinished-surveys"
+            element={<EmployeesWithUnfinishedSurveys />}
+          />
 
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/" element={<Home />} />
@@ -123,14 +132,14 @@ const AppContent = ({ isAuthenticated, setIsAuthenticated }) => {
   const location = useLocation();
   const selectedDepartment = localStorage.getItem("selectedDepartment");
 
-  // لو لم يتم اختيار قسم وأي محاولة للوصول لصفحات أخرى توجه لاختيار القسم
+  // توجيه المستخدم لاختيار القسم اذا لم يختر أي قسم
   if (!selectedDepartment && location.pathname !== "/choice") {
     return <Navigate to="/choice" replace />;
   }
 
   return (
     <Routes>
-      {/* صفحة اختيار القسم تظهر أولاً */}
+      {/* صفحة اختيار القسم */}
       <Route path="/choice" element={<ChoicePage />} />
 
       {/* صفحة تسجيل الدخول */}
@@ -138,14 +147,20 @@ const AppContent = ({ isAuthenticated, setIsAuthenticated }) => {
         path="/login"
         element={
           isAuthenticated ? (
-            <Navigate to="/" replace />
+            selectedDepartment === "followup" ? (
+              <Navigate to="/dashboard" replace />
+            ) : selectedDepartment === "sales" ? (
+              <Navigate to="/" replace />
+            ) : (
+              <Navigate to="/choice" replace />
+            )
           ) : (
             <Login setIsAuthenticated={setIsAuthenticated} />
           )
         }
       />
 
-      {/* باقي الصفحات المحمية */}
+      {/* باقي الصفحات محمية فقط للمستخدمين المسجلين */}
       <Route
         path="/*"
         element={
