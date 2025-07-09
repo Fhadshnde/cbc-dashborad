@@ -281,12 +281,12 @@ const Employees = () => {
                         </div>
                     </div>
                     {/* زر فتح الفلتر الجانبي */}
-                    <button
+                    {/* <button
                         onClick={toggleFilterSidebar}
                         className="flex items-center p-3 border border-gray-300 rounded-full text-gray-600 hover:bg-gray-50 transition duration-150 ease-in-out mr-4"
                     >
                         <FaFilter className="text-xl text-[#2EC19F]" />
-                    </button>
+                    </button> */}
                 </div>
 
                 {/* جدول الموظفين */}
@@ -550,7 +550,7 @@ const Employees = () => {
                             </div>
 
                             {/* فلتر القسم */}
-                            <div className="mb-6">
+                            {/* <div className="mb-6">
                                 <div className="flex justify-between items-center mb-2">
                                     <label htmlFor="filterDepartment" className="block text-md font-medium text-gray-700">
                                         القسم
@@ -576,7 +576,7 @@ const Employees = () => {
                                         <FaChevronDown className="w-5 h-5 text-gray-400" />
                                     </div>
                                 </div>
-                            </div>
+                            </div> */}
 
                             {/* فلتر المنطقة */}
                             <div className="mb-6">
