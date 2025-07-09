@@ -1,8 +1,41 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import * as XLSX from "xlsx";
 
 const API_URL = "https://hawkama.cbc-api.app/api/reports";
 const ITEMS_PER_PAGE = 10;
+
+const EXCEL_COLUMN_MAPPINGS = {
+  ARABIC_HEADERS_SCHEMA: [
+    { excelColumn: "اسم الزبون", apiField: "name_ar", defaultValue: "غير معروف" },
+    { excelColumn: "الاسم انكليزي", apiField: "name_en", defaultValue: "" },
+    { excelColumn: "رقم الهاتف", apiField: "phoneNumber", defaultValue: "", type: "string" },
+    { excelColumn: "الجنس ", apiField: "gender", defaultValue: "" },
+    { excelColumn: "المبلغ مقدما", apiField: "moneyPaid", defaultValue: "0", type: "string" },
+    { excelColumn: "المبلغ المتبقي", apiField: "moneyRemain", defaultValue: "0", type: "string" },
+    { excelColumn: "العنوان ", apiField: "address", defaultValue: "غير محدد" },
+    { excelColumn: "الملاحظات", apiField: "notes", defaultValue: "" },
+    { excelColumn: "الفئه", apiField: "cardCategory", defaultValue: "", type: "cardCategory" },
+    { excelColumn: "اسم المندوب", apiField: "admin", defaultValue: "غير محدد" },
+    { excelColumn: "الكمية", apiField: "quantity", defaultValue: 1, type: "number" },
+    { excelColumn: "رقم البطاقة", apiField: "card_id", defaultValue: (index) => `GENERATED-${Date.now()}-${index}`, type: "string" },
+  ],
+  EMPTY_HEADERS_SCHEMA: [
+    { excelColumn: "__EMPTY", apiField: "name_ar", defaultValue: "غير معروف" },
+    { excelColumn: "__EMPTY_1", apiField: "name_en", defaultValue: "" },
+    { excelColumn: "__EMPTY_2", apiField: "phoneNumber", defaultValue: "", type: "string" },
+    { excelColumn: "__EMPTY_3", apiField: "gender", defaultValue: "" },
+    { excelColumn: "__EMPTY_5", apiField: "moneyPaid", defaultValue: "0", type: "string" },
+    { excelColumn: "__EMPTY_6", apiField: "moneyRemain", defaultValue: "0", type: "string" },
+    { excelColumn: "__EMPTY_4", apiField: "admin", defaultValue: "غير محدد" },
+    { excelColumn: "الملاحظات", apiField: "notes", defaultValue: "" },
+    { excelColumn: "__EMPTY_7", apiField: "cardCategory", defaultValue: "", type: "cardCategory" },
+    { excelColumn: "__EMPTY_8", apiField: "ministry", defaultValue: "غير محددة" },
+    { excelColumn: "الكمية", apiField: "quantity", defaultValue: 1, type: "number" },
+    { excelColumn: "رقم البطاقة", apiField: "card_id", defaultValue: (index) => `GENERATED-${Date.now()}-${index}`, type: "string" },
+    { excelColumn: "address", apiField: "address", defaultValue: "غير محدد" },
+  ],
+};
 
 const AccessArchive = () => {
   const [reports, setReports] = useState([]);
@@ -16,8 +49,16 @@ const AccessArchive = () => {
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [pdfLibsLoaded, setPdfLibsLoaded] = useState(false);
 
+  const [excelFile, setExcelFile] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadMessage, setUploadMessage] = useState("");
+
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
+    if (!token) {
+      console.warn("لم يتم العثور على توكن المصادقة. قد لا تتمكن من الوصول إلى بعض الميزات.");
+      return {};
+    }
     return { Authorization: `Bearer ${token}` };
   };
 
@@ -28,9 +69,10 @@ const AccessArchive = () => {
       const response = await axios.get(API_URL, { headers: getAuthHeader() });
       setReports(response.data);
       setFilteredReports(response.data);
-      setCurrentPage(1); 
+      setCurrentPage(1);
     } catch (err) {
-      setError("فشل في جلب البيانات");
+      setError("فشل في جلب البيانات.");
+      console.error("خطأ في جلب التقارير:", err);
     } finally {
       setLoading(false);
     }
@@ -38,7 +80,6 @@ const AccessArchive = () => {
 
   useEffect(() => {
     const loadPdfLibraries = () => {
-      // التحقق من تحميل jsPDF و html2canvas
       if (typeof window.jspdf !== 'undefined' && typeof window.html2canvas !== 'undefined') {
         setPdfLibsLoaded(true);
         return;
@@ -56,27 +97,24 @@ const AccessArchive = () => {
         };
         scriptJsPDF.onerror = () => {
           console.error("فشل تحميل jsPDF.");
-          alert("فشل تحميل مكتبة jsPDF. يرجى التحقق من اتصال الإنترنت.");
+          setError("فشل تحميل مكتبة jsPDF. يرجى التحقق من اتصال الإنترنت.");
         };
         document.head.appendChild(scriptJsPDF);
       };
       scriptHtml2Canvas.onerror = () => {
         console.error("فشل تحميل html2canvas.");
-        alert("فشل تحميل مكتبة html2canvas. يرجى التحقق من اتصال الإنترنت.");
+        setError("فشل تحميل مكتبة html2canvas. يرجى التحقق من اتصال الإنترنت.");
       };
       document.head.appendChild(scriptHtml2Canvas);
     };
 
     loadPdfLibraries();
-  }, []);
-
-  useEffect(() => {
     fetchReports();
   }, []);
 
   useEffect(() => {
-    handleSearch(); 
-  }, [startDate, endDate, searchText, reports]); 
+    handleSearch();
+  }, [startDate, endDate, searchText, reports]);
 
   const handleSearch = () => {
     let result = reports;
@@ -84,13 +122,13 @@ const AccessArchive = () => {
     if (startDate || endDate) {
       result = result.filter((r) => {
         const reportDate = new Date(r.createdAt);
-        reportDate.setHours(0, 0, 0, 0); 
+        reportDate.setHours(0, 0, 0, 0);
 
         const start = startDate ? new Date(startDate) : null;
-        if (start) start.setHours(0, 0, 0, 0); 
+        if (start) start.setHours(0, 0, 0, 0);
 
         const end = endDate ? new Date(endDate) : null;
-        if (end) end.setHours(23, 59, 59, 999); 
+        if (end) end.setHours(23, 59, 59, 999);
 
         if (start && reportDate.getTime() < start.getTime()) {
           return false;
@@ -114,7 +152,7 @@ const AccessArchive = () => {
     }
 
     setFilteredReports(result);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   const renderStatus = (status) => {
@@ -164,12 +202,12 @@ const AccessArchive = () => {
 
   const exportToExcel = (data, fileName = "Reports") => {
     if (!data || data.length === 0) {
-      alert("لا توجد بيانات للتصدير.");
+      setError("لا توجد بيانات للتصدير.");
       return;
     }
 
     if (typeof window.XLSX === 'undefined') {
-      alert("مكتبة XLSX غير متوفرة. يرجى التأكد من تضمينها في ملف HTML.");
+      setError("مكتبة XLSX غير متوفرة. يرجى التأكد من تضمينها في ملف HTML.");
       return;
     }
 
@@ -223,24 +261,23 @@ const AccessArchive = () => {
 
   const exportToPdf = async (data, fileName = "Reports") => {
     if (!data || data.length === 0) {
-      alert("لا توجد بيانات للتصدير.");
+      setError("لا توجد بيانات للتصدير.");
       return;
     }
 
     if (!pdfLibsLoaded) {
-      alert("مكتبات PDF ما زالت قيد التحميل أو فشل تحميلها. يرجى المحاولة مرة أخرى.");
+      setError("مكتبات PDF ما زالت قيد التحميل أو فشل تحميلها. يرجى المحاولة مرة أخرى.");
       return;
     }
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // إنشاء جدول مؤقت في الذاكرة لـ html2canvas
     const tempTable = document.createElement('div');
     tempTable.style.position = 'absolute';
-    tempTable.style.left = '-9999px'; // إخفاء العنصر عن الشاشة
-    tempTable.style.width = 'fit-content'; // السماح للعرض بالتوسع
-    tempTable.style.whiteSpace = 'nowrap'; // منع التفاف النص لضمان عرض كامل
+    tempTable.style.left = '-9999px';
+    tempTable.style.width = 'fit-content';
+    tempTable.style.whiteSpace = 'nowrap';
 
     let tableHtml = `
       <table style="width: auto; border-collapse: collapse; text-align: right; direction: rtl; font-family: 'Arial Unicode MS', 'Arial', sans-serif;">
@@ -275,22 +312,20 @@ const AccessArchive = () => {
     document.body.appendChild(tempTable);
 
     try {
-      // استخدام html2canvas لالتقاط صورة للجدول
       const canvas = await window.html2canvas(tempTable, {
-        scale: 2, // زيادة الدقة
-        useCORS: true // قد تحتاجها إذا كانت الصور أو الخطوط من مصادر خارجية
+        scale: 2,
+        useCORS: true
       });
 
       const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 190; // عرض الصورة في PDF (تقريبي لحجم A4 مع هوامش 10mm)
+      const imgWidth = 190;
       const pageHeight = doc.internal.pageSize.getHeight();
       const imgHeight = canvas.height * imgWidth / canvas.width;
       let heightLeft = imgHeight;
 
-      let position = 10; // الموضع الأولي للصورة من الأعلى
+      let position = 10;
 
-      // إضافة العنوان
-      doc.setFont("helvetica"); // أو أي خط آخر قياسي لـ jsPDF
+      doc.setFont("helvetica");
       doc.setFontSize(14);
       doc.text("تقارير الأرشيف", doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
 
@@ -298,7 +333,7 @@ const AccessArchive = () => {
       heightLeft -= pageHeight;
 
       while (heightLeft >= 0) {
-        position = heightLeft - imgHeight + 10; // ضبط الموضع للصفحة الجديدة
+        position = heightLeft - imgHeight + 10;
         doc.addPage();
         doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
@@ -307,15 +342,215 @@ const AccessArchive = () => {
       doc.save(`${fileName}.pdf`);
     } catch (err) {
       console.error("خطأ في تصدير PDF:", err);
-      alert("فشل في تصدير PDF. يرجى مراجعة وحدة التحكم للمزيد من التفاصيل.");
+      setError("فشل في تصدير PDF. يرجى مراجعة وحدة التحكم للمزيد من التفاصيل.");
     } finally {
-      document.body.removeChild(tempTable); 
+      document.body.removeChild(tempTable);
     }
+  };
+
+  const extractDateFromHeader = (headers) => {
+    for (const key of headers) {
+      const dateMatch = key.match(/(\d{2}\/\d{2}\/\d{4})/);
+      if (dateMatch && dateMatch[1]) {
+        const [day, month, year] = dateMatch[1].split('/');
+        return `${year}/${month}`;
+      }
+    }
+    return "2025/07";
+  };
+
+  const mapCardCategory = (categoryValue) => {
+    const lowerCaseCategory = (categoryValue || "").toLowerCase();
+    return {
+      oneYear: lowerCaseCategory === "سنة" ? 1 : 0,
+      twoYears: lowerCaseCategory === "سنتين" ? 1 : 0,
+      virtual: lowerCaseCategory === "افتراضي" ? 1 : 0,
+    };
+  };
+
+  const handleFileChange = (e) => {
+    setExcelFile(e.target.files[0]);
+    setUploadProgress(0);
+    setUploadMessage("");
+    setError(null);
+  };
+
+  const handleUpload = async () => {
+    if (!excelFile) {
+      setUploadMessage("الرجاء اختيار ملف Excel أولاً.");
+      setError("الرجاء اختيار ملف Excel أولاً.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setUploadProgress(0);
+    setUploadMessage("جاري معالجة الملف...");
+    let successfulUploads = 0;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const data = evt.target.result;
+        const workbook = XLSX.read(data, { type: "binary" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        
+        const headerRow = XLSX.utils.sheet_to_json(worksheet, { header: 1 })[0] || [];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        if (jsonData.length === 0) {
+          setUploadMessage("الملف فارغ أو لا يحتوي على بيانات.");
+          setLoading(false);
+          return;
+        }
+
+        let activeMappingSchema = EXCEL_COLUMN_MAPPINGS.ARABIC_HEADERS_SCHEMA;
+        if (headerRow.includes("اسم الزبون") && headerRow.includes("رقم الهاتف")) {
+          activeMappingSchema = EXCEL_COLUMN_MAPPINGS.ARABIC_HEADERS_SCHEMA;
+        } else {
+          activeMappingSchema = EXCEL_COLUMN_MAPPINGS.EMPTY_HEADERS_SCHEMA;
+        }
+
+        const extractedDate = extractDateFromHeader(headerRow);
+
+        const totalRows = jsonData.length;
+        setUploadMessage(`جاري رفع ${totalRows} سجل...`);
+
+        const uploadPromises = jsonData.map(async (row, index) => {
+          const payload = {};
+
+          activeMappingSchema.forEach(mapping => {
+            let value = row[mapping.excelColumn];
+
+            if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
+                value = typeof mapping.defaultValue === 'function' ? mapping.defaultValue(index) : mapping.defaultValue;
+            }
+
+            if (mapping.type === "string") {
+              payload[mapping.apiField] = String(value);
+            } else if (mapping.type === "number") {
+              payload[mapping.apiField] = Number(value);
+            } else if (mapping.type === "cardCategory") {
+              payload[mapping.apiField] = mapCardCategory(value);
+            } else {
+              payload[mapping.apiField] = value;
+            }
+          });
+
+          payload.date = extractedDate;
+
+          if (!payload.address) {
+            payload.address = "غير محدد";
+          }
+
+          try {
+            await axios.post(API_URL, payload, { headers: getAuthHeader() });
+            successfulUploads++;
+            setUploadProgress(Math.round((successfulUploads / totalRows) * 100));
+            return { status: "fulfilled", value: successfulUploads };
+          } catch (innerError) {
+            const errorMessage = innerError.response && innerError.response.data && innerError.response.data.message
+              ? innerError.response.data.message
+              : innerError.message;
+            return { status: "rejected", reason: `فشل الخادم: ${errorMessage} للسطر ${index + 2} - البيانات: ${JSON.stringify(row)}` };
+          }
+        });
+
+        const results = await Promise.allSettled(uploadPromises);
+
+        let suppressibleErrorsCount = 0;
+        let otherFailedUploads = [];
+
+        results.forEach(result => {
+          if (result.status === "rejected") {
+            const errorMessage = result.reason;
+            if (errorMessage.includes("Network Error") || errorMessage.includes("phoneNumber: Path `phoneNumber` is required.")) {
+              suppressibleErrorsCount++;
+            } else {
+              otherFailedUploads.push(errorMessage);
+            }
+          }
+        });
+
+        setLoading(false);
+        let finalUploadMessage = `تم رفع ${successfulUploads} سجل بنجاح.`;
+        let currentError = null;
+
+        if (suppressibleErrorsCount > 0) {
+            finalUploadMessage += ` وفشل ${suppressibleErrorsCount} سجلات لأسباب داخلية.`;
+        }
+
+        if (otherFailedUploads.length > 0) {
+            finalUploadMessage += ` بالإضافة إلى أخطاء أخرى: ${otherFailedUploads.join("; ")}.`;
+            currentError = "حدثت أخطاء أخرى أثناء الرفع.";
+        } else if (successfulUploads === 0 && totalRows > 0 && suppressibleErrorsCount === 0) {
+             finalUploadMessage = "فشل رفع جميع السجلات أو حدث خطأ غير متوقع.";
+             currentError = finalUploadMessage;
+        }
+
+        setUploadMessage(finalUploadMessage);
+        setError(currentError);
+        
+        fetchReports();
+      } catch (fileReadError) {
+        setUploadMessage("خطأ في قراءة ملف Excel: " + fileReadError.message);
+        setError("خطأ في قراءة ملف Excel: " + fileReadError.message);
+        setLoading(false);
+        console.error("خطأ في معالجة ملف Excel:", fileReadError);
+      }
+    };
+
+    reader.readAsBinaryString(excelFile);
+  };
+
+  const getPaginationNumbers = (currentPage, totalPages) => {
+    const pageNumbers = [];
+    const delta = 2;
+    const left = currentPage - delta;
+    const right = currentPage + delta;
+    let lastAddedPage = 0;
+
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= left && i <= right)) {
+            if (lastAddedPage + 1 !== i) {
+                pageNumbers.push('...');
+            }
+            pageNumbers.push(i);
+            lastAddedPage = i;
+        }
+    }
+    return pageNumbers;
   };
 
   return (
     <div className="m-4 sm:m-10 p-4 sm:p-6 bg-gray-50 min-h-screen text-right font-sans">
       <h2 className="text-2xl font-bold mb-6">الأرشيف</h2>
+
+      <div className="mb-6 p-4 border border-gray-200 rounded-lg shadow-sm bg-white">
+        <h3 className="text-xl font-semibold mb-4 text-gray-800">رفع ملف Excel جديد</h3>
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <input
+            type="file"
+            accept=".xlsx, .xls, .csv"
+            onChange={handleFileChange}
+            className="flex-grow border border-gray-300 rounded-md py-2 px-3 text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer"
+          />
+          <button
+            onClick={handleUpload}
+            className="bg-teal-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-teal-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+            disabled={loading || !excelFile}
+          >
+            {loading && uploadProgress === 0 ? "جاري التحضير..." : loading ? "جاري الرفع..." : "رفع الملف"}
+          </button>
+        </div>
+        {uploadMessage && <p className={`text-sm mt-3 ${error ? 'text-red-600' : 'text-gray-700'}`}>{uploadMessage}</p>}
+        {loading && uploadProgress > 0 && uploadProgress < 100 && (
+          <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-3">
+            <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
+          </div>
+        )}
+      </div>
 
       <div className="flex flex-wrap gap-4 mb-6 items-end">
         <div className="flex flex-col">
@@ -335,7 +570,7 @@ const AccessArchive = () => {
         <div className="relative">
           <button
             onClick={() => setShowExportOptions(!showExportOptions)}
-            className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-green-700  transition h-[42px] mt-auto flex items-center justify-center"
+            className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition h-[42px] mt-auto flex items-center justify-center"
           >
             تصدير
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 transform rotate-90" viewBox="0 0 20 20" fill="currentColor">
@@ -373,7 +608,7 @@ const AccessArchive = () => {
         </div>
       </div>
 
-      {loading && <div className="text-center text-gray-600 py-4">جاري التحميل...</div>}
+      {loading && reports.length === 0 && !excelFile ? <div className="text-center text-gray-600 py-4">جاري التحميل...</div> : null}
       {error && <div className="text-center text-red-600 py-4">{error}</div>}
 
       <div className="overflow-x-auto bg-white rounded shadow">
@@ -418,18 +653,22 @@ const AccessArchive = () => {
           >
             السابق
           </button>
-          {[...Array(totalPages)].map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToPage(index + 1)}
-              className={`px-4 py-2 rounded ${
-                currentPage === index + 1
-                  ? "bg-teal-700 text-white"
-                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-              }`}
-            >
-              {index + 1}
-            </button>
+          {getPaginationNumbers(currentPage, totalPages).map((page, index) => (
+            page === '...' ? (
+              <span key={`ellipsis-${index}`} className="px-4 py-2 text-gray-700">...</span>
+            ) : (
+              <button
+                key={page}
+                onClick={() => goToPage(page)}
+                className={`px-4 py-2 rounded ${
+                  currentPage === page
+                    ? "bg-teal-700 text-white"
+                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                }`}
+              >
+                {page}
+              </button>
+            )
           ))}
           <button
             onClick={() => goToPage(currentPage + 1)}

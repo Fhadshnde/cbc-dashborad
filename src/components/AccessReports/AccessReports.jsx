@@ -152,11 +152,74 @@ const AccessReports = () => {
   const currentItems = filteredReports.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const paginate = (pageNumber) => {
+    if (pageNumber < 1 || pageNumber > totalPages) return;
+    setCurrentPage(pageNumber);
+  };
 
   const totalQuantity = currentItems.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
   const totalPaid = currentItems.reduce((acc, item) => acc + Number(item.moneyPaid || 0), 0);
   const totalRemain = currentItems.reduce((acc, item) => acc + Number(item.moneyRemain || 0), 0);
+
+  // دالة تولد أزرار الصفحات حسب المطلوب (5 أولى + ... + 3 أخيرة)
+  const renderPaginationButtons = () => {
+    if (totalPages <= 8) {
+      // عرض كل الصفحات مباشرة إذا أقل من أو يساوي 8 صفحات
+      return Array.from({ length: totalPages }, (_, i) => (
+        <button
+          key={i + 1}
+          onClick={() => paginate(i + 1)}
+          className={`px-4 py-2 rounded-lg ${
+            currentPage === i + 1 ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          {i + 1}
+        </button>
+      ));
+    } else {
+      // أكثر من 8 صفحات => عرض 5 أولى + ... + 3 أخيرة
+      const buttons = [];
+
+      // 5 أولى صفحات
+      for (let i = 1; i <= 5; i++) {
+        buttons.push(
+          <button
+            key={i}
+            onClick={() => paginate(i)}
+            className={`px-4 py-2 rounded-lg ${
+              currentPage === i ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            {i}
+          </button>
+        );
+      }
+
+      // نقطة بين المجموعتين إذا الصفحات بين 5 و 6 + 7 + 8 + ... لا تظهر مباشرة
+      buttons.push(
+        <span key="dots" className="px-3 py-2 select-none text-gray-700">
+          ...
+        </span>
+      );
+
+      // 3 أخيرة صفحات
+      for (let i = totalPages - 2; i <= totalPages; i++) {
+        buttons.push(
+          <button
+            key={i}
+            onClick={() => paginate(i)}
+            className={`px-4 py-2 rounded-lg ${
+              currentPage === i ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            {i}
+          </button>
+        );
+      }
+
+      return buttons;
+    }
+  };
 
   return (
     <div className="m-4 sm:m-16 p-4 sm:p-6 bg-gray-50 min-h-screen text-right font-sans">
@@ -243,7 +306,6 @@ const AccessReports = () => {
                   <th className="px-2 py-2">الحقول المعدلة</th>
                   <th className="px-2 py-2">تعديل</th>
                   <th className="px-2 py-2">الاسم بالاختبار</th>
-
                 </tr>
               </thead>
               <tbody>
@@ -253,7 +315,6 @@ const AccessReports = () => {
                       <td className="px-2 py-2">{report.number || "-"}</td>
                       <td className="px-2 py-2">{report.name_ar}</td>
                       <td className="px-2 py-2">{report.name_en}</td>
-
                       <td className="px-2 py-2">{report.phoneNumber}</td>
                       <td className="px-2 py-2">{formatNumber(report.quantity)}</td>
                       <td className="px-2 py-2">{formatNumber(report.moneyPaid)}</td>
@@ -289,7 +350,6 @@ const AccessReports = () => {
                         </Link>
                       </td>
                       <td className="px-2 py-2">{report.name_test}</td>
-
                     </tr>
                   ))
                 ) : (
@@ -320,17 +380,9 @@ const AccessReports = () => {
               >
                 السابق
               </button>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i + 1}
-                  onClick={() => paginate(i + 1)}
-                  className={`px-4 py-2 rounded-lg ${
-                    currentPage === i + 1 ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
+
+              {renderPaginationButtons()}
+
               <button
                 onClick={() => paginate(currentPage + 1)}
                 disabled={currentPage === totalPages}

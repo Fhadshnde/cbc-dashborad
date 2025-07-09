@@ -108,6 +108,30 @@ const SupervisorAccessReports = () => {
     if (page >= 1 && page <= totalPages) setCurrentPage(page);
   };
 
+  // تعديل عداد الصفحات ليعرض أول ٥ وأخير ٥ صفحات مع التالي والسابق فقط
+
+  const getPageNumbers = () => {
+    if (totalPages <= 10) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const firstPages = [1, 2, 3, 4, 5];
+    const lastPages = [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+
+    // دمج الأول والأخير مع فاصل نقاط إذا لزم الأمر
+    if (currentPage <= 5) {
+      return [...firstPages, "...", ...lastPages];
+    } else if (currentPage > totalPages - 5) {
+      return [...firstPages, "...", ...lastPages];
+    } else {
+      // الصفحة وسط بين الأول والأخير، عرض 3 صفحات حول الصفحة الحالية
+      const middlePages = [currentPage - 1, currentPage, currentPage + 1];
+      return [...firstPages, "...", ...middlePages, "...", ...lastPages];
+    }
+  };
+
+  const pageNumbers = getPageNumbers();
+
   return (
     <div className="p-4 bg-gray-50 min-h-screen text-right font-sans">
       <h1 className="text-2xl font-bold mb-4 text-gray-800">تقارير المشرف</h1>
@@ -115,7 +139,10 @@ const SupervisorAccessReports = () => {
       <input
         type="text"
         value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
+        onChange={(e) => {
+          setSearchQuery(e.target.value);
+          setCurrentPage(1);
+        }}
         placeholder="ابحث بالاسم أو رقم الهاتف أو المندوب"
         className="mb-4 px-4 py-2 border rounded w-full max-w-md"
       />
@@ -184,18 +211,36 @@ const SupervisorAccessReports = () => {
       </div>
 
       {totalPages > 1 && (
-        <div className="flex justify-center mt-6 space-x-2 rtl:space-x-reverse">
-          <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50">السابق</button>
-          {[...Array(totalPages).keys()].map((n) => (
-            <button
-              key={n + 1}
-              onClick={() => goToPage(n + 1)}
-              className={`px-3 py-1 rounded ${currentPage === n + 1 ? "bg-blue-500 text-white" : "bg-gray-100"}`}
-            >
-              {n + 1}
-            </button>
-          ))}
-          <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50">التالي</button>
+        <div className="flex justify-center mt-6 space-x-2 rtl:space-x-reverse flex-wrap gap-2">
+          <button
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+          >
+            السابق
+          </button>
+
+          {pageNumbers.map((num, idx) =>
+            num === "..." ? (
+              <span key={"ellipsis-" + idx} className="px-2 py-1 select-none">...</span>
+            ) : (
+              <button
+                key={num}
+                onClick={() => goToPage(num)}
+                className={`px-3 py-1 rounded ${currentPage === num ? "bg-blue-500 text-white" : "bg-gray-100"}`}
+              >
+                {num}
+              </button>
+            )
+          )}
+
+          <button
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+          >
+            التالي
+          </button>
         </div>
       )}
     </div>

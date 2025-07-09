@@ -92,9 +92,9 @@ const AccessPrint = () => {
   };
 
   const renderCardCategory = (cat) => {
-    if (cat.oneYear === 1) return "بطاقة سنة واحدة";
-    if (cat.twoYears === 1) return "بطاقة سنتين";
-    if (cat.virtual === 1) return "بطاقة افتراضية";
+    if (cat?.oneYear === 1) return "بطاقة سنة واحدة";
+    if (cat?.twoYears === 1) return "بطاقة سنتين";
+    if (cat?.virtual === 1) return "بطاقة افتراضية";
     return "غير معروف";
   };
 
@@ -116,10 +116,30 @@ const AccessPrint = () => {
     }
   };
 
-  const exportToExcel = (data, fileName = "PrintReports") => {
-    if (!data || data.length === 0 || typeof window.XLSX === 'undefined') {
-      return;
+  // عداد الصفحات يعرض أول ٥ صفحات وأخير ٥ صفحات مع ... بينهما
+
+  const getPageNumbers = () => {
+    if (totalPages <= 10) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
+
+    const firstPages = [1, 2, 3, 4, 5];
+    const lastPages = [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+
+    if (currentPage <= 5) {
+      return [...firstPages, "...", ...lastPages];
+    } else if (currentPage > totalPages - 5) {
+      return [...firstPages, "...", ...lastPages];
+    } else {
+      const middlePages = [currentPage - 1, currentPage, currentPage + 1];
+      return [...firstPages, "...", ...middlePages, "...", ...lastPages];
+    }
+  };
+
+  const pageNumbers = getPageNumbers();
+
+  const exportToExcel = (data, fileName = "PrintReports") => {
+    if (!data || data.length === 0 || typeof window.XLSX === 'undefined') return;
 
     const headers = [
       "اسم الزبون", "الاسم بالإنجليزية", "رقم الهاتف", "اسم المندوب",
@@ -305,11 +325,35 @@ const AccessPrint = () => {
       </div>
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-4">
-          <button onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1} className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed">السابق</button>
-          {[...Array(totalPages)].map((_, index) => (
-            <button key={index} onClick={() => goToPage(index + 1)} className={`px-4 py-2 rounded ${currentPage === index + 1 ? "bg-teal-700 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"}`}>{index + 1}</button>
-          ))}
-          <button onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages} className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed">التالي</button>
+          <button
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            السابق
+          </button>
+
+          {pageNumbers.map((num, idx) =>
+            num === "..." ? (
+              <span key={"ellipsis-" + idx} className="px-3 py-2 select-none">...</span>
+            ) : (
+              <button
+                key={num}
+                onClick={() => goToPage(num)}
+                className={`px-4 py-2 rounded ${currentPage === num ? "bg-teal-700 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"}`}
+              >
+                {num}
+              </button>
+            )
+          )}
+
+          <button
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            التالي
+          </button>
         </div>
       )}
     </div>
