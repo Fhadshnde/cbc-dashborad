@@ -190,7 +190,7 @@ const Surveys = () => {
           </div>
           <Link
             to="/surveys/add"
-            className="flex items-center px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-blue-700 transition duration-150 ease-in-out"
+            className="flex items-center mr-[560px] px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-blue-700 transition duration-150 ease-in-out"
           >
             <FaEdit className="ml-2" />
             إضافة استبيان
