@@ -182,7 +182,9 @@ const AccessArchive = () => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "غير متوفر";
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "تاريخ غير صالح"; // التحقق من صحة التاريخ
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
@@ -214,7 +216,8 @@ const AccessArchive = () => {
     const headers = [
       "اسم الزبون",
       "رقم الهاتف",
-      "التاريخ",
+      "تاريخ الإنشاء", // تم تغيير الاسم ليكون أكثر وضوحًا
+      "البيانات (من Excel)", // تم تغيير الاسم ليكون أكثر وضوحًا
       "الموظفة المسؤولة",
       "رقم البطاقة",
       "الحالة",
@@ -223,7 +226,8 @@ const AccessArchive = () => {
     const rows = data.map((report) => ({
       "اسم الزبون": report.name_ar || "",
       "رقم الهاتف": report.phoneNumber || "",
-      "التاريخ": formatDate(report.createdAt) || "",
+      "تاريخ الإنشاء": formatDate(report.createdAt) || "",
+      "البيانات (من Excel)": report.date || "", // استخدمنا report.date هنا
       "الموظفة المسؤولة": report.admin || "",
       "رقم البطاقة": report.id || "",
       "الحالة": renderStatus(report.status).props.children || "",
@@ -235,7 +239,8 @@ const AccessArchive = () => {
     const wscols = [
       {wch: 25},
       {wch: 20},
-      {wch: 15},
+      {wch: 20}, // لتاريخ الإنشاء
+      {wch: 25}, // للبيانات من Excel
       {wch: 25},
       {wch: 15},
       {wch: 20}
@@ -285,7 +290,8 @@ const AccessArchive = () => {
           <tr>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">اسم الزبون</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">رقم الهاتف</th>
-            <th style="padding: 12px; border: 1px solid #e2e8f0;">التاريخ</th>
+            <th style="padding: 12px; border: 1px solid #e2e8f0;">تاريخ الإنشاء</th>
+            <th style="padding: 12px; border: 1px solid #e2e8f0;">البيانات (من Excel)</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">الموظفة المسؤولة</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">رقم البطاقة</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">الحالة</th>
@@ -300,6 +306,7 @@ const AccessArchive = () => {
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.name_ar || ""}</td>
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.phoneNumber || ""}</td>
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${formatDate(report.createdAt) || ""}</td>
+          <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.date || "غير متوفر"}</td> {/* إضافة قيمة احتياطية */}
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.admin || ""}</td>
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.id || ""}</td>
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${renderStatus(report.status).props.children || ""}</td>
@@ -349,14 +356,33 @@ const AccessArchive = () => {
   };
 
   const extractDateFromHeader = (headers) => {
+    // حاول البحث عن "تاريخ" أو "Date" في الرؤوس للحصول على تاريخ معقول
+    // وإلا فسيتم استخدام التاريخ الافتراضي
     for (const key of headers) {
-      const dateMatch = key.match(/(\d{2}\/\d{2}\/\d{4})/);
-      if (dateMatch && dateMatch[1]) {
-        const [day, month, year] = dateMatch[1].split('/');
-        return `${year}/${month}`;
+      const lowerCaseKey = key.toLowerCase();
+      // بحث عن كلمة "تاريخ" أو "date" في الرأس
+      if (lowerCaseKey.includes("تاريخ") || lowerCaseKey.includes("date")) {
+        // إذا وجدنا كلمة "تاريخ"، فقد يكون التاريخ في الخلية نفسها أو في الخلايا المجاورة
+        // في هذا السيناريو، من الأفضل أن نفترض أن التاريخ قد يكون في تنسيق YYYY/MM
+        // أو قد نحتاج لتحليل أكثر تعقيدًا لرؤوس Excel للحصول على تاريخ دقيق.
+        // بما أن الـ API يتوقع YYYY/MM، سنقوم بمحاولة استخلاصها
+        const matchYearMonth = key.match(/(\d{4}\/\d{2})/);
+        if (matchYearMonth && matchYearMonth[1]) {
+            return matchYearMonth[1];
+        }
+        // يمكننا أيضًا محاولة استخلاص تاريخ كامل ثم تحويله
+        const dateMatch = key.match(/(\d{2}\/\d{2}\/\d{4})/); // DD/MM/YYYY
+        if (dateMatch && dateMatch[1]) {
+            const [day, month, year] = dateMatch[1].split('/');
+            return `${year}/${month}`; // تُرجع YYYY/MM
+        }
       }
     }
-    return "2025/07";
+    // إذا لم يتم العثور على أي تاريخ في الرؤوس، استخدم تاريخ اليوم الحالي YYYY/MM
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    return `${year}/${month}`;
   };
 
   const mapCardCategory = (categoryValue) => {
@@ -387,6 +413,7 @@ const AccessArchive = () => {
     setUploadProgress(0);
     setUploadMessage("جاري معالجة الملف...");
     let successfulUploads = 0;
+    let failedUploadsCount = 0; // عداد للفشل
 
     const reader = new FileReader();
     reader.onload = async (evt) => {
@@ -438,6 +465,7 @@ const AccessArchive = () => {
             }
           });
 
+          // تأكد من تعيين date في الـ payload
           payload.date = extractedDate;
 
           if (!payload.address) {
@@ -450,6 +478,7 @@ const AccessArchive = () => {
             setUploadProgress(Math.round((successfulUploads / totalRows) * 100));
             return { status: "fulfilled", value: successfulUploads };
           } catch (innerError) {
+            failedUploadsCount++; // زيادة عداد الفشل
             const errorMessage = innerError.response && innerError.response.data && innerError.response.data.message
               ? innerError.response.data.message
               : innerError.message;
@@ -617,7 +646,8 @@ const AccessArchive = () => {
             <tr>
               <th className="px-4 py-3">اسم الزبون</th>
               <th className="px-4 py-3">رقم الهاتف</th>
-              <th className="px-4 py-3">التاريخ</th>
+              <th className="px-4 py-3">تاريخ الإنشاء</th> {/* تم تغيير اسم العمود */}
+              <th className="px-4 py-3">تاريخ الانتهاء</th> {/* تم تغيير اسم العمود */}
               <th className="px-4 py-3">الموظفة المسؤولة</th>
               <th className="px-4 py-3">رقم البطاقة</th>
               <th className="px-4 py-3">الحالة</th>
@@ -630,6 +660,7 @@ const AccessArchive = () => {
                   <td className="px-4 py-3">{report.name_ar}</td>
                   <td className="px-4 py-3">{report.phoneNumber}</td>
                   <td className="px-4 py-3">{formatDate(report.createdAt)}</td>
+                  <td className="px-4 py-3">{report.date || "غير متوفر"}</td> {/* إضافة قيمة احتياطية للعرض */}
                   <td className="px-4 py-3">{report.admin}</td>
                   <td className="px-4 py-3">{report.id}</td>
                   <td className="px-4 py-3">{renderStatus(report.status)}</td>
@@ -637,7 +668,7 @@ const AccessArchive = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="px-4 py-4 text-center text-gray-500">لا توجد بيانات</td>
+                <td colSpan="7" className="px-4 py-4 text-center text-gray-500">لا توجد بيانات</td>
               </tr>
             )}
           </tbody>

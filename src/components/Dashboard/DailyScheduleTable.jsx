@@ -140,9 +140,9 @@ function DailyScheduleTable() {
             <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               العنوان
             </th>
-            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            {/* <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               مجموع البطاقات
-            </th>
+            </th> */}
             <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               موظف العلاقات
             </th>
@@ -161,7 +161,7 @@ function DailyScheduleTable() {
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{row.date}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{row.contractType}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{row.title}</td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{row.total}</td>
+                {/* <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{row.total}</td> */}
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{row.relationsEmployee}</td>
               </tr>
             ))
