@@ -690,11 +690,11 @@ const AdminPage = () => {
                       <p className="font-semibold">{achievement.title}</p>
                       <p className="text-sm text-gray-600">{achievement.description}</p>
                       <p className="text-sm text-gray-600">النوع: {achievement.type === 'task' ? 'مهمة' : achievement.type === 'award' ? 'جائزة' : achievement.type === 'thank_letter' ? 'خطاب شكر' : 'آخر'}</p>
-                      <p className="text-sm text-gray-600">الحالة: {achievement.status === 'completed' ? 'مكتمل' : achievement.status === 'in_progress' ? 'قيد التنفيذ' : 'معلق'}</p>
+                      <p className="text-sm text-gray-600">الحkjknkedالة: {achievement.status === 'completed' ? 'مكتمل' : achievement.status === 'in_progress' ? 'قيد التنفيذ' : 'معلق'}</p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500">لا توجد إنجازات مسجلة</p>
+                  <p className="text-gray-500">لا توجد إنجازاdn c jud hsk sinت مسجلة</p>
                 )}
               </div>
             </div>
@@ -708,10 +708,10 @@ const AdminPage = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التاريخ</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التweqd.nweqednwqاريخ</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التغييرات</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">ملاحظات المشرف</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">التغwqedklnk/wqlkednwlkqjedييرات</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">ملاحظات الweqdmnwdenw,jndwمشرف</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">

@@ -13,7 +13,6 @@ const SALES_ITEMS = [
   { icon: FaFileInvoiceDollar, href: "/accessreports/print", text: 'قسم الطباعة' },
   { icon: FaFileInvoiceDollar, href: "/management", text: 'إدارة المستخدمين' },
   { icon: FaFileInvoiceDollar, href: "/supervisor", text: 'قسم الذاتية' },
-  { icon: FaFileInvoiceDollar, href: "/admin", text: ' المستخدمين' },
   
 
 ];
