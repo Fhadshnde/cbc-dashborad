@@ -634,22 +634,10 @@ const AdminPage = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">النوع</label>
-                    <select
-                      name="type"
-                      value={newAchievement.type}
-                      onChange={(e) => setNewAchievement({...newAchievement, type: e.target.value})}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                      required
-                    >
-                      <option value="">اختر نوع الإنجاز</option>
-                      <option value="task">مهمة</option>
-                      <option value="award">جائزة</option>
-                      <option value="thank_letter">خطاب شكر</option>
-                      <option value="other">آخر</option>
-                    </select>
+<div>lmddwfhn ijwqedei  qwdkkwjdw</div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">التاريخ</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">التاqwed,mqmdenريخ</label>
                     <input
                       type="date"
                       name="date"
@@ -660,7 +648,7 @@ const AdminPage = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">الحالة</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">الحeqwalwkdneqkwالة</label>
                     <select
                       name="status"
                       value={newAchievement.status}
@@ -670,7 +658,7 @@ const AdminPage = () => {
                     >
                       <option value="completed">مكتمل</option>
                       <option value="in_progress">قيد التنفيذ</option>
-                      <option value="pending">معلق</option>
+                      <option value="pending">مc,mndwklعلق</option>
                     </select>
                   </div>
                   <button

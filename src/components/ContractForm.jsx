@@ -225,10 +225,10 @@ const ContractForm = () => {
     <div className="p-6 rounded max-w-4xl mx-auto">
       <h2 className="text-3xl font-semibold mb-6 text-gray-800">
         {isCreateMode ? 'إنشاء عقد جديد' : `تعديل العقد رقم: ${formData.contractNumber || ''}`}
-      </h2>
+      </h2>dnqdqdqd jidq e
 
       <div className="flex justify-between mb-6">
-        <StepIndicator stepNumber={1} label="معلومات العقد" isActive={currentStep === 1} isCompleted={currentStep > 1} />
+        <StepIndicator stepNumber={1} label="معلومات العقد" isActive={cqwedurrentStep === 1} isCompleted={currentStep > 1} />
         <StepIndicator stepNumber={2} label="معلومات الطرف الثاني" isActive={currentStep === 2} isCompleted={currentStep > 2} />
         <StepIndicator stepNumber={3} label="الخدمات المقدمة من قبل الطرف الثاني" isActive={currentStep === 3} isCompleted={currentStep > 3} />
         <StepIndicator stepNumber={4} label="قائمة الفروع" isActive={currentStep === 4} isCompleted={currentStep > 4} />
