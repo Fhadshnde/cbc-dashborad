@@ -46,6 +46,11 @@ import MyAccount from "./components/MyAccount/MyAccount";
 import MonthlyPlanDetails from "./components/Dashboard/MonthlyPlanDetails";
 import UrgentComplaintsPage from "./components/Dashboard/UrgentComplaintsPage";
 import EmployeesWithUnfinishedSurveys from "./components/EmployeesWithUnfinishedSurveys/EmployeesWithUnfinishedSurveys";
+import SupervisorPage from "./pages/SupervisorPage";
+import AdminPage from "./pages/AdminPage";
+import ProfileRequestsPage from "./components/Profile/ProfileRequestsPage";
+import DocumentRequestsPage from "./components/Profile/DocumentRequestsPage";
+import CourseRequestsPage from "./components/Profile/CourseRequestsPage";
 
 const ProtectedLayout = ({ setIsAuthenticated }) => {
   return (
@@ -98,6 +103,14 @@ const ProtectedLayout = ({ setIsAuthenticated }) => {
           <Route path="/management/add-user" element={<AddUser />} />
           <Route path="/management/edit-user/:id" element={<EditUser />} />
           <Route path="/management/details/:id" element={<UserDetails />} />
+
+          {/* <Route path="/choice" element={<ChoicePage />} /> */}
+          <Route path="/supervisor" element={<SupervisorPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+
+          <Route path="/supervisor/requests/profile" element={<ProfileRequestsPage />} />
+          <Route path="/supervisor/requests/documents" element={<DocumentRequestsPage />} />
+          <Route path="/supervisor/requests/coursess" element={<CourseRequestsPage />} />
 
           <Route path="/archives" element={<Archives />} />
           <Route path="/summary-reports" element={<SummaryReports />} />
