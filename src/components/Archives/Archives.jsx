@@ -5,11 +5,10 @@ import * as XLSX from "xlsx";
 const API_URL = "https://hawkama.cbc-api.app/api/reports";
 const ITEMS_PER_PAGE = 10;
 
-// دالة مساعدة لحساب تاريخ الانتهاء بناءً على تاريخ الإنشاء وفئة البطاقة
 const calculateEndDate = (creationDate, cardCategory) => {
   const newDate = new Date(creationDate);
   const cardCategoryTemp = cardCategory || { oneYear: 0, twoYears: 0, virtual: 0 };
-  let card_id_temp = "5"; // Default if no specific category
+  let card_id_temp = "5";
 
   if (cardCategoryTemp.oneYear > 0) {
     card_id_temp = "1";
@@ -26,11 +25,19 @@ const calculateEndDate = (creationDate, cardCategory) => {
   return { date: `${year}/${month}`, card_id: card_id_temp };
 };
 
+const mapCardCategory = (categoryValue) => {
+  const lowerCaseCategory = (categoryValue || "").toLowerCase();
+  return {
+    oneYear: lowerCaseCategory === "سنة" ? 1 : 0,
+    twoYears: lowerCaseCategory === "سنتين" ? 1 : 0,
+    virtual: lowerCaseCategory === "افتراضي" ? 1 : 0,
+  };
+};
 
 const EXCEL_COLUMN_MAPPINGS = {
   ARABIC_HEADERS_SCHEMA: [
     { excelColumn: "اسم الزبون", apiField: "name_ar", defaultValue: "غير معروف" },
-    { excelColumn: "الاسم انكليزي", apiField: "name_en", defaultValue: "" },
+    { excelColumn: "الاسم انكليزي", apiField: "name_en", defaultValue: "Unknown" },
     { excelColumn: "رقم الهاتف", apiField: "phoneNumber", defaultValue: "", type: "string" },
     { excelColumn: "الجنس ", apiField: "gender", defaultValue: "" },
     { excelColumn: "المبلغ مقدما", apiField: "moneyPaid", defaultValue: "0", type: "string" },
@@ -45,7 +52,7 @@ const EXCEL_COLUMN_MAPPINGS = {
   ],
   EMPTY_HEADERS_SCHEMA: [
     { excelColumn: "__EMPTY", apiField: "name_ar", defaultValue: "غير معروف" },
-    { excelColumn: "__EMPTY_1", apiField: "name_en", defaultValue: "" },
+    { excelColumn: "__EMPTY_1", apiField: "name_en", defaultValue: "Unknown" },
     { excelColumn: "__EMPTY_2", apiField: "phoneNumber", defaultValue: "", type: "string" },
     { excelColumn: "__EMPTY_3", apiField: "gender", defaultValue: "" },
     { excelColumn: "__EMPTY_5", apiField: "moneyPaid", defaultValue: "0", type: "string" },
@@ -72,22 +79,17 @@ const AccessArchive = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [pdfLibsLoaded, setPdfLibsLoaded] = useState(false);
-
   const [excelFile, setExcelFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadMessage, setUploadMessage] = useState("");
-
   const [selectedReportIds, setSelectedReportIds] = useState([]);
-  const [manualCreationDate, setManualCreationDate] = useState("");
-  const [isUpdatingManualDate, setIsUpdatingManualDate] = useState(false);
-  const [manualUpdateMessage, setManualUpdateMessage] = useState("");
+  const [newCreationDate, setNewCreationDate] = useState("");
+  const [isUpdatingDate, setIsUpdatingDate] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState("");
 
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      console.warn("لم يتم العثور على توكن المصادقة. قد لا تتمكن من الوصول إلى بعض الميزات.");
-      return {};
-    }
+    if (!token) return {};
     return { Authorization: `Bearer ${token}` };
   };
 
@@ -95,13 +97,12 @@ const AccessArchive = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(API_URL, { headers: getAuthHeader() });
+      const response = await axios.get(`${API_URL}/all`, { headers: getAuthHeader() });
       setReports(response.data);
       setFilteredReports(response.data);
       setCurrentPage(1);
     } catch (err) {
       setError("فشل في جلب البيانات.");
-      console.error("خطأ في جلب التقارير:", err);
     } finally {
       setLoading(false);
     }
@@ -121,18 +122,8 @@ const AccessArchive = () => {
         const scriptJsPDF = document.createElement('script');
         scriptJsPDF.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
         scriptJsPDF.async = true;
-        scriptJsPDF.onload = () => {
-          setPdfLibsLoaded(true);
-        };
-        scriptJsPDF.onerror = () => {
-          console.error("فشل تحميل jsPDF.");
-          setError("فشل تحميل مكتبة jsPDF. يرجى التحقق من اتصال الإنترنت.");
-        };
+        scriptJsPDF.onload = () => setPdfLibsLoaded(true);
         document.head.appendChild(scriptJsPDF);
-      };
-      scriptHtml2Canvas.onerror = () => {
-        console.error("فشل تحميل html2canvas.");
-        setError("فشل تحميل مكتبة html2canvas. يرجى التحقق من اتصال الإنترنت.");
       };
       document.head.appendChild(scriptHtml2Canvas);
     };
@@ -159,12 +150,8 @@ const AccessArchive = () => {
         const end = endDate ? new Date(endDate) : null;
         if (end) end.setHours(23, 59, 59, 999);
 
-        if (start && reportDate.getTime() < start.getTime()) {
-          return false;
-        }
-        if (end && reportDate.getTime() > end.getTime()) {
-          return false;
-        }
+        if (start && reportDate.getTime() < start.getTime()) return false;
+        if (end && reportDate.getTime() > end.getTime()) return false;
         return true;
       });
     }
@@ -237,16 +224,11 @@ const AccessArchive = () => {
       return;
     }
 
-    if (typeof window.XLSX === 'undefined') {
-      setError("مكتبة XLSX غير متوفرة. يرجى التأكد من تضمينها في ملف HTML.");
-      return;
-    }
-
     const headers = [
       "اسم الزبون",
       "رقم الهاتف",
       "تاريخ الإنشاء",
-      "تاريخ الانتهاء (من Excel)",
+      "تاريخ الانتهاء",
       "الموظفة المسؤولة",
       "رقم البطاقة",
       "الحالة",
@@ -256,41 +238,30 @@ const AccessArchive = () => {
       "اسم الزبون": report.name_ar || "",
       "رقم الهاتف": report.phoneNumber || "",
       "تاريخ الإنشاء": formatDate(report.createdAt) || "",
-      "تاريخ الانتهاء (من Excel)": report.date || "",
+      "تاريخ الانتهاء": report.date || "",
       "الموظفة المسؤولة": report.admin || "",
       "رقم البطاقة": report.id || "",
       "الحالة": renderStatus(report.status).props.children || "",
     }));
 
-    const ws = window.XLSX.utils.json_to_sheet(rows);
-    window.XLSX.utils.sheet_add_aoa(ws, [headers], { origin: "A1" });
+    const ws = XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.sheet_add_aoa(ws, [headers], { origin: "A1" });
 
     const wscols = [
       {wch: 25},
       {wch: 20},
+      {wch: 28},
       {wch: 20},
-      {wch: 25},
       {wch: 25},
       {wch: 15},
       {wch: 20}
     ];
     ws['!cols'] = wscols;
 
-    const wb = window.XLSX.utils.book_new();
-    window.XLSX.utils.book_append_sheet(wb, ws, "Reports");
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Reports");
 
-    const wbout = window.XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([wbout], { type: "application/octet-stream" });
-
-    const link = document.createElement("a");
-    if (link.download !== undefined) {
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-      link.setAttribute("download", `${fileName}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
   };
 
   const exportToPdf = async (data, fileName = "Reports") => {
@@ -300,7 +271,7 @@ const AccessArchive = () => {
     }
 
     if (!pdfLibsLoaded) {
-      setError("مكتبات PDF ما زالت قيد التحميل أو فشل تحميلها. يرجى المحاولة مرة أخرى.");
+      setError("مكتبات PDF ما زالت قيد التحميل.");
       return;
     }
 
@@ -314,13 +285,13 @@ const AccessArchive = () => {
     tempTable.style.whiteSpace = 'nowrap';
 
     let tableHtml = `
-      <table style="width: auto; border-collapse: collapse; text-align: right; direction: rtl; font-family: 'Arial Unicode MS', 'Arial', sans-serif;">
+      <table style="width: auto; border-collapse: collapse; text-align: right; direction: rtl;">
         <thead style="background-color: #f1f5f9; color: #4b5563; font-weight: bold;">
           <tr>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">اسم الزبون</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">رقم الهاتف</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">تاريخ الإنشاء</th>
-            <th style="padding: 12px; border: 1px solid #e2e8f0;">تاريخ الانتهاء (من Excel)</th>
+            <th style="padding: 12px; border: 1px solid #e2e8f0;">تاريخ الانتهاء</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">الموظفة المسؤولة</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">رقم البطاقة</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">الحالة</th>
@@ -376,21 +347,9 @@ const AccessArchive = () => {
       }
 
       doc.save(`${fileName}.pdf`);
-    } catch (err) {
-      console.error("خطأ في تصدير PDF:", err);
-      setError("فشل في تصدير PDF. يرجى مراجعة وحدة التحكم للمزيد من التفاصيل.");
     } finally {
       document.body.removeChild(tempTable);
     }
-  };
-
-  const mapCardCategory = (categoryValue) => {
-    const lowerCaseCategory = (categoryValue || "").toLowerCase();
-    return {
-      oneYear: lowerCaseCategory === "سنة" ? 1 : 0,
-      twoYears: lowerCaseCategory === "سنتين" ? 1 : 0,
-      virtual: lowerCaseCategory === "افتراضي" ? 1 : 0,
-    };
   };
 
   const handleFileChange = (e) => {
@@ -398,6 +357,81 @@ const AccessArchive = () => {
     setUploadProgress(0);
     setUploadMessage("");
     setError(null);
+  };
+
+  const parseExcelData = (jsonData) => {
+    let activeMappingSchema = EXCEL_COLUMN_MAPPINGS.ARABIC_HEADERS_SCHEMA;
+    const firstRowKeys = Object.keys(jsonData[0] || {});
+    if (firstRowKeys.includes("__EMPTY") && firstRowKeys.includes("__EMPTY_1")) {
+      activeMappingSchema = EXCEL_COLUMN_MAPPINGS.EMPTY_HEADERS_SCHEMA;
+    }
+
+    return jsonData.map((row, index) => {
+      const payload = {};
+      let excelCreationDate = null;
+
+      activeMappingSchema.forEach(mapping => {
+        let value = row[mapping.excelColumn];
+
+        if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
+            value = typeof mapping.defaultValue === 'function' ? mapping.defaultValue(index) : mapping.defaultValue;
+        }
+
+        if (mapping.apiField === "excelDate" && value !== null) {
+            if (typeof value === 'number') {
+                const excelDate = XLSX.SSF.parse_date_code(value);
+                excelCreationDate = new Date(Date.UTC(excelDate.y, excelDate.m - 1, excelDate.d));
+            } else if (typeof value === 'string') {
+                let parsedDate = new Date(value);
+                if (isNaN(parsedDate.getTime())) {
+                    const parts = value.split(/[\/\-]/);
+                    if (parts.length === 3) {
+                        // Try YYYY-MM-DD
+                        if (parts[0].length === 4) {
+                            parsedDate = new Date(`${parts[0]}-${parts[1]}-${parts[2]}`);
+                        } else if (parts[2].length === 4) {
+                            // Try DD-MM-YYYY or MM-DD-YYYY
+                            parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                            if (isNaN(parsedDate.getTime())) { // If DD-MM-YYYY fails, try MM-DD-YYYY
+                                parsedDate = new Date(`${parts[2]}-${parts[0]}-${parts[1]}`);
+                            }
+                        }
+                    }
+                }
+                if (!isNaN(parsedDate.getTime())) {
+                    excelCreationDate = parsedDate;
+                }
+            }
+        } else if (mapping.type === "string") {
+          payload[mapping.apiField] = String(value);
+        } else if (mapping.type === "number") {
+          payload[mapping.apiField] = Number(value);
+        } else if (mapping.type === "cardCategory") {
+          payload[mapping.apiField] = mapCardCategory(value);
+        } else {
+          payload[mapping.apiField] = value;
+        }
+      });
+
+      if (excelCreationDate) {
+          payload.createdAt = excelCreationDate.toISOString(); // حفظ تاريخ Excel كتاريخ إنشاء
+          const { date, card_id } = calculateEndDate(excelCreationDate, payload.cardCategory);
+          payload.date = date;
+          // Use generated card_id only if not already present from excel
+          payload.card_id = payload.card_id || card_id;
+      } else if (!payload.createdAt) { // If no excel date and no default createdAt
+          const now = new Date();
+          payload.createdAt = now.toISOString();
+          const { date, card_id } = calculateEndDate(now, payload.cardCategory);
+          payload.date = date;
+          payload.card_id = payload.card_id || card_id;
+      }
+
+      if (!payload.address) {
+        payload.address = "غير محدد";
+      }
+      return payload;
+    });
   };
 
   const handleUpload = async () => {
@@ -412,7 +446,6 @@ const AccessArchive = () => {
     setUploadProgress(0);
     setUploadMessage("جاري معالجة الملف...");
     let successfulUploads = 0;
-    let failedUploadsCount = 0;
 
     const reader = new FileReader();
     reader.onload = async (evt) => {
@@ -422,146 +455,36 @@ const AccessArchive = () => {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
 
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 3 });
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 3, raw: false, dateNF:'YYYY-MM-DD' }); // raw: false to get formatted values, dateNF for date formatting
 
         if (jsonData.length === 0) {
           setUploadMessage("الملف فارغ أو لا يحتوي على بيانات يمكن قراءتها.");
           setLoading(false);
           return;
         }
-
-        let activeMappingSchema = EXCEL_COLUMN_MAPPINGS.ARABIC_HEADERS_SCHEMA;
-        const firstRowKeys = Object.keys(jsonData[0] || {});
-        if (firstRowKeys.includes("اسم الزبون") && firstRowKeys.includes("رقم الهاتف")) {
-          activeMappingSchema = EXCEL_COLUMN_MAPPINGS.ARABIC_HEADERS_SCHEMA;
-        } else {
-          activeMappingSchema = EXCEL_COLUMN_MAPPINGS.EMPTY_HEADERS_SCHEMA;
-        }
-
-        const totalRows = jsonData.length;
+        
+        const payloads = parseExcelData(jsonData);
+        const totalRows = payloads.length;
         setUploadMessage(`جاري رفع ${totalRows} سجل...`);
 
-        const uploadPromises = jsonData.map(async (row, index) => {
-          const payload = {};
-          let excelCreationDate = null;
-
-          activeMappingSchema.forEach(mapping => {
-            let value = row[mapping.excelColumn];
-
-            if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) {
-                value = typeof mapping.defaultValue === 'function' ? mapping.defaultValue(index) : mapping.defaultValue;
-            }
-
-            if (mapping.apiField === "excelDate" && value !== null) {
-                if (typeof value === 'number') {
-                    excelCreationDate = XLSX.SSF.parse_date_code(value);
-                    excelCreationDate = new Date(Date.UTC(excelCreationDate.y, excelCreationDate.m - 1, excelCreationDate.d));
-                } else if (typeof value === 'string') {
-                    let parsedDate = new Date(value);
-                    if (isNaN(parsedDate.getTime())) {
-                        const parts = value.split(/[\/\-]/);
-                        if (parts.length === 3) {
-                            if (parts[0].length === 4) {
-                                parsedDate = new Date(`${parts[0]}-${parts[1]}-${parts[2]}`);
-                            } else if (parts[2].length === 4) {
-                                parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-                                if (isNaN(parsedDate.getTime())) {
-                                    parsedDate = new Date(`${parts[2]}-${parts[0]}-${parts[1]}`);
-                                }
-                            }
-                        }
-                    }
-                    if (!isNaN(parsedDate.getTime())) {
-                        excelCreationDate = parsedDate;
-                    } else {
-                        console.warn(`Warning: Could not parse excelDate string: ${value}. Using null.`);
-                        excelCreationDate = null;
-                    }
-                }
-            } else if (mapping.type === "string") {
-              payload[mapping.apiField] = String(value);
-            } else if (mapping.type === "number") {
-              payload[mapping.apiField] = Number(value);
-            } else if (mapping.type === "cardCategory") {
-              payload[mapping.apiField] = mapCardCategory(value);
-            } else {
-              payload[mapping.apiField] = value;
-            }
-          });
-
-          if (excelCreationDate) {
-              payload.excelDate = excelCreationDate.toISOString();
-              const { date, card_id } = calculateEndDate(excelCreationDate, payload.cardCategory);
-              payload.date = date;
-              payload.card_id = card_id;
-          } else if (!payload.date) {
-              const now = new Date();
-              const { date, card_id } = calculateEndDate(now, payload.cardCategory);
-              payload.date = date;
-              payload.card_id = card_id;
-          }
-
-
-          if (!payload.address) {
-            payload.address = "غير محدد";
-          }
-
-
+        for (const payload of payloads) {
           try {
             await axios.post(API_URL, payload, { headers: getAuthHeader() });
             successfulUploads++;
             setUploadProgress(Math.round((successfulUploads / totalRows) * 100));
-            return { status: "fulfilled", value: successfulUploads };
-          } catch (innerError) {
-            failedUploadsCount++;
-            const errorMessage = innerError.response && innerError.response.data && innerError.response.data.message
-              ? innerError.response.data.message
-              : innerError.message;
-            return { status: "rejected", reason: `فشل الخادم: ${errorMessage} للسطر ${index + (jsonData[0] ? 4 : 2)} - البيانات: ${JSON.stringify(row)}` };
+          } catch (error) {
+            console.error("Error uploading row:", error);
+            // Optionally, log or display which row failed
           }
-        });
-
-        const results = await Promise.allSettled(uploadPromises);
-
-        let suppressibleErrorsCount = 0;
-        let otherFailedUploads = [];
-
-        results.forEach(result => {
-          if (result.status === "rejected") {
-            const errorMessage = result.reason;
-            if (errorMessage.includes("Network Error") || errorMessage.includes("phoneNumber: Path `phoneNumber` is required.")) {
-              suppressibleErrorsCount++;
-            } else {
-              otherFailedUploads.push(errorMessage);
-            }
-          }
-        });
+        }
 
         setLoading(false);
-        let finalUploadMessage = `تم رفع ${successfulUploads} سجل بنجاح.`;
-        let currentError = null;
-
-        if (suppressibleErrorsCount > 0) {
-            finalUploadMessage += ` وفشل ${suppressibleErrorsCount} سجلات لأسباب داخلية.`;
-        }
-
-        if (otherFailedUploads.length > 0) {
-            finalUploadMessage += ` بالإضافة إلى أخطاء أخرى: ${otherFailedUploads.join("; ")}.`;
-            currentError = "حدثت أخطاء أخرى أثناء الرفع.";
-        } else if (successfulUploads === 0 && totalRows > 0 && suppressibleErrorsCount === 0) {
-             finalUploadMessage = "فشل رفع جميع السجلات أو حدث خطأ غير متوقع.";
-             currentError = finalUploadMessage;
-        }
-
-        setUploadMessage(finalUploadMessage);
-        setError(currentError);
-
+        setUploadMessage(`تم رفع ${successfulUploads} سجل بنجاح.`);
         fetchReports();
-      } catch (fileReadError) {
-        setUploadMessage("خطأ في قراءة ملف Excel: " + fileReadError.message);
-        setError("خطأ في قراءة ملف Excel: " + fileReadError.message);
+      } catch (error) {
+        setUploadMessage("خطأ في قراءة ملف Excel.");
+        setError("خطأ في قراءة ملف Excel.");
         setLoading(false);
-        console.error("خطأ في معالجة ملف Excel:", fileReadError);
       }
     };
 
@@ -595,62 +518,51 @@ const AccessArchive = () => {
     );
   };
 
-  const handleApplyManualDate = async () => {
+  const handleApplyNewDate = async () => {
     if (selectedReportIds.length === 0) {
-      setManualUpdateMessage("الرجاء تحديد فاتورة واحدة على الأقل لتعديلها.");
-      return;
-    }
-    if (!manualCreationDate) {
-      setManualUpdateMessage("الرجاء اختيار تاريخ الإنشاء الجديد.");
+      setUpdateMessage("الرجاء تحديد تقرير واحد على الأقل.");
       return;
     }
 
-    setIsUpdatingManualDate(true);
-    setManualUpdateMessage("جاري تحديث السجلات...");
-    setError(null);
-    let successfulUpdates = 0;
-    let failedUpdates = [];
+    if (!newCreationDate) {
+      setUpdateMessage("الرجاء اختيار تاريخ الإنشاء الجديد.");
+      return;
+    }
 
-    const updatePromises = selectedReportIds.map(async (reportId) => {
-      try {
+    setIsUpdatingDate(true);
+    setUpdateMessage("جاري التحديث...");
+
+    try {
+      const updates = selectedReportIds.map(async (reportId) => {
         const reportToUpdate = reports.find(r => r._id === reportId);
-        if (!reportToUpdate) {
-            throw new Error(`Report with ID ${reportId} not found.`);
-        }
+        if (!reportToUpdate) return;
 
-        const newCreationDate = new Date(manualCreationDate);
-        const { date: newExpiryDate, card_id: newCardId } = calculateEndDate(newCreationDate, reportToUpdate.cardCategory);
+        const updatedDate = new Date(newCreationDate);
+        const { date: newExpiryDate } = calculateEndDate(updatedDate, reportToUpdate.cardCategory);
 
-        const updatePayload = {
-          createdAt: newCreationDate.toISOString(),
+        const updateData = {
+          createdAt: updatedDate.toISOString(), // تحديث حقل createdAt في الـ API
           date: newExpiryDate,
         };
 
-        await axios.put(`${API_URL}/${reportId}`, updatePayload, { headers: getAuthHeader() });
-        successfulUpdates++;
-      } catch (err) {
-        const errorMessage = err.response && err.response.data && err.response.data.message
-          ? err.response.data.message
-          : err.message;
-        failedUpdates.push(`فشل تحديث السجل ${reportId}: ${errorMessage}`);
-      }
-    });
+        await axios.put(`${API_URL}/${reportId}`, updateData, {
+          headers: getAuthHeader()
+        });
+      });
 
-    await Promise.allSettled(updatePromises);
+      await Promise.all(updates);
 
-    setIsUpdatingManualDate(false);
-    if (failedUpdates.length > 0) {
-      setManualUpdateMessage(`تم تحديث ${successfulUpdates} سجلات بنجاح. فشل ${failedUpdates.length} سجلات: ${failedUpdates.join("; ")}`);
-      setError("حدثت أخطاء أثناء التحديث.");
-    } else {
-      setManualUpdateMessage(`تم تحديث ${successfulUpdates} سجلات بنجاح.`);
+      setUpdateMessage("تم التحديث بنجاح.");
+      fetchReports();
+    } catch (error) {
+      setUpdateMessage("حدث خطأ أثناء التحديث.");
+      console.error("Update error:", error);
+    } finally {
+      setIsUpdatingDate(false);
+      setSelectedReportIds([]);
+      setNewCreationDate("");
     }
-
-    setSelectedReportIds([]);
-    setManualCreationDate("");
-    fetchReports();
   };
-
 
   return (
     <div className="m-4 sm:m-10 p-4 sm:p-6 bg-gray-50 min-h-screen text-right font-sans">
@@ -670,7 +582,7 @@ const AccessArchive = () => {
             className="bg-teal-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-teal-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             disabled={loading || !excelFile}
           >
-            {loading && uploadProgress === 0 ? "جاري التحضير..." : loading ? "جاري الرفع..." : "رفع الملف"}
+            {loading ? "جاري الرفع..." : "رفع الملف"}
           </button>
         </div>
         {uploadMessage && <p className={`text-sm mt-3 ${error ? 'text-red-600' : 'text-gray-700'}`}>{uploadMessage}</p>}
@@ -682,27 +594,32 @@ const AccessArchive = () => {
       </div>
 
       <div className="mb-6 p-4 border border-gray-200 rounded-lg shadow-sm bg-white">
-        <h3 className="text-xl font-semibold mb-4 text-gray-800">تعديل تاريخ الإنشاء يدوياً للسجلات المختارة</h3>
+        <h3 className="text-xl font-semibold mb-4 text-gray-800">تعديل تاريخ الإنشاء</h3>
         <div className="flex flex-col sm:flex-row items-center gap-4">
-          <div className="flex flex-col">
-            <label htmlFor="manualDate" className="text-sm mb-1">تاريخ الإنشاء الجديد</label>
+          <div className="flex-1">
+            <label className="block text-sm mb-1">التاريخ الجديد</label>
             <input
               type="date"
-              id="manualDate"
-              value={manualCreationDate}
-              onChange={(e) => setManualCreationDate(e.target.value)}
-              className="border px-3 py-2 rounded-md text-gray-700"
+              value={newCreationDate}
+              onChange={(e) => setNewCreationDate(e.target.value)}
+              className="w-full p-2 border rounded"
             />
           </div>
           <button
-            onClick={handleApplyManualDate}
-            className="bg-blue-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-blue-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto mt-auto"
-            disabled={isUpdatingManualDate || selectedReportIds.length === 0 || !manualCreationDate}
+            onClick={handleApplyNewDate}
+            disabled={isUpdatingDate || !newCreationDate || selectedReportIds.length === 0}
+            className="mt-2 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
           >
-            {isUpdatingManualDate ? "جاري التحديث..." : `تطبيق التاريخ على ${selectedReportIds.length} سجلات مختارة`}
+            {isUpdatingDate ? "جاري التطبيق..." : `تطبيق على ${selectedReportIds.length} تقارير`}
           </button>
         </div>
-        {manualUpdateMessage && <p className={`text-sm mt-3 ${error ? 'text-red-600' : 'text-gray-700'}`}>{manualUpdateMessage}</p>}
+        {updateMessage && (
+          <div className={`mt-3 p-2 rounded ${
+            updateMessage.includes("خطأ") ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+          }`}>
+            {updateMessage}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-4 mb-6 items-end">
@@ -803,9 +720,11 @@ const AccessArchive = () => {
                       className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out cursor-pointer"
                     />
                   </td>
-                  <td className="px-4 py-3">{report.name_ar}</td>
+                  <td className="px-4 py-3">{report.name_en}</td>
                   <td className="px-4 py-3">{report.phoneNumber}</td>
-                  <td className="px-4 py-3">{formatDate(report.createdAt)}</td>
+                  <td className="px-4 py-3">
+                    {formatDate(report.createdAt)}
+                  </td>
                   <td className="px-4 py-3">{report.date || "غير متوفر"}</td>
                   <td className="px-4 py-3">{report.admin}</td>
                   <td className="px-4 py-3">{report.id}</td>
