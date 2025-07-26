@@ -9,7 +9,7 @@ import {
   FaClock,
 } from 'react-icons/fa';
 
-const API_URL = "https://hawkama.cbc-api.app/api/reports";
+const API_URL = "https://hawkama.cbc-api.app/api/reports/all";
 
 const TotalBills = () => {
   const [reports, setReports] = useState([]);

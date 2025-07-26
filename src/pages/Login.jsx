@@ -19,8 +19,25 @@ const Login = ({ setIsAuthenticated }) => {
     setError("");
     setLoading(true);
 
-    try {
-      const selectedDepartment = localStorage.getItem("selectedDepartment");
+    const selectedDepartment = localStorage.getItem("selectedDepartment");
+
+    // **** التعديلات الأساسية تبدأ هنا ****
+
+    const ARCHIVE_ONLY_PHONE = "7708411306";
+    const ARCHIVE_ONLY_PASSWORD = "aa22u1gA";
+
+    // الشرط الأول: التعامل مع المستخدم المقيد بالأرشيف
+    if (formData.phoneNumber === ARCHIVE_ONLY_PHONE && formData.password === ARCHIVE_ONLY_PASSWORD) {
+      if (selectedDepartment !== "archives") {
+        setError("هذا المستخدم مسموح له بالدخول إلى قسم الأرشيف فقط.");
+        setLoading(false);
+        return; // منع الدخول لأي قسم آخر غير الأرشيف
+      }
+      // إذا وصل إلى هنا، فهذا يعني أن المستخدم هو "الأرشيف فقط" وقد اختار قسم الأرشيف، لذا سيتم السماح له بالمتابعة.
+    } else {
+      // الشرط الثاني: التعامل مع المستخدمين الآخرين (غير مستخدم الأرشيف المقيد)
+      // إذا كان المستخدم الحالي ليس هو المستخدم المقيد بالأرشيف،
+      // نتحقق من قيود الأقسام الأخرى كما كانت.
 
       if (selectedDepartment === "followup") {
         if (formData.phoneNumber !== "0909" || formData.password !== "4321") {
@@ -29,7 +46,14 @@ const Login = ({ setIsAuthenticated }) => {
           return;
         }
       }
+      // لا تحتاج إلى شرط خاص لـ `selectedDepartment === "archives"` هنا،
+      // لأن المستخدم الخاص بالأرشيف تم التعامل معه في الشرط الأول.
+      // وأي مستخدم آخر ليس له قيود صريحة على الأرشيف يمكنه محاولة الدخول.
+    }
 
+    // **** التعديلات الأساسية تنتهي هنا ****
+
+    try {
       const response = await axios.post(
         "https://hawkama.cbc-api.app/api/auth/login",
         formData,
@@ -43,7 +67,12 @@ const Login = ({ setIsAuthenticated }) => {
       if (response.status === 200) {
         const { token, user } = response.data;
 
+        // تحقق قسم المبيعات: هذا الشرط ينطبق على المستخدمين **الذين وصلوا إلى هنا**
+        // أي، ليس المستخدم المقيد بالأرشيف إذا كان قد اختار قسم غير الأرشيف.
+        // وهذا يضمن أن مستخدم المبيعات هو مشرف.
         if (selectedDepartment === "sales") {
+          // تأكد أن هذا التحقق يخص المستخدمين الذين سجلوا الدخول لقسم المبيعات
+          // وليس المستخدم المقيد بالأرشيف (الذي تم منعه بالفعل إذا اختار المبيعات).
           if (user.role !== "supervisor") {
             setError("مسموح الدخول لقسم المبيعات فقط للمشرفين.");
             setLoading(false);
@@ -56,11 +85,15 @@ const Login = ({ setIsAuthenticated }) => {
         localStorage.setItem("token", token);
         setIsAuthenticated(true);
 
+        // منطق التوجيه بعد تسجيل الدخول بناءً على القسم المختار
         if (selectedDepartment === "followup") {
           navigate("/dashboard", { replace: true });
         } else if (selectedDepartment === "sales") {
-          navigate("/", { replace: true });
+          navigate("/", { replace: true }); // لم يعد هناك شرط `formData.phoneNumber === "7708411306"` هنا.
+        } else if (selectedDepartment === "archives") {
+          navigate("/archives", { replace: true });
         } else {
+          // حالة غير متوقعة أو إذا لم يتم تحديد قسم
           navigate("/choice", { replace: true });
         }
       }
@@ -114,9 +147,7 @@ const Login = ({ setIsAuthenticated }) => {
             }}
           />
           <h3 className="text-sm font-semibold text-gray-500 mb-1">نظام فواتير cbc</h3>
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">
-            تسجيل الدخول لبوابة النظام
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">تسجيل الدخول لبوابة النظام</h2>
 
           <form onSubmit={handleSubmit} className="space-y-5 w-full">
             <div className="relative">

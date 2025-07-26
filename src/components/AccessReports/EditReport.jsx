@@ -254,7 +254,7 @@ const EditReportForm = () => {
     <option value="none">لا يوجد</option>
     <option value="oneYear">سنة واحدة</option>
     <option value="twoYears">سنتان</option>
-    <option value="virtual">افتراضية</option>
+    <option value="virtual">6 اشهر</option>
   </select>
 </fieldset>
 

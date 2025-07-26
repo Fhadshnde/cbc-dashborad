@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import TotalBills from "./TotalBills";
 
-const API_URL = "https://hawkama.cbc-api.app/api/reports";
+const API_URL = "https://hawkama.cbc-api.app/api/reports/all";
 
 const fieldArabicNames = {
   name_ar: "الاسم بالعربي",
@@ -28,7 +28,7 @@ const getCardTypeText = (cardCategory) => {
   if (!cardCategory) return "غير محدد";
   if (cardCategory.oneYear === 1) return "بطاقة سنة واحدة";
   if (cardCategory.twoYears === 1) return "بطاقة سنتين";
-  if (cardCategory.virtual === 1) return "بطاقة افتراضية";
+  if (cardCategory.virtual === 1) return "بطاقة 6 اشهر";
   return "غير محدد";
 };
 

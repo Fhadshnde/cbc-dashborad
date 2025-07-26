@@ -166,7 +166,7 @@ const EditReport = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <input type="number" name="cardCategory.oneYear" value={formData.cardCategory.oneYear} onChange={handleChange} placeholder="بطاقة سنة" className="border p-2 rounded" />
           <input type="number" name="cardCategory.twoYears" value={formData.cardCategory.twoYears} onChange={handleChange} placeholder="بطاقة سنتين" className="border p-2 rounded" />
-          <input type="number" name="cardCategory.virtual" value={formData.cardCategory.virtual} onChange={handleChange} placeholder="بطاقة افتراضية" className="border p-2 rounded" />
+          <input type="number" name="cardCategory.virtual" value={formData.cardCategory.virtual} onChange={handleChange} placeholder="بطاقة 6 اشهر" className="border p-2 rounded" />
         </div>
         <button type="submit" className="w-full bg-teal-600 text-white py-2 rounded hover:bg-teal-700 transition">حفظ التعديلات</button>
       </form>

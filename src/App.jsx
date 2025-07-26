@@ -7,6 +7,7 @@ import {
   useLocation,
 } from "react-router-dom";
 
+// استيراد جميع المكونات الأخرى
 import Sidebar from "./components/SideBar/Sidebare";
 import Navbar from "./components/Navbar/Navbar";
 import Home from "./pages/Home";
@@ -52,6 +53,7 @@ import ProfileRequestsPage from "./components/Profile/ProfileRequestsPage";
 import DocumentRequestsPage from "./components/Profile/DocumentRequestsPage";
 import CourseRequestsPage from "./components/Profile/CourseRequestsPage";
 
+// لا يوجد تغيير في ProtectedLayout
 const ProtectedLayout = ({ setIsAuthenticated }) => {
   return (
     <div className="p-5 flex" dir="rtl">
@@ -104,7 +106,6 @@ const ProtectedLayout = ({ setIsAuthenticated }) => {
           <Route path="/management/edit-user/:id" element={<EditUser />} />
           <Route path="/management/details/:id" element={<UserDetails />} />
 
-          {/* <Route path="/choice" element={<ChoicePage />} /> */}
           <Route path="/supervisor" element={<SupervisorPage />} />
           <Route path="/admin" element={<AdminPage />} />
 
@@ -134,7 +135,6 @@ const ProtectedLayout = ({ setIsAuthenticated }) => {
 
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/" element={<Home />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </div>
@@ -143,44 +143,89 @@ const ProtectedLayout = ({ setIsAuthenticated }) => {
 
 const AppContent = ({ isAuthenticated, setIsAuthenticated }) => {
   const location = useLocation();
+  const [initialCheckComplete, setInitialCheckComplete] = useState(false); // حالة جديدة للتحقق الأولي
+
+  // استخدام useEffect لقراءة localStorage مرة واحدة عند التحميل
+  useEffect(() => {
+    // يمكننا تحسين هذا لجعل selectedDepartment حالة داخلية هنا أيضًا
+    // ولكن لغرض التبسيط، سنستمر في قراءته مباشرة
+    setInitialCheckComplete(true);
+  }, []);
+
+  // لا تقم بأي توجيه حتى يكتمل التحقق الأولي
+  if (!initialCheckComplete) {
+    return null; // أو شاشة تحميل بسيطة
+  }
+
   const selectedDepartment = localStorage.getItem("selectedDepartment");
 
-  // توجيه المستخدم لاختيار القسم اذا لم يختر أي قسم
-  if (!selectedDepartment && location.pathname !== "/choice") {
+  // تعريف المسارات التي لا تتطلب مصادقة أو اختيار قسم
+  const publicPaths = ["/login", "/choice"];
+
+  // 1. إذا لم يكن المستخدم مصادقًا (بغض النظر عن القسم)
+  // و لم يكن المسار الحالي من المسارات العامة، أعد توجيهه إلى /login
+  if (!isAuthenticated && !publicPaths.includes(location.pathname)) {
+    // حفظ المسار الذي كان يحاول الوصول إليه قبل التوجيه لتسجيل الدخول
+    localStorage.setItem("redirectPath", location.pathname);
+    return <Navigate to="/login" replace />;
+  }
+
+  // 2. إذا كان المستخدم مصادقًا ولكن لم يختر قسمًا بعد
+  // و لم يكن المسار الحالي هو /choice، أعد توجيهه إلى /choice
+  if (isAuthenticated && !selectedDepartment && location.pathname !== "/choice") {
+    // حفظ المسار الذي كان يحاول الوصول إليه قبل التوجيه لاختيار القسم
+    localStorage.setItem("redirectPath", location.pathname);
     return <Navigate to="/choice" replace />;
   }
 
   return (
     <Routes>
-      {/* صفحة اختيار القسم */}
       <Route path="/choice" element={<ChoicePage />} />
 
-      {/* صفحة تسجيل الدخول */}
       <Route
         path="/login"
         element={
           isAuthenticated ? (
-            selectedDepartment === "followup" ? (
-              <Navigate to="/dashboard" replace />
-            ) : selectedDepartment === "sales" ? (
-              <Navigate to="/" replace />
-            ) : (
-              <Navigate to="/choice" replace />
-            )
+            // إذا كان المستخدم مصادقًا بالفعل وكان على صفحة تسجيل الدخول،
+            // أعد توجيهه إلى المسار الذي كان فيه قبل تسجيل الدخول، أو المسار الافتراضي للقسم.
+            (() => {
+              const redirectTo = localStorage.getItem("redirectPath");
+              localStorage.removeItem("redirectPath"); // امسح المسار بعد الاستخدام
+
+              if (redirectTo && redirectTo !== "/login" && redirectTo !== "/choice") {
+                return <Navigate to={redirectTo} replace />;
+              }
+              // إذا لم يكن هناك مسار محفوظ، أو كان هو /login أو /choice، فوجه بناءً على القسم
+              if (selectedDepartment === "followup") {
+                return <Navigate to="/dashboard" replace />;
+              } else if (selectedDepartment === "sales") {
+                return <Navigate to="/" replace />;
+              } else if (selectedDepartment === "archives") {
+                return <Navigate to="/archives" replace />;
+              }
+              return <Navigate to="/choice" replace />; // كحل أخير إذا لم يتم العثور على أي شيء
+            })()
           ) : (
             <Login setIsAuthenticated={setIsAuthenticated} />
           )
         }
       />
 
-      {/* باقي الصفحات محمية فقط للمستخدمين المسجلين */}
+      {/* المسارات المحمية: يجب أن يصل إليها المستخدم فقط إذا كان مصادقًا ولديه قسم مختار */}
+      {/* هذا المسار الشامل يجب أن يكون الأخير */}
       <Route
         path="/*"
         element={
-          isAuthenticated ? (
+          // إذا كان مصادقًا ولديه قسم، اعرض الـ ProtectedLayout
+          isAuthenticated && selectedDepartment ? (
             <ProtectedLayout setIsAuthenticated={setIsAuthenticated} />
           ) : (
-            <Navigate to="/login" replace />
+            // في حالة غير المصادقة أو عدم وجود قسم، سيتم التعامل معها بواسطة الشروط أعلاه
+            // هذا 'الآخر' يجب أن يكون صعب الوصول إليه بسبب الشروط أعلاه.
+            // ولكن إذا وصل المستخدم إلى هنا بدون مصادقة أو قسم، نوجهه إلى مكان منطقي.
+            // يمكن أن يحدث هذا إذا كان المسار الذي حاول الوصول إليه ليس ضمن publicPaths
+            // وتم التعامل معه بواسطة الشروط العلوية
+            null // أو يمكنك إعادة توجيه إلى /login أو /choice هنا إذا لزم الأمر، لكن الشروط أعلاه يجب أن تكون كافية.
           )
         }
       />

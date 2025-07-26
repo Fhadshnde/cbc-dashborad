@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const API_URL = "https://hawkama.cbc-api.app/api/reports";
+const API_URL = "https://hawkama.cbc-api.app/api/reports/all";
 const ITEMS_PER_PAGE = 10;
 
 const AccessPrint = () => {
@@ -94,7 +94,7 @@ const AccessPrint = () => {
   const renderCardCategory = (cat) => {
     if (cat?.oneYear === 1) return "بطاقة سنة واحدة";
     if (cat?.twoYears === 1) return "بطاقة سنتين";
-    if (cat?.virtual === 1) return "بطاقة افتراضية";
+    if (cat?.virtual === 1) return "بطاقة 6 اشهر";
     return "غير معروف";
   };
 

@@ -5,6 +5,28 @@ import * as XLSX from "xlsx";
 const API_URL = "https://hawkama.cbc-api.app/api/reports";
 const ITEMS_PER_PAGE = 10;
 
+// دالة مساعدة لحساب تاريخ الانتهاء بناءً على تاريخ الإنشاء وفئة البطاقة
+const calculateEndDate = (creationDate, cardCategory) => {
+  const newDate = new Date(creationDate);
+  const cardCategoryTemp = cardCategory || { oneYear: 0, twoYears: 0, virtual: 0 };
+  let card_id_temp = "5"; // Default if no specific category
+
+  if (cardCategoryTemp.oneYear > 0) {
+    card_id_temp = "1";
+    newDate.setFullYear(newDate.getFullYear() + 1);
+  } else if (cardCategoryTemp.twoYears > 0) {
+    card_id_temp = "2";
+    newDate.setFullYear(newDate.getFullYear() + 2);
+  } else if (cardCategoryTemp.virtual > 0) {
+    card_id_temp = "7";
+    newDate.setMonth(newDate.getMonth() + 6);
+  }
+  const year = newDate.getFullYear();
+  const month = (newDate.getMonth() + 1).toString().padStart(2, "0");
+  return { date: `${year}/${month}`, card_id: card_id_temp };
+};
+
+
 const EXCEL_COLUMN_MAPPINGS = {
   ARABIC_HEADERS_SCHEMA: [
     { excelColumn: "اسم الزبون", apiField: "name_ar", defaultValue: "غير معروف" },
@@ -19,6 +41,7 @@ const EXCEL_COLUMN_MAPPINGS = {
     { excelColumn: "اسم المندوب", apiField: "admin", defaultValue: "غير محدد" },
     { excelColumn: "الكمية", apiField: "quantity", defaultValue: 1, type: "number" },
     { excelColumn: "رقم البطاقة", apiField: "card_id", defaultValue: (index) => `GENERATED-${Date.now()}-${index}`, type: "string" },
+    { excelColumn: "تاريخ الإنشاء", apiField: "excelDate", defaultValue: null, type: "date" },
   ],
   EMPTY_HEADERS_SCHEMA: [
     { excelColumn: "__EMPTY", apiField: "name_ar", defaultValue: "غير معروف" },
@@ -34,6 +57,7 @@ const EXCEL_COLUMN_MAPPINGS = {
     { excelColumn: "الكمية", apiField: "quantity", defaultValue: 1, type: "number" },
     { excelColumn: "رقم البطاقة", apiField: "card_id", defaultValue: (index) => `GENERATED-${Date.now()}-${index}`, type: "string" },
     { excelColumn: "address", apiField: "address", defaultValue: "غير محدد" },
+    { excelColumn: "تاريخ الإنشاء", apiField: "excelDate", defaultValue: null, type: "date" },
   ],
 };
 
@@ -52,6 +76,11 @@ const AccessArchive = () => {
   const [excelFile, setExcelFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadMessage, setUploadMessage] = useState("");
+
+  const [selectedReportIds, setSelectedReportIds] = useState([]);
+  const [manualCreationDate, setManualCreationDate] = useState("");
+  const [isUpdatingManualDate, setIsUpdatingManualDate] = useState(false);
+  const [manualUpdateMessage, setManualUpdateMessage] = useState("");
 
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
@@ -184,7 +213,7 @@ const AccessArchive = () => {
   const formatDate = (dateString) => {
     if (!dateString) return "غير متوفر";
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "تاريخ غير صالح"; // التحقق من صحة التاريخ
+    if (isNaN(date.getTime())) return "تاريخ غير صالح";
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
@@ -216,8 +245,8 @@ const AccessArchive = () => {
     const headers = [
       "اسم الزبون",
       "رقم الهاتف",
-      "تاريخ الإنشاء", // تم تغيير الاسم ليكون أكثر وضوحًا
-      "البيانات (من Excel)", // تم تغيير الاسم ليكون أكثر وضوحًا
+      "تاريخ الإنشاء",
+      "تاريخ الانتهاء (من Excel)",
       "الموظفة المسؤولة",
       "رقم البطاقة",
       "الحالة",
@@ -227,7 +256,7 @@ const AccessArchive = () => {
       "اسم الزبون": report.name_ar || "",
       "رقم الهاتف": report.phoneNumber || "",
       "تاريخ الإنشاء": formatDate(report.createdAt) || "",
-      "البيانات (من Excel)": report.date || "", // استخدمنا report.date هنا
+      "تاريخ الانتهاء (من Excel)": report.date || "",
       "الموظفة المسؤولة": report.admin || "",
       "رقم البطاقة": report.id || "",
       "الحالة": renderStatus(report.status).props.children || "",
@@ -239,8 +268,8 @@ const AccessArchive = () => {
     const wscols = [
       {wch: 25},
       {wch: 20},
-      {wch: 20}, // لتاريخ الإنشاء
-      {wch: 25}, // للبيانات من Excel
+      {wch: 20},
+      {wch: 25},
       {wch: 25},
       {wch: 15},
       {wch: 20}
@@ -291,7 +320,7 @@ const AccessArchive = () => {
             <th style="padding: 12px; border: 1px solid #e2e8f0;">اسم الزبون</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">رقم الهاتف</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">تاريخ الإنشاء</th>
-            <th style="padding: 12px; border: 1px solid #e2e8f0;">البيانات (من Excel)</th>
+            <th style="padding: 12px; border: 1px solid #e2e8f0;">تاريخ الانتهاء (من Excel)</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">الموظفة المسؤولة</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">رقم البطاقة</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">الحالة</th>
@@ -306,7 +335,7 @@ const AccessArchive = () => {
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.name_ar || ""}</td>
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.phoneNumber || ""}</td>
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${formatDate(report.createdAt) || ""}</td>
-          <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.date || "غير متوفر"}</td> {/* إضافة قيمة احتياطية */}
+          <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.date || "غير متوفر"}</td>
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.admin || ""}</td>
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.id || ""}</td>
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${renderStatus(report.status).props.children || ""}</td>
@@ -345,7 +374,7 @@ const AccessArchive = () => {
         doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
-      
+
       doc.save(`${fileName}.pdf`);
     } catch (err) {
       console.error("خطأ في تصدير PDF:", err);
@@ -353,36 +382,6 @@ const AccessArchive = () => {
     } finally {
       document.body.removeChild(tempTable);
     }
-  };
-
-  const extractDateFromHeader = (headers) => {
-    // حاول البحث عن "تاريخ" أو "Date" في الرؤوس للحصول على تاريخ معقول
-    // وإلا فسيتم استخدام التاريخ الافتراضي
-    for (const key of headers) {
-      const lowerCaseKey = key.toLowerCase();
-      // بحث عن كلمة "تاريخ" أو "date" في الرأس
-      if (lowerCaseKey.includes("تاريخ") || lowerCaseKey.includes("date")) {
-        // إذا وجدنا كلمة "تاريخ"، فقد يكون التاريخ في الخلية نفسها أو في الخلايا المجاورة
-        // في هذا السيناريو، من الأفضل أن نفترض أن التاريخ قد يكون في تنسيق YYYY/MM
-        // أو قد نحتاج لتحليل أكثر تعقيدًا لرؤوس Excel للحصول على تاريخ دقيق.
-        // بما أن الـ API يتوقع YYYY/MM، سنقوم بمحاولة استخلاصها
-        const matchYearMonth = key.match(/(\d{4}\/\d{2})/);
-        if (matchYearMonth && matchYearMonth[1]) {
-            return matchYearMonth[1];
-        }
-        // يمكننا أيضًا محاولة استخلاص تاريخ كامل ثم تحويله
-        const dateMatch = key.match(/(\d{2}\/\d{2}\/\d{4})/); // DD/MM/YYYY
-        if (dateMatch && dateMatch[1]) {
-            const [day, month, year] = dateMatch[1].split('/');
-            return `${year}/${month}`; // تُرجع YYYY/MM
-        }
-      }
-    }
-    // إذا لم يتم العثور على أي تاريخ في الرؤوس، استخدم تاريخ اليوم الحالي YYYY/MM
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    return `${year}/${month}`;
   };
 
   const mapCardCategory = (categoryValue) => {
@@ -413,7 +412,7 @@ const AccessArchive = () => {
     setUploadProgress(0);
     setUploadMessage("جاري معالجة الملف...");
     let successfulUploads = 0;
-    let failedUploadsCount = 0; // عداد للفشل
+    let failedUploadsCount = 0;
 
     const reader = new FileReader();
     reader.onload = async (evt) => {
@@ -422,30 +421,29 @@ const AccessArchive = () => {
         const workbook = XLSX.read(data, { type: "binary" });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        
-        const headerRow = XLSX.utils.sheet_to_json(worksheet, { header: 1 })[0] || [];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 3 });
 
         if (jsonData.length === 0) {
-          setUploadMessage("الملف فارغ أو لا يحتوي على بيانات.");
+          setUploadMessage("الملف فارغ أو لا يحتوي على بيانات يمكن قراءتها.");
           setLoading(false);
           return;
         }
 
         let activeMappingSchema = EXCEL_COLUMN_MAPPINGS.ARABIC_HEADERS_SCHEMA;
-        if (headerRow.includes("اسم الزبون") && headerRow.includes("رقم الهاتف")) {
+        const firstRowKeys = Object.keys(jsonData[0] || {});
+        if (firstRowKeys.includes("اسم الزبون") && firstRowKeys.includes("رقم الهاتف")) {
           activeMappingSchema = EXCEL_COLUMN_MAPPINGS.ARABIC_HEADERS_SCHEMA;
         } else {
           activeMappingSchema = EXCEL_COLUMN_MAPPINGS.EMPTY_HEADERS_SCHEMA;
         }
-
-        const extractedDate = extractDateFromHeader(headerRow);
 
         const totalRows = jsonData.length;
         setUploadMessage(`جاري رفع ${totalRows} سجل...`);
 
         const uploadPromises = jsonData.map(async (row, index) => {
           const payload = {};
+          let excelCreationDate = null;
 
           activeMappingSchema.forEach(mapping => {
             let value = row[mapping.excelColumn];
@@ -454,7 +452,33 @@ const AccessArchive = () => {
                 value = typeof mapping.defaultValue === 'function' ? mapping.defaultValue(index) : mapping.defaultValue;
             }
 
-            if (mapping.type === "string") {
+            if (mapping.apiField === "excelDate" && value !== null) {
+                if (typeof value === 'number') {
+                    excelCreationDate = XLSX.SSF.parse_date_code(value);
+                    excelCreationDate = new Date(Date.UTC(excelCreationDate.y, excelCreationDate.m - 1, excelCreationDate.d));
+                } else if (typeof value === 'string') {
+                    let parsedDate = new Date(value);
+                    if (isNaN(parsedDate.getTime())) {
+                        const parts = value.split(/[\/\-]/);
+                        if (parts.length === 3) {
+                            if (parts[0].length === 4) {
+                                parsedDate = new Date(`${parts[0]}-${parts[1]}-${parts[2]}`);
+                            } else if (parts[2].length === 4) {
+                                parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                                if (isNaN(parsedDate.getTime())) {
+                                    parsedDate = new Date(`${parts[2]}-${parts[0]}-${parts[1]}`);
+                                }
+                            }
+                        }
+                    }
+                    if (!isNaN(parsedDate.getTime())) {
+                        excelCreationDate = parsedDate;
+                    } else {
+                        console.warn(`Warning: Could not parse excelDate string: ${value}. Using null.`);
+                        excelCreationDate = null;
+                    }
+                }
+            } else if (mapping.type === "string") {
               payload[mapping.apiField] = String(value);
             } else if (mapping.type === "number") {
               payload[mapping.apiField] = Number(value);
@@ -465,12 +489,23 @@ const AccessArchive = () => {
             }
           });
 
-          // تأكد من تعيين date في الـ payload
-          payload.date = extractedDate;
+          if (excelCreationDate) {
+              payload.excelDate = excelCreationDate.toISOString();
+              const { date, card_id } = calculateEndDate(excelCreationDate, payload.cardCategory);
+              payload.date = date;
+              payload.card_id = card_id;
+          } else if (!payload.date) {
+              const now = new Date();
+              const { date, card_id } = calculateEndDate(now, payload.cardCategory);
+              payload.date = date;
+              payload.card_id = card_id;
+          }
+
 
           if (!payload.address) {
             payload.address = "غير محدد";
           }
+
 
           try {
             await axios.post(API_URL, payload, { headers: getAuthHeader() });
@@ -478,11 +513,11 @@ const AccessArchive = () => {
             setUploadProgress(Math.round((successfulUploads / totalRows) * 100));
             return { status: "fulfilled", value: successfulUploads };
           } catch (innerError) {
-            failedUploadsCount++; // زيادة عداد الفشل
+            failedUploadsCount++;
             const errorMessage = innerError.response && innerError.response.data && innerError.response.data.message
               ? innerError.response.data.message
               : innerError.message;
-            return { status: "rejected", reason: `فشل الخادم: ${errorMessage} للسطر ${index + 2} - البيانات: ${JSON.stringify(row)}` };
+            return { status: "rejected", reason: `فشل الخادم: ${errorMessage} للسطر ${index + (jsonData[0] ? 4 : 2)} - البيانات: ${JSON.stringify(row)}` };
           }
         });
 
@@ -520,7 +555,7 @@ const AccessArchive = () => {
 
         setUploadMessage(finalUploadMessage);
         setError(currentError);
-        
+
         fetchReports();
       } catch (fileReadError) {
         setUploadMessage("خطأ في قراءة ملف Excel: " + fileReadError.message);
@@ -552,6 +587,71 @@ const AccessArchive = () => {
     return pageNumbers;
   };
 
+  const handleSelectReport = (reportId) => {
+    setSelectedReportIds((prevSelected) =>
+      prevSelected.includes(reportId)
+        ? prevSelected.filter((id) => id !== reportId)
+        : [...prevSelected, reportId]
+    );
+  };
+
+  const handleApplyManualDate = async () => {
+    if (selectedReportIds.length === 0) {
+      setManualUpdateMessage("الرجاء تحديد فاتورة واحدة على الأقل لتعديلها.");
+      return;
+    }
+    if (!manualCreationDate) {
+      setManualUpdateMessage("الرجاء اختيار تاريخ الإنشاء الجديد.");
+      return;
+    }
+
+    setIsUpdatingManualDate(true);
+    setManualUpdateMessage("جاري تحديث السجلات...");
+    setError(null);
+    let successfulUpdates = 0;
+    let failedUpdates = [];
+
+    const updatePromises = selectedReportIds.map(async (reportId) => {
+      try {
+        const reportToUpdate = reports.find(r => r._id === reportId);
+        if (!reportToUpdate) {
+            throw new Error(`Report with ID ${reportId} not found.`);
+        }
+
+        const newCreationDate = new Date(manualCreationDate);
+        const { date: newExpiryDate, card_id: newCardId } = calculateEndDate(newCreationDate, reportToUpdate.cardCategory);
+
+        const updatePayload = {
+          createdAt: newCreationDate.toISOString(),
+          date: newExpiryDate,
+        };
+
+        await axios.put(`${API_URL}/${reportId}`, updatePayload, { headers: getAuthHeader() });
+        successfulUpdates++;
+      } catch (err) {
+        const errorMessage = err.response && err.response.data && err.response.data.message
+          ? err.response.data.message
+          : err.message;
+        failedUpdates.push(`فشل تحديث السجل ${reportId}: ${errorMessage}`);
+      }
+    });
+
+    await Promise.allSettled(updatePromises);
+
+    setIsUpdatingManualDate(false);
+    if (failedUpdates.length > 0) {
+      setManualUpdateMessage(`تم تحديث ${successfulUpdates} سجلات بنجاح. فشل ${failedUpdates.length} سجلات: ${failedUpdates.join("; ")}`);
+      setError("حدثت أخطاء أثناء التحديث.");
+    } else {
+      setManualUpdateMessage(`تم تحديث ${successfulUpdates} سجلات بنجاح.`);
+    }
+
+    setSelectedReportIds([]);
+    setManualCreationDate("");
+    fetchReports();
+  };
+
+
   return (
     <div className="m-4 sm:m-10 p-4 sm:p-6 bg-gray-50 min-h-screen text-right font-sans">
       <h2 className="text-2xl font-bold mb-6">الأرشيف</h2>
@@ -579,6 +679,30 @@ const AccessArchive = () => {
             <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
           </div>
         )}
+      </div>
+
+      <div className="mb-6 p-4 border border-gray-200 rounded-lg shadow-sm bg-white">
+        <h3 className="text-xl font-semibold mb-4 text-gray-800">تعديل تاريخ الإنشاء يدوياً للسجلات المختارة</h3>
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <div className="flex flex-col">
+            <label htmlFor="manualDate" className="text-sm mb-1">تاريخ الإنشاء الجديد</label>
+            <input
+              type="date"
+              id="manualDate"
+              value={manualCreationDate}
+              onChange={(e) => setManualCreationDate(e.target.value)}
+              className="border px-3 py-2 rounded-md text-gray-700"
+            />
+          </div>
+          <button
+            onClick={handleApplyManualDate}
+            className="bg-blue-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-blue-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto mt-auto"
+            disabled={isUpdatingManualDate || selectedReportIds.length === 0 || !manualCreationDate}
+          >
+            {isUpdatingManualDate ? "جاري التحديث..." : `تطبيق التاريخ على ${selectedReportIds.length} سجلات مختارة`}
+          </button>
+        </div>
+        {manualUpdateMessage && <p className={`text-sm mt-3 ${error ? 'text-red-600' : 'text-gray-700'}`}>{manualUpdateMessage}</p>}
       </div>
 
       <div className="flex flex-wrap gap-4 mb-6 items-end">
@@ -644,10 +768,24 @@ const AccessArchive = () => {
         <table className="w-full text-sm text-right border-collapse min-w-[1000px]">
           <thead className="bg-gray-100 text-gray-600 font-bold">
             <tr>
+              <th className="px-4 py-3">
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedReportIds(currentReports.map(report => report._id));
+                    } else {
+                      setSelectedReportIds([]);
+                    }
+                  }}
+                  checked={selectedReportIds.length === currentReports.length && currentReports.length > 0}
+                  className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out cursor-pointer"
+                />
+              </th>
               <th className="px-4 py-3">اسم الزبون</th>
               <th className="px-4 py-3">رقم الهاتف</th>
-              <th className="px-4 py-3">تاريخ الإنشاء</th> {/* تم تغيير اسم العمود */}
-              <th className="px-4 py-3">تاريخ الانتهاء</th> {/* تم تغيير اسم العمود */}
+              <th className="px-4 py-3">تاريخ الإنشاء</th>
+              <th className="px-4 py-3">تاريخ الانتهاء</th>
               <th className="px-4 py-3">الموظفة المسؤولة</th>
               <th className="px-4 py-3">رقم البطاقة</th>
               <th className="px-4 py-3">الحالة</th>
@@ -657,10 +795,18 @@ const AccessArchive = () => {
             {currentReports.length > 0 ? (
               currentReports.map((report) => (
                 <tr key={report._id} className="border-t hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedReportIds.includes(report._id)}
+                      onChange={() => handleSelectReport(report._id)}
+                      className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out cursor-pointer"
+                    />
+                  </td>
                   <td className="px-4 py-3">{report.name_ar}</td>
                   <td className="px-4 py-3">{report.phoneNumber}</td>
                   <td className="px-4 py-3">{formatDate(report.createdAt)}</td>
-                  <td className="px-4 py-3">{report.date || "غير متوفر"}</td> {/* إضافة قيمة احتياطية للعرض */}
+                  <td className="px-4 py-3">{report.date || "غير متوفر"}</td>
                   <td className="px-4 py-3">{report.admin}</td>
                   <td className="px-4 py-3">{report.id}</td>
                   <td className="px-4 py-3">{renderStatus(report.status)}</td>
@@ -668,7 +814,7 @@ const AccessArchive = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="px-4 py-4 text-center text-gray-500">لا توجد بيانات</td>
+                <td colSpan="8" className="px-4 py-4 text-center text-gray-500">لا توجد بيانات</td>
               </tr>
             )}
           </tbody>

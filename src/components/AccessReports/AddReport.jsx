@@ -6,7 +6,6 @@ const API_URL = "https://hawkama.cbc-api.app/api/reports";
 
 const AddReportForm = () => {
   const [formData, setFormData] = useState({
-    name_ar: "",
     name_en: "",
     phoneNumber: "",
     quantity: "",
@@ -15,6 +14,8 @@ const AddReportForm = () => {
     address: "",
     ministry: "",
     admin: "",
+    region: "",
+    gender: "",
     cardCategory: {
       oneYear: 0,
       twoYears: 0,
@@ -24,6 +25,11 @@ const AddReportForm = () => {
     onPayroll: false,
   });
 
+  const [regions, setRegions] = useState([]);
+  const [governorate, setGovernorate] = useState("");
+  const [loadingRegions, setLoadingRegions] = useState(false);
+  const [regionsError, setRegionsError] = useState("");
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,20 +37,65 @@ const AddReportForm = () => {
     if (storedUserData && storedUserData !== "undefined") {
       try {
         const userData = JSON.parse(storedUserData);
-        const username = userData?.username || "مسؤول النظام";
+        const username = userData?.username || "غير معروف";
+        const userGovernorate = userData?.governorate || "";
         setFormData((prev) => ({ ...prev, admin: username }));
-      } catch {
-        setFormData((prev) => ({ ...prev, admin: "مسؤول النظام" }));
+        setGovernorate(userGovernorate);
+      } catch (e) {
+        setFormData((prev) => ({ ...prev, admin: "غير معروف" }));
+        setGovernorate("");
       }
     } else {
-      setFormData((prev) => ({ ...prev, admin: "مسؤول النظام" }));
+      setFormData((prev) => ({ ...prev, admin: "غير معروف" }));
+      setGovernorate("");
     }
   }, []);
+
+  useEffect(() => {
+    const fetchRegions = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("توكن المصادقة غير موجود. يرجى تسجيل الدخول.");
+        navigate("/login");
+        return;
+      }
+
+      if (!governorate) {
+        setRegions([]);
+        return;
+      }
+
+      setLoadingRegions(true);
+      setRegionsError("");
+
+      try {
+        const headers = { Authorization: `Bearer ${token}` };
+        const response = await axios.get(`${API_URL}/regions/my-governorate`, { headers });
+        setRegions(response.data.regions);
+      } catch (error) {
+        console.error("Error fetching regions:", error.response?.data || error.message);
+        setRegions([]);
+        setRegionsError(
+          "فشل في جلب المناطق: " + (error.response?.data?.message || "الرجاء تسجيل الدخول مرة أخرى.")
+        );
+        if (error.response?.status === 401) {
+          alert("انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى.");
+          navigate("/login");
+        }
+      } finally {
+        setLoadingRegions(false);
+      }
+    };
+
+    fetchRegions();
+  }, [governorate, navigate]);
 
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
     if (!token) {
       alert("توكن المصادقة غير موجود");
+      navigate("/login");
       throw new Error("توكن المصادقة غير موجود");
     }
     return { Authorization: `Bearer ${token}` };
@@ -68,7 +119,6 @@ const AddReportForm = () => {
         [name]: checked,
       }));
     } else {
-      // هنا نعالج جميع الحقول كقيم نصية مباشرة بدون تحويل إلى أرقام
       setFormData((prev) => ({
         ...prev,
         [name]: value,
@@ -84,15 +134,12 @@ const AddReportForm = () => {
     else if (formData.cardCategory.twoYears === 1) card_id = "2";
     else if (formData.cardCategory.virtual === 1) card_id = "7";
 
-    // تأكد هنا إذا الباك اند يحتاج أرقام فعلية، يمكنك تحويل النصوص إلى أرقام هنا قبل الإرسال
-    // أو تركها نصوص حسب ما يتطلب الباك اند
     const fullData = {
       ...formData,
       card_id,
-      // إذا تريد تحويل إلى أرقام، افعل ذلك هنا، مثلاً:
-      // quantity: Number(formData.quantity) || 0,
-      // moneyPaid: Number(formData.moneyPaid) || 0,
-      // moneyRemain: Number(formData.moneyRemain) || 0,
+      quantity: Number(formData.quantity) || 0,
+      moneyPaid: String(formData.moneyPaid),
+      moneyRemain: String(formData.moneyRemain),
     };
 
     try {
@@ -101,10 +148,16 @@ const AddReportForm = () => {
       alert("تم إضافة الفاتورة بنجاح");
       navigate("/accessreports");
     } catch (error) {
-      alert(
-        "حدث خطأ: " + (error.response?.data?.message || error.message)
-      );
       console.error("Error creating report:", error.response?.data || error.message);
+      alert(
+        "حدث خطأ: " +
+        (error.response?.data?.message ||
+          error.message ||
+          "الرجاء التحقق من البيانات أو تسجيل الدخول مرة أخرى.")
+      );
+      if (error.response?.status === 401) {
+        navigate("/login");
+      }
     }
   };
 
@@ -112,19 +165,10 @@ const AddReportForm = () => {
     <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-lg mt-10 font-sans text-right">
       <h2 className="text-2xl font-bold mb-6 text-gray-700">إضافة فاتورة جديدة</h2>
       <p className="mb-4 text-gray-600 text-sm">
-        المستخدم الحالي: <strong>{formData.admin || "غير مسجل"}</strong>
+        المستخدم الحالي: <strong>{formData.admin || "غير مسجل"}</strong> (المحافظة:{" "}
+        <strong>{governorate || "غير محددة"}</strong>)
       </p>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div>
-          <label className="block mb-1 text-gray-600">الاسم بالعربي</label>
-          <input
-            name="name_ar"
-            value={formData.name_ar}
-            onChange={handleChange}
-            className="w-full border rounded px-4 py-2"
-            required
-          />
-        </div>
         <div>
           <label className="block mb-1 text-gray-600">الاسم بالإنجليزي</label>
           <input
@@ -141,6 +185,7 @@ const AddReportForm = () => {
             name="phoneNumber"
             value={formData.phoneNumber}
             onChange={handleChange}
+            type="text"
             className="w-full border rounded px-4 py-2"
             required
           />
@@ -151,7 +196,7 @@ const AddReportForm = () => {
             name="quantity"
             value={formData.quantity}
             onChange={handleChange}
-            type="text"
+            type="number"
             className="w-full border rounded px-4 py-2"
             required
           />
@@ -162,7 +207,7 @@ const AddReportForm = () => {
             name="moneyPaid"
             value={formData.moneyPaid}
             onChange={handleChange}
-            type="text"
+            type="number"
             className="w-full border rounded px-4 py-2"
             required
           />
@@ -173,7 +218,7 @@ const AddReportForm = () => {
             name="moneyRemain"
             value={formData.moneyRemain}
             onChange={handleChange}
-            type="text"
+            type="number"
             className="w-full border rounded px-4 py-2"
             required
           />
@@ -197,6 +242,45 @@ const AddReportForm = () => {
             className="w-full border rounded px-4 py-2"
             required
           />
+        </div>
+        <div>
+          <label className="block mb-1 text-gray-600">الجنس</label>
+          <select
+            name="gender"
+            value={formData.gender}
+            onChange={handleChange}
+            className="w-full border rounded px-4 py-2"
+          >
+            <option value="">اختر الجنس</option>
+            <option value="ذكر">ذكر</option>
+            <option value="أنثى">أنثى</option>
+          </select>
+        </div>
+        <div>
+          <label className="block mb-1 text-gray-600">المنطقة</label>
+          <select
+            name="region"
+            value={formData.region}
+            onChange={handleChange}
+            className="w-full border rounded px-4 py-2"
+            required
+            disabled={loadingRegions || regions.length === 0 || !governorate}
+          >
+            <option value="">اختر منطقة</option>
+            {regions.map((reg) => (
+              <option key={reg} value={reg}>
+                {reg}
+              </option>
+            ))}
+          </select>
+          {loadingRegions && <p className="text-gray-500 text-sm mt-1">جاري جلب المناطق...</p>}
+          {regionsError && <p className="text-red-500 text-sm mt-1">{regionsError}</p>}
+          {!governorate && !loadingRegions && !regionsError && (
+            <p className="text-gray-500 text-sm mt-1">المحافظة غير محددة بعد، أو توكن المصادقة مفقود.</p>
+          )}
+          {governorate && !loadingRegions && regions.length === 0 && !regionsError && (
+            <p className="text-red-500 text-sm mt-1">لا توجد مناطق متاحة لمحافظتك {governorate}.</p>
+          )}
         </div>
         <div className="sm:col-span-2">
           <label className="block mb-1 text-gray-600">الملاحظات</label>
@@ -254,7 +338,7 @@ const AddReportForm = () => {
                 checked={formData.cardCategory.virtual === 1}
                 className="text-teal-600"
               />
-              <span>بطاقة افتراضية</span>
+              <span>بطاقة 6 اشهر</span>
             </label>
           </div>
         </div>
