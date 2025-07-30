@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "https://hawkama.cbc-api.app/api/reports/all";
+const API_URL = "https://hawkama.cbc-api.app/api/reports";
 
 const SupervisorAccessReports = () => {
   const [reports, setReports] = useState([]);
@@ -40,7 +40,7 @@ const SupervisorAccessReports = () => {
       setLoading(true);
       setError(null);
       const headers = { headers: getAuthHeader() };
-      const res = await axios.get(API_URL, headers);
+      const res = await axios.get(`${API_URL}/all`, headers);
       setReports(res.data);
       setLoading(false);
     } catch (err) {

@@ -3,6 +3,7 @@ import axios from "axios";
 import * as XLSX from "xlsx";
 
 const API_URL = "https://hawkama.cbc-api.app/api/reports";
+const API_URL2 = "https://cbc-api.app/v4/getAllAccounts";
 const ITEMS_PER_PAGE = 10;
 
 const calculateEndDate = (creationDate, cardCategory) => {
@@ -77,6 +78,8 @@ const AccessArchive = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [pdfLibsLoaded, setPdfLibsLoaded] = useState(false);
   const [excelFile, setExcelFile] = useState(null);
@@ -89,110 +92,132 @@ const AccessArchive = () => {
 
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
-    if (!token) return {};
+    if (!token) {
+      console.error("No token found in localStorage");
+      return {};
+    }
     return { Authorization: `Bearer ${token}` };
   };
 
-  const fetchReports = async () => {
+  const fetchReports = async (page = 1) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${API_URL}/all`, { headers: getAuthHeader() });
-      setReports(response.data);
-      setFilteredReports(response.data);
-      setCurrentPage(1);
+      const response = await axios.get(API_URL2, {
+        headers: getAuthHeader(),
+        params: {
+          page: page,
+          q: searchText,
+          itemsPerPage: ITEMS_PER_PAGE,
+          status: 1,
+          orderBy: 'desc',
+          sortBy: 'id'
+        }
+      });
+
+      if (!response.data || !response.data.DataOfTable || !Array.isArray(response.data.DataOfTable)) {
+        throw new Error("Invalid data format from server");
+      }
+
+      const dataOfTable = response.data.DataOfTable;
+      setReports(dataOfTable);
+      setFilteredReports(dataOfTable);
+      
+      const currentItemsCount = dataOfTable.length;
+      
+      if (currentItemsCount < ITEMS_PER_PAGE) {
+        setTotalPages(page);
+        setTotalItems((page - 1) * ITEMS_PER_PAGE + currentItemsCount);
+      } else {
+        setTotalPages(page + 1);
+        setTotalItems(page * ITEMS_PER_PAGE);
+      }
+      
+      setCurrentPage(page);
     } catch (err) {
-      setError("فشل في جلب البيانات.");
+      console.error("Error fetching reports:", err);
+      setError("Failed to fetch data: " + err.message);
+      setReports([]);
+      setFilteredReports([]);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    const loadPdfLibraries = () => {
-      if (typeof window.jspdf !== 'undefined' && typeof window.html2canvas !== 'undefined') {
-        setPdfLibsLoaded(true);
-        return;
+  const fetchTotalCount = async () => {
+    try {
+      const response = await axios.get(API_URL2, {
+        headers: getAuthHeader(),
+        params: {
+          page: 1,
+          q: searchText,
+          itemsPerPage: 1,
+          status: 1,
+          orderBy: 'desc',
+          sortBy: 'id'
+        }
+      });
+      console.log(response.data);
+      if (response.data.total) {
+        setTotalItems(response.data.total);
+        setTotalPages(Math.ceil(response.data.total / ITEMS_PER_PAGE));
       }
+    } catch (err) {
+      console.log("Could not fetch total count:", err.message);
+    }
+  };
 
-      const scriptHtml2Canvas = document.createElement('script');
-      scriptHtml2Canvas.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-      scriptHtml2Canvas.async = true;
-      scriptHtml2Canvas.onload = () => {
-        const scriptJsPDF = document.createElement('script');
-        scriptJsPDF.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-        scriptJsPDF.async = true;
-        scriptJsPDF.onload = () => setPdfLibsLoaded(true);
-        document.head.appendChild(scriptJsPDF);
-      };
-      document.head.appendChild(scriptHtml2Canvas);
+  useEffect(() => {
+    const loadPdfLibraries = async () => {
+      try {
+        if (typeof window.jspdf === 'undefined') {
+          await new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+            script.onload = resolve;
+            document.head.appendChild(script);
+          });
+        }
+        
+        if (typeof window.html2canvas === 'undefined') {
+          await new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+            script.onload = resolve;
+            document.head.appendChild(script);
+          });
+        }
+        
+        setPdfLibsLoaded(true);
+      } catch (error) {
+        console.error("Failed to load PDF libraries:", error);
+      }
     };
 
     loadPdfLibraries();
+    fetchTotalCount();
     fetchReports();
   }, []);
 
   useEffect(() => {
     handleSearch();
-  }, [startDate, endDate, searchText, reports]);
+  }, [startDate, endDate, searchText]);
 
-  const handleSearch = () => {
-    let result = reports;
-
-    if (startDate || endDate) {
-      result = result.filter((r) => {
-        const reportDate = new Date(r.createdAt);
-        reportDate.setHours(0, 0, 0, 0);
-
-        const start = startDate ? new Date(startDate) : null;
-        if (start) start.setHours(0, 0, 0, 0);
-
-        const end = endDate ? new Date(endDate) : null;
-        if (end) end.setHours(23, 59, 59, 999);
-
-        if (start && reportDate.getTime() < start.getTime()) return false;
-        if (end && reportDate.getTime() > end.getTime()) return false;
-        return true;
-      });
-    }
-
-    if (searchText.trim()) {
-      const search = searchText.trim().toLowerCase();
-      result = result.filter(
-        (r) =>
-          (r.name_ar && r.name_ar.toLowerCase().includes(search)) ||
-          (r.phoneNumber && r.phoneNumber.toLowerCase().includes(search)) ||
-          (r.admin && r.admin.toLowerCase().includes(search)) ||
-          (r.id !== null && r.id !== undefined && String(r.id).toLowerCase().includes(search))
-      );
-    }
-
-    setFilteredReports(result);
-    setCurrentPage(1);
+  const handleSearch = async () => {
+    await fetchReports(1);
   };
-
+  
   const renderStatus = (status) => {
     const colors = {
-      pending: "bg-orange-100 text-orange-600",
-      rejected: "bg-red-100 text-red-600",
-      canceled: "bg-red-100 text-red-600",
-      received: "bg-green-100 text-green-600",
-      processing: "bg-blue-100 text-blue-600",
-      approved: "bg-teal-100 text-teal-600",
-    };
-
-    const texts = {
-      pending: "قيد الانتظار",
-      rejected: "مرفوضة",
-      canceled: "تم الغاءها",
-      received: "مستلمة",
-      processing: "قيد المعالجة",
-      approved: "تم القبول",
+      "فعالة": "bg-green-100 text-green-600",
+      "غير فعالة": "bg-red-100 text-red-600",
+      "معلقة": "bg-orange-100 text-orange-600",
+      "منتهية الصلاحية": "bg-gray-100 text-gray-600",
     };
 
     return (
-      <span className={`px-3 py-1 rounded text-sm ${colors[status] || ""}`}>
-        {texts[status] || status}
+      <span className={`px-3 py-1 rounded text-sm ${colors[status] || "bg-gray-100 text-gray-600"}`}>
+        {status || "غير محدد"}
       </span>
     );
   };
@@ -207,54 +232,52 @@ const AccessArchive = () => {
     return `${day}/${month}/${year}`;
   };
 
-  const totalPages = Math.ceil(filteredReports.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentReports = filteredReports.slice(startIndex, endIndex);
-
   const goToPage = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber);
+      fetchReports(pageNumber);
     }
   };
 
   const exportToExcel = (data, fileName = "Reports") => {
-    if (!data || data.length === 0) {
-      setError("لا توجد بيانات للتصدير.");
+    if (!Array.isArray(data) || data.length === 0) {
+      setError("No data to export");
       return;
     }
 
     const headers = [
       "اسم الزبون",
+      "الاسم الإنجليزي",
       "رقم الهاتف",
       "تاريخ الإنشاء",
       "تاريخ الانتهاء",
-      "الموظفة المسؤولة",
+      "اسم المندوب",
       "رقم البطاقة",
       "الحالة",
+      "العنوان",
+      "المبلغ المدفوع",
+      "المبلغ المتبقي"
     ];
 
     const rows = data.map((report) => ({
       "اسم الزبون": report.name_ar || "",
+      "الاسم الإنجليزي": report.name_en || "",
       "رقم الهاتف": report.phoneNumber || "",
-      "تاريخ الإنشاء": formatDate(report.createdAt) || "",
+      "تاريخ الإنشاء": formatDate(report.created_at) || "",
       "تاريخ الانتهاء": report.date || "",
-      "الموظفة المسؤولة": report.admin || "",
+      "اسم المندوب": report.delegateName || "",
       "رقم البطاقة": report.id || "",
-      "الحالة": renderStatus(report.status).props.children || "",
+      "الحالة": report.status || "",
+      "العنوان": report.address || "",
+      "المبلغ المدفوع": report.moneyPaid || "0",
+      "المبلغ المتبقي": report.moneyRemain || "0"
     }));
 
     const ws = XLSX.utils.json_to_sheet(rows);
     XLSX.utils.sheet_add_aoa(ws, [headers], { origin: "A1" });
 
     const wscols = [
-      {wch: 25},
-      {wch: 20},
-      {wch: 28},
-      {wch: 20},
-      {wch: 25},
-      {wch: 15},
-      {wch: 20}
+      {wch: 25}, {wch: 25}, {wch: 20}, {wch: 20}, {wch: 20}, 
+      {wch: 25}, {wch: 15}, {wch: 15}, {wch: 30}, {wch: 15}, {wch: 15}
     ];
     ws['!cols'] = wscols;
 
@@ -265,13 +288,13 @@ const AccessArchive = () => {
   };
 
   const exportToPdf = async (data, fileName = "Reports") => {
-    if (!data || data.length === 0) {
-      setError("لا توجد بيانات للتصدير.");
+    if (!Array.isArray(data) || data.length === 0) {
+      setError("No data to export");
       return;
     }
 
     if (!pdfLibsLoaded) {
-      setError("مكتبات PDF ما زالت قيد التحميل.");
+      setError("PDF libraries are still loading");
       return;
     }
 
@@ -292,7 +315,7 @@ const AccessArchive = () => {
             <th style="padding: 12px; border: 1px solid #e2e8f0;">رقم الهاتف</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">تاريخ الإنشاء</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">تاريخ الانتهاء</th>
-            <th style="padding: 12px; border: 1px solid #e2e8f0;">الموظفة المسؤولة</th>
+            <th style="padding: 12px; border: 1px solid #e2e8f0;">اسم المندوب</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">رقم البطاقة</th>
             <th style="padding: 12px; border: 1px solid #e2e8f0;">الحالة</th>
           </tr>
@@ -305,11 +328,11 @@ const AccessArchive = () => {
         <tr style="border-top: 1px solid #e2e8f0;">
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.name_ar || ""}</td>
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.phoneNumber || ""}</td>
-          <td style="padding: 12px; border: 1px solid #e2e8f0;">${formatDate(report.createdAt) || ""}</td>
+          <td style="padding: 12px; border: 1px solid #e2e8f0;">${formatDate(report.created_at) || ""}</td>
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.date || "غير متوفر"}</td>
-          <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.admin || ""}</td>
+          <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.delegateName || ""}</td>
           <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.id || ""}</td>
-          <td style="padding: 12px; border: 1px solid #e2e8f0;">${renderStatus(report.status).props.children || ""}</td>
+          <td style="padding: 12px; border: 1px solid #e2e8f0;">${report.status || ""}</td>
         </tr>
       `;
     });
@@ -386,13 +409,11 @@ const AccessArchive = () => {
                 if (isNaN(parsedDate.getTime())) {
                     const parts = value.split(/[\/\-]/);
                     if (parts.length === 3) {
-                        // Try YYYY-MM-DD
                         if (parts[0].length === 4) {
                             parsedDate = new Date(`${parts[0]}-${parts[1]}-${parts[2]}`);
                         } else if (parts[2].length === 4) {
-                            // Try DD-MM-YYYY or MM-DD-YYYY
                             parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-                            if (isNaN(parsedDate.getTime())) { // If DD-MM-YYYY fails, try MM-DD-YYYY
+                            if (isNaN(parsedDate.getTime())) {
                                 parsedDate = new Date(`${parts[2]}-${parts[0]}-${parts[1]}`);
                             }
                         }
@@ -414,12 +435,11 @@ const AccessArchive = () => {
       });
 
       if (excelCreationDate) {
-          payload.createdAt = excelCreationDate.toISOString(); // حفظ تاريخ Excel كتاريخ إنشاء
+          payload.createdAt = excelCreationDate.toISOString();
           const { date, card_id } = calculateEndDate(excelCreationDate, payload.cardCategory);
           payload.date = date;
-          // Use generated card_id only if not already present from excel
           payload.card_id = payload.card_id || card_id;
-      } else if (!payload.createdAt) { // If no excel date and no default createdAt
+      } else if (!payload.createdAt) {
           const now = new Date();
           payload.createdAt = now.toISOString();
           const { date, card_id } = calculateEndDate(now, payload.cardCategory);
@@ -436,15 +456,15 @@ const AccessArchive = () => {
 
   const handleUpload = async () => {
     if (!excelFile) {
-      setUploadMessage("الرجاء اختيار ملف Excel أولاً.");
-      setError("الرجاء اختيار ملف Excel أولاً.");
+      setUploadMessage("Please select an Excel file first");
+      setError("Please select an Excel file first");
       return;
     }
 
     setLoading(true);
     setError(null);
     setUploadProgress(0);
-    setUploadMessage("جاري معالجة الملف...");
+    setUploadMessage("Processing file...");
     let successfulUploads = 0;
 
     const reader = new FileReader();
@@ -455,17 +475,17 @@ const AccessArchive = () => {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
 
-        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 3, raw: false, dateNF:'YYYY-MM-DD' }); // raw: false to get formatted values, dateNF for date formatting
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 3, raw: false, dateNF:'YYYY-MM-DD' });
 
         if (jsonData.length === 0) {
-          setUploadMessage("الملف فارغ أو لا يحتوي على بيانات يمكن قراءتها.");
+          setUploadMessage("File is empty or contains no readable data");
           setLoading(false);
           return;
         }
         
         const payloads = parseExcelData(jsonData);
         const totalRows = payloads.length;
-        setUploadMessage(`جاري رفع ${totalRows} سجل...`);
+        setUploadMessage(`Uploading ${totalRows} records...`);
 
         for (const payload of payloads) {
           try {
@@ -474,16 +494,15 @@ const AccessArchive = () => {
             setUploadProgress(Math.round((successfulUploads / totalRows) * 100));
           } catch (error) {
             console.error("Error uploading row:", error);
-            // Optionally, log or display which row failed
           }
         }
 
         setLoading(false);
-        setUploadMessage(`تم رفع ${successfulUploads} سجل بنجاح.`);
-        fetchReports();
+        setUploadMessage(`Successfully uploaded ${successfulUploads} records`);
+        fetchReports(currentPage);
       } catch (error) {
-        setUploadMessage("خطأ في قراءة ملف Excel.");
-        setError("خطأ في قراءة ملف Excel.");
+        setUploadMessage("Error reading Excel file");
+        setError("Error reading Excel file");
         setLoading(false);
       }
     };
@@ -520,28 +539,28 @@ const AccessArchive = () => {
 
   const handleApplyNewDate = async () => {
     if (selectedReportIds.length === 0) {
-      setUpdateMessage("الرجاء تحديد تقرير واحد على الأقل.");
+      setUpdateMessage("Please select at least one report");
       return;
     }
 
     if (!newCreationDate) {
-      setUpdateMessage("الرجاء اختيار تاريخ الإنشاء الجديد.");
+      setUpdateMessage("Please select a new creation date");
       return;
     }
 
     setIsUpdatingDate(true);
-    setUpdateMessage("جاري التحديث...");
+    setUpdateMessage("Updating...");
 
     try {
       const updates = selectedReportIds.map(async (reportId) => {
-        const reportToUpdate = reports.find(r => r._id === reportId);
+        const reportToUpdate = reports.find(r => r.id === reportId);
         if (!reportToUpdate) return;
 
         const updatedDate = new Date(newCreationDate);
         const { date: newExpiryDate } = calculateEndDate(updatedDate, reportToUpdate.cardCategory);
 
         const updateData = {
-          createdAt: updatedDate.toISOString(), // تحديث حقل createdAt في الـ API
+          created_at: updatedDate.toISOString(),
           date: newExpiryDate,
         };
 
@@ -552,10 +571,10 @@ const AccessArchive = () => {
 
       await Promise.all(updates);
 
-      setUpdateMessage("تم التحديث بنجاح.");
-      fetchReports();
+      setUpdateMessage("Update successful");
+      fetchReports(currentPage);
     } catch (error) {
-      setUpdateMessage("حدث خطأ أثناء التحديث.");
+      setUpdateMessage("Error during update");
       console.error("Update error:", error);
     } finally {
       setIsUpdatingDate(false);
@@ -568,72 +587,10 @@ const AccessArchive = () => {
     <div className="m-4 sm:m-10 p-4 sm:p-6 bg-gray-50 min-h-screen text-right font-sans">
       <h2 className="text-2xl font-bold mb-6">الأرشيف</h2>
 
-      <div className="mb-6 p-4 border border-gray-200 rounded-lg shadow-sm bg-white">
-        <h3 className="text-xl font-semibold mb-4 text-gray-800">رفع ملف Excel جديد</h3>
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <input
-            type="file"
-            accept=".xlsx, .xls, .csv"
-            onChange={handleFileChange}
-            className="flex-grow border border-gray-300 rounded-md py-2 px-3 text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer"
-          />
-          <button
-            onClick={handleUpload}
-            className="bg-teal-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-teal-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
-            disabled={loading || !excelFile}
-          >
-            {loading ? "جاري الرفع..." : "رفع الملف"}
-          </button>
-        </div>
-        {uploadMessage && <p className={`text-sm mt-3 ${error ? 'text-red-600' : 'text-gray-700'}`}>{uploadMessage}</p>}
-        {loading && uploadProgress > 0 && uploadProgress < 100 && (
-          <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mt-3">
-            <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
-          </div>
-        )}
-      </div>
-
-      <div className="mb-6 p-4 border border-gray-200 rounded-lg shadow-sm bg-white">
-        <h3 className="text-xl font-semibold mb-4 text-gray-800">تعديل تاريخ الإنشاء</h3>
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <div className="flex-1">
-            <label className="block text-sm mb-1">التاريخ الجديد</label>
-            <input
-              type="date"
-              value={newCreationDate}
-              onChange={(e) => setNewCreationDate(e.target.value)}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-          <button
-            onClick={handleApplyNewDate}
-            disabled={isUpdatingDate || !newCreationDate || selectedReportIds.length === 0}
-            className="mt-2 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {isUpdatingDate ? "جاري التطبيق..." : `تطبيق على ${selectedReportIds.length} تقارير`}
-          </button>
-        </div>
-        {updateMessage && (
-          <div className={`mt-3 p-2 rounded ${
-            updateMessage.includes("خطأ") ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
-          }`}>
-            {updateMessage}
-          </div>
-        )}
-      </div>
-
       <div className="flex flex-wrap gap-4 mb-6 items-end">
-        <div className="flex flex-col">
-          <label htmlFor="startDate" className="text-sm mb-1">من تاريخ</label>
-          <input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="border px-3 py-2 rounded" />
-        </div>
-        <div className="flex flex-col">
-          <label htmlFor="endDate" className="text-sm mb-1">إلى تاريخ</label>
-          <input type="date" id="endDate" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="border px-3 py-2 rounded" />
-        </div>
         <div className="flex flex-col flex-1">
           <label htmlFor="search" className="text-sm mb-1">ماذا تبحث عن؟</label>
-          <input type="text" id="search" value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder="الاسم أو رقم الهاتف أو اسم الموظفة" className="border px-3 py-2 rounded w-full" />
+          <input type="text" id="search" value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder="الاسم أو رقم الهاتف أو اسم المندوب" className="border px-3 py-2 rounded w-full" />
         </div>
         <button onClick={handleSearch} className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition h-[42px] mt-auto">تصفية</button>
 
@@ -656,7 +613,7 @@ const AccessArchive = () => {
                 تصدير الكل (Excel)
               </button>
               <button
-                onClick={() => { exportToExcel(currentReports, "تقارير-الأرشيف-الصفحة-الحالية"); setShowExportOptions(false); }}
+                onClick={() => { exportToExcel(reports, "تقارير-الأرشيف-الصفحة-الحالية"); setShowExportOptions(false); }}
                 className="block w-full text-right px-4 py-2 hover:bg-gray-100"
               >
                 تصدير الصفحة الحالية (Excel)
@@ -668,7 +625,7 @@ const AccessArchive = () => {
                 تصدير الكل (PDF)
               </button>
               <button
-                onClick={() => { exportToPdf(currentReports, "تقارير-الأرشيف-الصفحة-الحالية"); setShowExportOptions(false); }}
+                onClick={() => { exportToPdf(reports, "تقارير-الأرشيف-الصفحة-الحالية"); setShowExportOptions(false); }}
                 className="block w-full text-right px-4 py-2 hover:bg-gray-100"
               >
                 تصدير الصفحة الحالية (PDF)
@@ -690,50 +647,58 @@ const AccessArchive = () => {
                   type="checkbox"
                   onChange={(e) => {
                     if (e.target.checked) {
-                      setSelectedReportIds(currentReports.map(report => report._id));
+                      setSelectedReportIds(reports.map(report => report.id));
                     } else {
                       setSelectedReportIds([]);
                     }
                   }}
-                  checked={selectedReportIds.length === currentReports.length && currentReports.length > 0}
+                  checked={selectedReportIds.length === reports.length && reports.length > 0}
                   className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out cursor-pointer"
                 />
               </th>
               <th className="px-4 py-3">اسم الزبون</th>
+              <th className="px-4 py-3">الاسم الإنجليزي</th>
               <th className="px-4 py-3">رقم الهاتف</th>
               <th className="px-4 py-3">تاريخ الإنشاء</th>
               <th className="px-4 py-3">تاريخ الانتهاء</th>
-              <th className="px-4 py-3">الموظفة المسؤولة</th>
+              <th className="px-4 py-3">اسم المندوب</th>
               <th className="px-4 py-3">رقم البطاقة</th>
               <th className="px-4 py-3">الحالة</th>
+              <th className="px-4 py-3">العنوان</th>
+              <th className="px-4 py-3">المبلغ المدفوع</th>
+              <th className="px-4 py-3">المبلغ المتبقي</th>
             </tr>
           </thead>
           <tbody>
-            {currentReports.length > 0 ? (
-              currentReports.map((report) => (
-                <tr key={report._id} className="border-t hover:bg-gray-50">
+            {reports.length > 0 ? (
+              reports.map((report) => (
+                <tr key={report.id} className="border-t hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <input
                       type="checkbox"
-                      checked={selectedReportIds.includes(report._id)}
-                      onChange={() => handleSelectReport(report._id)}
+                      checked={selectedReportIds.includes(report.id)}
+                      onChange={() => handleSelectReport(report.id)}
                       className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out cursor-pointer"
                     />
                   </td>
-                  <td className="px-4 py-3">{report.name_en}</td>
-                  <td className="px-4 py-3">{report.phoneNumber}</td>
+                  <td className="px-4 py-3">{report.name_ar || "غير متوفر"}</td>
+                  <td className="px-4 py-3">{report.name_en || "غير متوفر"}</td>
+                  <td className="px-4 py-3">{report.phoneNumber || "غير متوفر"}</td>
                   <td className="px-4 py-3">
-                    {formatDate(report.createdAt)}
+                    {formatDate(report.created_at)}
                   </td>
                   <td className="px-4 py-3">{report.date || "غير متوفر"}</td>
-                  <td className="px-4 py-3">{report.admin}</td>
+                  <td className="px-4 py-3">{report.delegateName || "غير متوفر"}</td>
                   <td className="px-4 py-3">{report.id}</td>
                   <td className="px-4 py-3">{renderStatus(report.status)}</td>
+                  <td className="px-4 py-3">{report.address || "غير محدد"}</td>
+                  <td className="px-4 py-3">{report.moneyPaid || "0"}</td>
+                  <td className="px-4 py-3">{report.moneyRemain || "0"}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="8" className="px-4 py-4 text-center text-gray-500">لا توجد بيانات</td>
+                <td colSpan="12" className="px-4 py-4 text-center text-gray-500">لا توجد بيانات</td>
               </tr>
             )}
           </tbody>
@@ -741,38 +706,60 @@ const AccessArchive = () => {
       </div>
 
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-4">
-          <button
-            onClick={() => goToPage(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            السابق
-          </button>
-          {getPaginationNumbers(currentPage, totalPages).map((page, index) => (
-            page === '...' ? (
-              <span key={`ellipsis-${index}`} className="px-4 py-2 text-gray-700">...</span>
-            ) : (
-              <button
-                key={page}
-                onClick={() => goToPage(page)}
-                className={`px-4 py-2 rounded ${
-                  currentPage === page
-                    ? "bg-teal-700 text-white"
-                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                }`}
-              >
-                {page}
-              </button>
-            )
-          ))}
-          <button
-            onClick={() => goToPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            التالي
-          </button>
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
+          <div className="text-sm text-gray-600 order-2 sm:order-1">
+            صفحة {currentPage} من {totalPages} (إجمالي العناصر: {totalItems})
+          </div>
+          
+          <div className="flex justify-center items-center gap-2 order-1 sm:order-2">
+            <button
+              onClick={() => goToPage(1)}
+              disabled={currentPage === 1}
+              className="px-3 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              الأولى
+            </button>
+            <button
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              السابق
+            </button>
+            
+            {getPaginationNumbers(currentPage, totalPages).map((page, index) => (
+              page === '...' ? (
+                <span key={`ellipsis-${index}`} className="px-4 py-2 text-gray-700">...</span>
+              ) : (
+                <button
+                  key={`page-${page}`}
+                  onClick={() => goToPage(page)}
+                  className={`px-4 py-2 rounded ${
+                    currentPage === page
+                      ? "bg-teal-700 text-white"
+                      : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                  }`}
+                >
+                  {page}
+                </button>
+              )
+            ))}
+            
+            <button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              التالي
+            </button>
+            <button
+              onClick={() => goToPage(totalPages)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              {totalPages}
+            </button>
+          </div>
         </div>
       )}
     </div>
