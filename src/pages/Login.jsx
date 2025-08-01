@@ -21,12 +21,10 @@ const Login = ({ setIsAuthenticated }) => {
 
     const selectedDepartment = localStorage.getItem("selectedDepartment");
 
-    // **** التعديلات الأساسية تبدأ هنا ****
 
     const ARCHIVE_ONLY_PHONE = "7708411306";
     const ARCHIVE_ONLY_PASSWORD = "aa22u1gA";
 
-    // الشرط الأول: التعامل مع المستخدم المقيد بالأرشيف
     if (formData.phoneNumber === ARCHIVE_ONLY_PHONE && formData.password === ARCHIVE_ONLY_PASSWORD) {
       if (selectedDepartment !== "archives") {
         setError("هذا المستخدم مسموح له بالدخول إلى قسم الأرشيف فقط.");
@@ -35,9 +33,7 @@ const Login = ({ setIsAuthenticated }) => {
       }
       // إذا وصل إلى هنا، فهذا يعني أن المستخدم هو "الأرشيف فقط" وقد اختار قسم الأرشيف، لذا سيتم السماح له بالمتابعة.
     } else {
-      // الشرط الثاني: التعامل مع المستخدمين الآخرين (غير مستخدم الأرشيف المقيد)
-      // إذا كان المستخدم الحالي ليس هو المستخدم المقيد بالأرشيف،
-      // نتحقق من قيود الأقسام الأخرى كما كانت.
+
 
       if (selectedDepartment === "followup") {
         if (formData.phoneNumber !== "0909" || formData.password !== "4321") {
@@ -46,12 +42,9 @@ const Login = ({ setIsAuthenticated }) => {
           return;
         }
       }
-      // لا تحتاج إلى شرط خاص لـ `selectedDepartment === "archives"` هنا،
-      // لأن المستخدم الخاص بالأرشيف تم التعامل معه في الشرط الأول.
-      // وأي مستخدم آخر ليس له قيود صريحة على الأرشيف يمكنه محاولة الدخول.
+
     }
 
-    // **** التعديلات الأساسية تنتهي هنا ****
 
     try {
       const response = await axios.post(
@@ -73,11 +66,11 @@ const Login = ({ setIsAuthenticated }) => {
         if (selectedDepartment === "sales") {
           // تأكد أن هذا التحقق يخص المستخدمين الذين سجلوا الدخول لقسم المبيعات
           // وليس المستخدم المقيد بالأرشيف (الذي تم منعه بالفعل إذا اختار المبيعات).
-          if (user.role !== "supervisor") {
-            setError("مسموح الدخول لقسم المبيعات فقط للمشرفين.");
-            setLoading(false);
-            return;
-          }
+          // if (user.role !== "supervisor") {
+          //   setError("مسموح الدخول لقسم المبيعات فقط للمشرفين.");
+          //   setLoading(false);
+          //   return;
+          // }
         }
 
         localStorage.setItem("isLoggedIn", "true");

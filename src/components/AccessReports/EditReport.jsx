@@ -22,6 +22,7 @@ const EditReportForm = () => {
     cardCategory: { oneYear: 0, twoYears: 0, virtual: 0 },
     notes: "",
     onPayroll: false,
+    
   });
 
   const [loading, setLoading] = useState(true);
@@ -119,27 +120,7 @@ const EditReportForm = () => {
       <h2 className="text-xl font-bold mb-6">تعديل التقرير</h2>
       {error && <p className="text-red-600 mb-4">{error}</p>}
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* <div>
-          <label className="block mb-1">رقم التقرير:</label>
-          <input
-            type="text"
-            name="number"
-            value={formData.number || ""}
-            disabled
-            className="border rounded w-full px-3 py-2"
-          />
-        </div> */}
-        <div>
-          <label className="block mb-1">الاسم بالعربي:</label>
-          <input
-            type="text"
-            name="name_ar"
-            value={formData.name_ar}
-            onChange={handleChange}
-            required
-            className="border rounded w-full px-3 py-2"
-          />
-        </div>
+
         <div>
           <label className="block mb-1">الاسم بالإنجليزي:</label>
           <input

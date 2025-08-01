@@ -3,7 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import TotalBills from "./TotalBills";
 
-const API_URL = "https://hawkama.cbc-api.app/api/reports";
+const API_URL = "https://cbc-api.app/v4/getAllAccounts?page=1&itemsPerPage=&status=1&orderBy=desc&sortBy=id";
 
 const fieldArabicNames = {
   name_ar: "الاسم بالعربي",
@@ -22,7 +22,6 @@ const fieldArabicNames = {
   status: "الحالة",
   isEdited: "تم التعديل",
   editedAt: "وقت التعديل",
-  remainingEditTime: "الوقت المتبقي للتعديل"
 };
 
 const getCardTypeText = (cardCategory) => {
@@ -67,8 +66,6 @@ const AccessReports = () => {
   const [admin, setAdmin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [userRole, setUserRole] = useState(null);
-  const [currentUsername, setCurrentUsername] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 13;
 
@@ -82,28 +79,13 @@ const AccessReports = () => {
   };
 
   useEffect(() => {
-    const storedUserData = localStorage.getItem("userData");
-    if (storedUserData && storedUserData !== "undefined") {
-      try {
-        const userData = JSON.parse(storedUserData);
-        setUserRole(userData?.role);
-        setCurrentUsername(userData?.username);
-      } catch {
-        setUserRole(null);
-        setCurrentUsername(null);
-      }
-    }
-
     const fetchReports = async () => {
       setLoading(true);
       setError(null);
       try {
         const headers = { headers: getAuthHeader() };
-        const response =
-          userRole === "admin"
-            ? await axios.get(`${API_URL}/by-admin/${currentUsername}`, headers)
-            : await axios.get(`${API_URL}`, headers);
-        const allReports = response.data;
+        const response = await axios.get(API_URL, headers);
+        const allReports = response.data.DataOfTable;
         setReports(allReports);
         setFilteredReports(allReports);
         setCurrentPage(1);
@@ -114,24 +96,16 @@ const AccessReports = () => {
       }
     };
 
-    if (userRole && currentUsername) {
-      fetchReports();
-    }
-  }, [userRole, currentUsername]);
+    fetchReports();
+  }, []);
 
-  const handleSearch = () => {
+
+  const renewal = (id,period) => {
     let result = reports;
-    const searchTerm = admin.trim().toLowerCase();
-    
-    if (searchTerm || startDate || endDate) {
+    if (admin.trim() || startDate || endDate) {
       result = reports.filter((report) => {
-        const textMatch = 
-          searchTerm === "" || 
-          (report.name_ar && report.name_ar.toLowerCase().includes(searchTerm)) ||
-          (report.name_en && report.name_en.toLowerCase().includes(searchTerm)) ||
-          (report.phoneNumber && report.phoneNumber.includes(searchTerm)) ||
-          (report.admin && report.admin.toLowerCase().includes(searchTerm));
-        
+        const adminMatch =
+          admin.trim() === "" || (report.admin && report.admin.toLowerCase().includes(admin.toLowerCase().trim()));
         let dateMatch = true;
         if (startDate || endDate) {
           const reportDate = new Date(report.createdAt);
@@ -140,7 +114,6 @@ const AccessReports = () => {
           if (start) start.setHours(0, 0, 0, 0);
           const end = endDate ? new Date(endDate) : null;
           if (end) end.setHours(23, 59, 59, 999);
-          
           if (start && end) {
             dateMatch = reportDate >= start && reportDate <= end;
           } else if (start) {
@@ -149,61 +122,40 @@ const AccessReports = () => {
             dateMatch = reportDate <= end;
           }
         }
-        
-        return textMatch && dateMatch;
+        return adminMatch && dateMatch;
       });
     }
-    
     setFilteredReports(result);
     setCurrentPage(1);
   };
 
-  const renewal = async (mongoId, numericId) => {
-    try {
-      const headers = { headers: getAuthHeader() };
-
-      const currentDate = new Date();
-      const currentYear = currentDate.getFullYear();
-      const currentMonth = currentDate.getMonth() + 1;
-
-      const newYear = currentYear + 1;
-      const newExpiryDate = `${newYear}/${String(currentMonth).padStart(2, '0')}`;
-
-      await axios.post(
-        `https://cbc-api.app/v4/renew`,
-        {
-          renewalDate: newExpiryDate,
-          id: numericId,
-          expire_period: newExpiryDate,
-        },
-        headers
-      );
-
-      await axios.put(
-        `${API_URL}/${mongoId}`,
-        {
-          expire_period: newExpiryDate,
-          date: newExpiryDate,
-          remainingEditTime: "06:00:00"
-        },
-        headers
-      );
-
-      setReports(prev =>
-        prev.map(r =>
-          r._id === mongoId ? { ...r, expire_period: newExpiryDate, date: newExpiryDate, remainingEditTime: "06:00:00" } : r
-        )
-      );
-      setFilteredReports(prev =>
-        prev.map(r =>
-          r._id === mongoId ? { ...r, expire_period: newExpiryDate, date: newExpiryDate, remainingEditTime: "06:00:00" } : r
-        )
-      );
-
-      setError(null);
-    } catch (err) {
-      setError("حدث خطأ أثناء التجديد: " + (err.response?.data?.message || err.message));
+  const handleSearch = () => {
+    let result = reports;
+    if (admin.trim() || startDate || endDate) {
+      result = reports.filter((report) => {
+        const adminMatch =
+          admin.trim() === "" || (report.admin && report.admin.toLowerCase().includes(admin.toLowerCase().trim()));
+        let dateMatch = true;
+        if (startDate || endDate) {
+          const reportDate = new Date(report.createdAt);
+          reportDate.setHours(0, 0, 0, 0);
+          const start = startDate ? new Date(startDate) : null;
+          if (start) start.setHours(0, 0, 0, 0);
+          const end = endDate ? new Date(endDate) : null;
+          if (end) end.setHours(23, 59, 59, 999);
+          if (start && end) {
+            dateMatch = reportDate >= start && reportDate <= end;
+          } else if (start) {
+            dateMatch = reportDate >= start;
+          } else if (end) {
+            dateMatch = reportDate <= end;
+          }
+        }
+        return adminMatch && dateMatch;
+      });
     }
+    setFilteredReports(result);
+    setCurrentPage(1);
   };
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -226,8 +178,9 @@ const AccessReports = () => {
         <button
           key={i + 1}
           onClick={() => paginate(i + 1)}
-          className={`px-4 py-2 rounded-lg ${currentPage === i + 1 ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
+          className={`px-4 py-2 rounded-lg ${
+            currentPage === i + 1 ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
         >
           {i + 1}
         </button>
@@ -239,8 +192,9 @@ const AccessReports = () => {
           <button
             key={i}
             onClick={() => paginate(i)}
-            className={`px-4 py-2 rounded-lg ${currentPage === i ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+            className={`px-4 py-2 rounded-lg ${
+              currentPage === i ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
           >
             {i}
           </button>
@@ -256,8 +210,9 @@ const AccessReports = () => {
           <button
             key={i}
             onClick={() => paginate(i)}
-            className={`px-4 py-2 rounded-lg ${currentPage === i ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
+            className={`px-4 py-2 rounded-lg ${
+              currentPage === i ? "bg-teal-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
           >
             {i}
           </button>
@@ -315,13 +270,11 @@ const AccessReports = () => {
               اضافة فاتورة جديدة
             </button>
           </Link>
-          {userRole === "supervisor" && (
-            <Link to={"./supervisor/reports"}>
-              <button className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6">
-                تعديل التقارير
-              </button>
-            </Link>
-          )}
+          <Link to={"./supervisor/reports"}>
+            <button className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition w-full md:w-auto self-end mt-6">
+              تعديل التقارير
+            </button>
+          </Link>
         </div>
       </div>
       {loading && <div className="text-center py-4 text-gray-600">...جاري تحميل البيانات</div>}
@@ -349,8 +302,6 @@ const AccessReports = () => {
                   <th className="px-2 py-2">الحالة</th>
                   <th className="px-2 py-2">تم التعديل</th>
                   <th className="px-2 py-2">وقت التعديل</th>
-                  <th className="px-2 py-2">فترة الانتهاء</th>
-                  <th className="px-2 py-2">الوقت المتبقي للتعديل</th>
                   <th className="px-2 py-2">الحقول المعدلة</th>
                   <th className="px-2 py-2">تعديل</th>
                   <th className="px-2 py-2">تجديد</th>
@@ -378,52 +329,47 @@ const AccessReports = () => {
                       <td className="px-2 py-2">{report.status}</td>
                       <td className="px-2 py-2">{report.isEdited ? "نعم" : "لا"}</td>
                       <td className="px-2 py-2">{report.editedAt ? formatDateTime(report.editedAt) : "-"}</td>
-                      <td className="px-2 py-2">{report.expire_period || "-"}</td>
-                      <td className="px-2 py-2">{report.remainingEditTime || "-"}</td>
                       <td className="px-2 py-2 whitespace-pre-line">
                         {Array.isArray(report.editedFields) && report.editedFields.length > 0
                           ? report.editedFields
-                            .filter(
-                              (field) =>
-                                field !== "editedAt" &&
-                                field !== "remainingEditTime" &&
-                                fieldArabicNames[field]
-                            )
-                            .map((field) => fieldArabicNames[field] || field)
-                            .join("\n")
+                              .filter(
+                                (field) =>
+                                  field !== "editedAt" &&
+                                  field !== "remainingEditTime" &&
+                                  fieldArabicNames[field]
+                              )
+                              .map((field) => fieldArabicNames[field] || field)
+                              .join("\n")
                           : "-"}
                       </td>
                       <td className="px-2 py-2">
-                        <Link to={`/edit-report/${report._id}`}>
+                        <Link
+                          to={`/edit-report/${report._id}?api=${encodeURIComponent(
+                            `https://hawkama.cbc-api.app/api/reports/${report._id}`
+                          )}`}
+                        >
                           <button className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition">
                             تعديل
                           </button>
                         </Link>
                       </td>
                       <td className="px-2 py-2">
-                        <button
-                          onClick={() => {
-                            if (!report.id) {
-                              setError("الـ id الرقمي غير موجود في التقرير.");
-                              return;
-                            }
-                            if (!report._id) {
-                              setError("المعرف الداخلي (_id) غير موجود.");
-                              return;
-                            }
-                            renewal(report._id, report.id);
-                          }}
-                          className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition"
+                        <Link
+                          to={`/edit-report/${report._id}?api=${encodeURIComponent(
+                            `https://hawkama.cbc-api.app/api/reports/${report._id}`
+                          )}&renew=1`}
                         >
-                          تجديد سنة واحدة
-                        </button>
+                          <button className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition">
+                            تجديد
+                          </button>
+                        </Link>
                       </td>
                       <td className="px-2 py-2">{report.name_test}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="23" className="px-4 py-4 text-center text-gray-500">
+                    <td colSpan="19" className="px-4 py-4 text-center text-gray-500">
                       لا توجد نتائج
                     </td>
                   </tr>
@@ -435,7 +381,7 @@ const AccessReports = () => {
                   <td className="px-2 py-2">{formatNumber(totalQuantity)}</td>
                   <td className="px-2 py-2">{formatNumber(totalPaid)}</td>
                   <td className="px-2 py-2">{formatNumber(totalRemain)}</td>
-                  <td colSpan="16"></td>
+                  <td colSpan="12"></td>
                 </tr>
               </tbody>
             </table>
