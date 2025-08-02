@@ -354,7 +354,7 @@ const AccessReports = () => {
                   <th className="px-2 py-2">الحقول المعدلة</th>
                   <th className="px-2 py-2">تعديل</th>
                   <th className="px-2 py-2">تجديد</th>
-                  <th className="px-2 py-2">الاسم بالاختبار</th>
+                  {/* <th className="px-2 py-2">الاسم بالاختبار</th> */}
                 </tr>
               </thead>
               <tbody>
@@ -418,7 +418,7 @@ const AccessReports = () => {
                           تجديد سنة واحدة
                         </button>
                       </td>
-                      <td className="px-2 py-2">{report.name_test}</td>
+                      {/* <td className="px-2 py-2">{report.name_test}</td> */}
                     </tr>
                   ))
                 ) : (

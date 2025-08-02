@@ -30,6 +30,14 @@ const AddReportForm = () => {
   const [loadingRegions, setLoadingRegions] = useState(false);
   const [regionsError, setRegionsError] = useState("");
 
+  const [specialPrices, setSpecialPrices] = useState({
+    oneYear: 45000,
+    twoYears: 65000,
+    virtual: 30000,
+  });
+  const [loadingPrices, setLoadingPrices] = useState(false);
+  const [pricesError, setPricesError] = useState("");
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -74,7 +82,6 @@ const AddReportForm = () => {
         const response = await axios.get(`${API_URL}/regions/my-governorate`, { headers });
         setRegions(response.data.regions);
       } catch (error) {
-        console.error("Error fetching regions:", error.response?.data || error.message);
         setRegions([]);
         setRegionsError(
           "فشل في جلب المناطق: " + (error.response?.data?.message || "الرجاء تسجيل الدخول مرة أخرى.")
@@ -91,6 +98,30 @@ const AddReportForm = () => {
     fetchRegions();
   }, [governorate, navigate]);
 
+  useEffect(() => {
+    const fetchPrices = async () => {
+      setLoadingPrices(true);
+      setPricesError("");
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("توكن المصادقة غير موجود");
+        const headers = { Authorization: `Bearer ${token}` };
+        const response = await axios.get(`${API_URL}/special-prices`, { headers });
+        setSpecialPrices({
+          oneYear: response.data.prices["1Y"]?.price || 45000,
+          twoYears: response.data.prices["2Y"]?.price || 65000,
+          virtual: response.data.prices["6M"]?.price || 30000,
+        });
+      } catch (error) {
+        setPricesError("فشل في جلب الأسعار");
+      } finally {
+        setLoadingPrices(false);
+      }
+    };
+
+    fetchPrices();
+  }, []);
+
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -105,6 +136,11 @@ const AddReportForm = () => {
     const { name, value, type, checked } = e.target;
 
     if (name === "cardType") {
+      let newQuantity = "";
+      if (value === "oneYear") newQuantity = specialPrices.oneYear.toString();
+      else if (value === "twoYears") newQuantity = specialPrices.twoYears.toString();
+      else if (value === "virtual") newQuantity = specialPrices.virtual.toString();
+
       setFormData((prev) => ({
         ...prev,
         cardCategory: {
@@ -112,6 +148,7 @@ const AddReportForm = () => {
           twoYears: value === "twoYears" ? 1 : 0,
           virtual: value === "virtual" ? 1 : 0,
         },
+        quantity: newQuantity,
       }));
     } else if (name === "onPayroll") {
       setFormData((prev) => ({
@@ -148,12 +185,11 @@ const AddReportForm = () => {
       alert("تم إضافة الفاتورة بنجاح");
       navigate("/accessreports");
     } catch (error) {
-      console.error("Error creating report:", error.response?.data || error.message);
       alert(
         "حدث خطأ: " +
-        (error.response?.data?.message ||
-          error.message ||
-          "الرجاء التحقق من البيانات أو تسجيل الدخول مرة أخرى.")
+          (error.response?.data?.message ||
+            error.message ||
+            "الرجاء التحقق من البيانات أو تسجيل الدخول مرة أخرى.")
       );
       if (error.response?.status === 401) {
         navigate("/login");
@@ -283,28 +319,9 @@ const AddReportForm = () => {
           )}
         </div>
         <div className="sm:col-span-2">
-          <label className="block mb-1 text-gray-600">الملاحظات</label>
-          <textarea
-            name="notes"
-            value={formData.notes}
-            onChange={handleChange}
-            className="w-full border rounded px-4 py-2 h-24"
-          ></textarea>
-        </div>
-        <div className="sm:col-span-2 flex items-center mb-4">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              name="onPayroll"
-              checked={formData.onPayroll}
-              onChange={handleChange}
-              className="h-5 w-5 text-teal-600"
-            />
-            <span className="mr-2 text-gray-700">على الراتب</span>
-          </label>
-        </div>
-        <div className="sm:col-span-2">
-          <label className="block mb-3 text-gray-600">فئة البطاقة</label>
+          <label className="block mb-1 text-gray-600">فئة البطاقة</label>
+          {loadingPrices && <p className="text-gray-500 text-sm mb-2">جاري جلب الأسعار...</p>}
+          {pricesError && <p className="text-red-500 text-sm mb-2">{pricesError}</p>}
           <div className="flex flex-wrap gap-4 justify-end">
             <label className="flex items-center space-x-reverse space-x-2">
               <input
@@ -316,7 +333,7 @@ const AddReportForm = () => {
                 className="text-teal-600"
                 required
               />
-              <span>بطاقة سنة واحدة</span>
+              <span>بطاقة سنة واحدة - {specialPrices.oneYear.toLocaleString()} د.ع</span>
             </label>
             <label className="flex items-center space-x-reverse space-x-2">
               <input
@@ -327,7 +344,7 @@ const AddReportForm = () => {
                 checked={formData.cardCategory.twoYears === 1}
                 className="text-teal-600"
               />
-              <span>بطاقة سنتين</span>
+              <span>بطاقة سنتين - {specialPrices.twoYears.toLocaleString()} د.ع</span>
             </label>
             <label className="flex items-center space-x-reverse space-x-2">
               <input
@@ -338,7 +355,7 @@ const AddReportForm = () => {
                 checked={formData.cardCategory.virtual === 1}
                 className="text-teal-600"
               />
-              <span>بطاقة 6 اشهر</span>
+              <span>بطاقة 6 اشهر - {specialPrices.virtual.toLocaleString()} د.ع</span>
             </label>
           </div>
         </div>

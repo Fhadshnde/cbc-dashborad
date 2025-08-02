@@ -270,7 +270,7 @@ const EmployeeReports = () => {
             <tbody>
               {reports.map((report) => (
                 <tr key={report._id} className="border-t hover:bg-gray-50">
-                  <td className="py-2 px-4">{report.name_ar || 'غير متوفر'}</td>
+                  <td className="py-2 px-4">{report.name_en || 'غير متوفر'}</td>
                   <td className="py-2 px-4">{report.phoneNumber || 'غير متوفر'}</td>
                   <td className="py-2 px-4">{getPaidAmount(report).toLocaleString('en-US')}</td>
                   <td className="py-2 px-4">{getRemainingAmount(report).toLocaleString('en-US')}</td>
