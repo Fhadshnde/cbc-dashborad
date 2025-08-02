@@ -208,7 +208,6 @@ const AccessPrint = () => {
     data.forEach(report => {
       tableHtml += `
         <tr>
-          <td style="padding: 8px; border: 1px solid #ccc;">${report.name_ar || ""}</td>
           <td style="padding: 8px; border: 1px solid #ccc;">${report.name_en || ""}</td>
           <td style="padding: 8px; border: 1px solid #ccc;">${report.phoneNumber || ""}</td>
           <td style="padding: 8px; border: 1px solid #ccc;">${report.admin || ""}</td>
@@ -289,7 +288,7 @@ const AccessPrint = () => {
         <table className="w-full text-sm text-right border-collapse min-w-[1000px]">
           <thead className="bg-gray-100 text-gray-600 font-bold">
             <tr>
-              <th className="px-4 py-3">اسم الزبون</th>
+              {/* <th className="px-4 py-3">اسم الزبون</th> */}
               <th className="px-4 py-3">الاسم بالإنجليزية</th>
               <th className="px-4 py-3">رقم الهاتف</th>
               <th className="px-4 py-3">اسم المندوب</th>
@@ -304,7 +303,7 @@ const AccessPrint = () => {
             {currentReports.length > 0 ? (
               currentReports.map((report) => (
                 <tr key={report._id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-3">{report.name_ar}</td>
+                  {/* <td className="px-4 py-3">{report.name_ar}</td> */}
                   <td className="px-4 py-3">{report.name_en}</td>
                   <td className="px-4 py-3">{report.phoneNumber}</td>
                   <td className="px-4 py-3">{report.admin}</td>
