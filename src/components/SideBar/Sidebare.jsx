@@ -12,7 +12,9 @@ const SALES_ITEMS = [
   { icon: FaFileInvoiceDollar, href: "/summary-reports", text: 'ملخص تقارير المبيعات' },
   { icon: FaFileInvoiceDollar, href: "/accessreports/print", text: 'قسم الطباعة' },
   { icon: FaFileInvoiceDollar, href: "/management", text: 'إدارة المستخدمين' },
-  { icon: FaFileInvoiceDollar, href: "/supervisor", text: 'قسم الذاتية' },
+  // { icon: FaFileInvoiceDollar, href: "/supervisor", text: 'قسم الذاتية' },
+  { icon: FaFileInvoiceDollar, href: "/record", text: 'أرشيف الفواتير المجددة' },
+  { icon: FaFileInvoiceDollar, href: "/expired-reports", text: 'الفواتير المنتهية' },
   
 
 ];

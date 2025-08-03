@@ -52,7 +52,8 @@ import AdminPage from "./pages/AdminPage";
 import ProfileRequestsPage from "./components/Profile/ProfileRequestsPage";
 import DocumentRequestsPage from "./components/Profile/DocumentRequestsPage";
 import CourseRequestsPage from "./components/Profile/CourseRequestsPage";
-
+import Record from "./components/Record/Record";
+import ExpiredReports from "./components/ExpiredReports/ExpiredReports";
 // لا يوجد تغيير في ProtectedLayout
 const ProtectedLayout = ({ setIsAuthenticated }) => {
   return (
@@ -93,6 +94,7 @@ const ProtectedLayout = ({ setIsAuthenticated }) => {
             path="/followupsurveys/:id/edit"
             element={<FollowUpSurveyEdit />}
           />
+          <Route path="/expired-reports" element={<ExpiredReports />} />
 
           <Route path="/stores" element={<Stores />} />
           <Route path="/surveys" element={<Surveys />} />
@@ -132,6 +134,7 @@ const ProtectedLayout = ({ setIsAuthenticated }) => {
             path="/employees-with-unfinished-surveys"
             element={<EmployeesWithUnfinishedSurveys />}
           />
+          <Route path="/record" element={<Record />} />
 
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/" element={<Home />} />
