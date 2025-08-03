@@ -895,7 +895,12 @@ function calculateRemainingEditTime(createdAt) {
       res.status(500).json({ message: "حدث خطأ في الخادم" });
     }
   }
-  
+const AccessReport = require("../models/AccessReport");
+const User = require("../models/User");
+const axios = require("axios");
+const translate = require("translate");       
+const moment = require("moment");
+        
   module.exports = {
     createAccessReportCtrl,
     getAllAccessReportsCtrl,

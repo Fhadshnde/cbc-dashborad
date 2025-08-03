@@ -69,6 +69,21 @@ const EmployeeReports = () => {
     }
   }, [fetchEmployeeReports, userRole]);
 
+  const handleDeleteReport = async (reportId) => {
+    if (window.confirm("هل أنت متأكد من أنك تريد حذف هذا التقرير؟ سيتم حذف جميع بيانات التجديد المرتبطة به أيضًا.")) {
+      try {
+        setLoading(true);
+        const config = { headers: getAuthHeader() };
+        await axios.delete(`${API_URL}/${reportId}`, config);
+        await fetchEmployeeReports(); // إعادة جلب التقارير بعد الحذف
+        setLoading(false);
+      } catch (err) {
+        setLoading(false);
+        setError("فشل في حذف التقرير: " + (err.response?.data?.message || err.message));
+      }
+    }
+  };
+
   const handlePeriodChange = (period) => {
     setSelectedPeriod(period);
     const now = moment();
@@ -265,6 +280,7 @@ const EmployeeReports = () => {
                 <th className="py-3 px-4 border">بانتظار المراجعة</th>
                 <th className="py-3 px-4 border">تاريخ التقرير</th>
                 <th className="py-3 px-4 border">الحالة</th>
+                {userRole === "supervisor" && <th className="py-3 px-4 border">حذف</th>}
               </tr>
             </thead>
             <tbody>
@@ -301,6 +317,16 @@ const EmployeeReports = () => {
                       <span className="text-gray-500">{report.status}</span>
                     )}
                   </td>
+                  {userRole === "supervisor" && (
+                    <td className="py-2 px-4">
+                      <button
+                        onClick={() => handleDeleteReport(report._id)}
+                        className="bg-red-500 text-white px-3 py-1 rounded-md text-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                      >
+                        حذف
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -317,6 +343,7 @@ const EmployeeReports = () => {
                 <td className="py-3 px-4">{totals.pendingCards}</td>
                 <td className="py-3 px-4">الإجمالي:</td>
                 <td className="py-3 px-4"></td>
+                {userRole === "supervisor" && <td className="py-3 px-4"></td>}
               </tr>
             </tfoot>
           </table>
