@@ -346,7 +346,6 @@ const RenewalArchive = () => {
               <th className="px-4 py-3">تاريخ التجديد</th>
               <th className="px-4 py-3">المجدد بواسطة</th>
               <th className="px-4 py-3">رقم التقرير الأصلي</th>
-              <th className="px-4 py-3">حالة التقرير الأصلي</th>
             </tr>
           </thead>
           <tbody>
@@ -358,7 +357,6 @@ const RenewalArchive = () => {
                   <td className="px-4 py-3">{formatDate(record.renewalDate)}</td>
                   <td className="px-4 py-3">{record.renewedByUserId?.username || "غير متوفر"}</td>
                   <td className="px-4 py-3">{record.originalReportId?.id || "غير متوفر"}</td>
-                  <td className="px-4 py-3">{renderStatus(record.originalReportId?.status)}</td>
                 </tr>
               ))
             ) : (
