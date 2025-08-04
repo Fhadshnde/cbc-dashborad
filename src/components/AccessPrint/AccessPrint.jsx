@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
 const API_URL = "https://hawkama.cbc-api.app/api/reports/all";
@@ -14,6 +14,7 @@ const AccessPrint = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [pdfLibsLoaded, setPdfLibsLoaded] = useState(false);
+  const controllerRef = useRef(null);
 
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
@@ -23,7 +24,12 @@ const AccessPrint = () => {
   const fetchReports = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(API_URL, { headers: getAuthHeader() });
+      if (controllerRef.current) controllerRef.current.abort();
+      controllerRef.current = new AbortController();
+      const response = await axios.get(API_URL, {
+        headers: getAuthHeader(),
+        signal: controllerRef.current.signal,
+      });
       setReports(response.data);
       setFilteredReports(response.data);
       setCurrentPage(1);
@@ -36,15 +42,15 @@ const AccessPrint = () => {
 
   useEffect(() => {
     const loadPdfLibraries = () => {
-      if (typeof window.jspdf !== 'undefined' && typeof window.html2canvas !== 'undefined') {
+      if (typeof window.jspdf !== "undefined" && typeof window.html2canvas !== "undefined") {
         setPdfLibsLoaded(true);
         return;
       }
-      const scriptHtml2Canvas = document.createElement('script');
+      const scriptHtml2Canvas = document.createElement("script");
       scriptHtml2Canvas.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
       scriptHtml2Canvas.async = true;
       scriptHtml2Canvas.onload = () => {
-        const scriptJsPDF = document.createElement('script');
+        const scriptJsPDF = document.createElement("script");
         scriptJsPDF.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
         scriptJsPDF.async = true;
         scriptJsPDF.onload = () => {
@@ -54,24 +60,19 @@ const AccessPrint = () => {
       };
       document.head.appendChild(scriptHtml2Canvas);
     };
-
     loadPdfLibraries();
     fetchReports();
   }, []);
 
   useEffect(() => {
-    handleSearch();
-  }, [startDate, endDate, searchText, reports]);
-
-  const handleSearch = () => {
     let result = reports;
     if (startDate || endDate) {
       result = result.filter((r) => {
         const reportDate = new Date(r.createdAt);
         reportDate.setHours(0, 0, 0, 0);
-        const start = startDate ? new Date(startDate) : null;
+        let start = startDate ? new Date(startDate) : null;
         if (start) start.setHours(0, 0, 0, 0);
-        const end = endDate ? new Date(endDate) : null;
+        let end = endDate ? new Date(endDate) : null;
         if (end) end.setHours(23, 59, 59, 999);
         if (start && reportDate.getTime() < start.getTime()) return false;
         if (end && reportDate.getTime() > end.getTime()) return false;
@@ -83,13 +84,14 @@ const AccessPrint = () => {
       result = result.filter(
         (r) =>
           (r.name_ar && r.name_ar.toLowerCase().includes(search)) ||
+          (r.name_en && r.name_en.toLowerCase().includes(search)) ||
           (r.phoneNumber && r.phoneNumber.toLowerCase().includes(search)) ||
           (r.admin && r.admin.toLowerCase().includes(search))
       );
     }
     setFilteredReports(result);
     setCurrentPage(1);
-  };
+  }, [startDate, endDate, searchText, reports]);
 
   const renderCardCategory = (cat) => {
     if (cat?.oneYear === 1) return "بطاقة سنة واحدة";
@@ -116,58 +118,63 @@ const AccessPrint = () => {
     }
   };
 
-  // عداد الصفحات يعرض أول ٥ صفحات وأخير ٥ صفحات مع ... بينهما
-
   const getPageNumbers = () => {
-    if (totalPages <= 10) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
-
+    if (totalPages <= 10) return Array.from({ length: totalPages }, (_, i) => i + 1);
     const firstPages = [1, 2, 3, 4, 5];
     const lastPages = [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-
-    if (currentPage <= 5) {
-      return [...firstPages, "...", ...lastPages];
-    } else if (currentPage > totalPages - 5) {
-      return [...firstPages, "...", ...lastPages];
-    } else {
-      const middlePages = [currentPage - 1, currentPage, currentPage + 1];
-      return [...firstPages, "...", ...middlePages, "...", ...lastPages];
-    }
+    if (currentPage <= 5) return [...firstPages, "...", ...lastPages];
+    if (currentPage > totalPages - 5) return [...firstPages, "...", ...lastPages];
+    return [...firstPages, "...", currentPage - 1, currentPage, currentPage + 1, "...", ...lastPages];
   };
 
-  const pageNumbers = getPageNumbers();
-
   const exportToExcel = (data, fileName = "PrintReports") => {
-    if (!data || data.length === 0 || typeof window.XLSX === 'undefined') return;
-
+    if (!data || data.length === 0 || typeof window.XLSX === "undefined") return;
     const headers = [
-      "اسم الزبون", "الاسم بالإنجليزية", "رقم الهاتف", "اسم المندوب",
-      "المدفوع", "المتبقي", "فئة البطاقة", "العنوان", "ملاحظات"
+      "رقم البطاقة",
+      "الاسم العربي",
+      "الاسم بالإنجليزية",
+      "رقم الهاتف",
+      "اسم المندوب",
+      "المبلغ المدفوع",
+      "المبلغ المتبقي",
+      "فئة البطاقة",
+      "تاريخ الانتهاء",
+      "العنوان",
+      "الوزارة/القسم",
+      "ملاحظات",
     ];
-
-    const rows = data.map(r => ([
-      r.name_ar,
-      r.name_en,
-      r.phoneNumber,
-      r.admin,
+    const rows = data.map((r) => [
+      r.id || "",
+      r.name_ar || "",
+      r.name_en || "",
+      r.phoneNumber || "",
+      r.admin || "",
       formatNumberWithCommas(r.moneyPaid),
       formatNumberWithCommas(r.moneyRemain),
       renderCardCategory(r.cardCategory),
-      `${r.address || ''} - ${r.ministry || ''}`,
-      r.notes || ''
-    ]));
-
+      r.expire_period || "",
+      r.address || "",
+      r.ministry || "",
+      r.notes || "",
+    ]);
     const ws = window.XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    const wscols = [
-      { wch: 25 }, { wch: 25 }, { wch: 20 }, { wch: 20 },
-      { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 30 }, { wch: 40 }
+    ws["!cols"] = [
+      { wch: 40 },
+      { wch: 30 },
+      { wch: 30 },
+      { wch: 25 },
+      { wch: 25 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 25 },
+      { wch: 25 },
+      { wch: 45 },
+      { wch: 30 },
+      { wch: 60 },
     ];
-    ws['!cols'] = wscols;
-
     const wb = window.XLSX.utils.book_new();
     window.XLSX.utils.book_append_sheet(wb, ws, "PrintReports");
-    const wbout = window.XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const wbout = window.XLSX.write(wb, { bookType: "xlsx", type: "array" });
     const blob = new Blob([wbout], { type: "application/octet-stream" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -177,67 +184,68 @@ const AccessPrint = () => {
 
   const exportToPdf = async (data, fileName = "PrintReports") => {
     if (!data || data.length === 0 || !pdfLibsLoaded) return;
-
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    const tempTable = document.createElement('div');
-    tempTable.style.position = 'absolute';
-    tempTable.style.left = '-9999px';
-    tempTable.style.width = 'fit-content';
-    tempTable.style.whiteSpace = 'nowrap';
-
+    const doc = new jsPDF("l", "mm", "a4");
+    const tempTable = document.createElement("div");
+    tempTable.style.position = "absolute";
+    tempTable.style.left = "-9999px";
+    tempTable.style.width = "fit-content";
+    tempTable.style.whiteSpace = "normal";
     let tableHtml = `
-      <table style="width: auto; border-collapse: collapse; text-align: right; direction: rtl;">
+      <table style="width: auto; border-collapse: collapse; text-align: right; direction: rtl; font-size:12px;">
         <thead>
           <tr>
-            <th style="padding: 8px; border: 1px solid #ccc;">اسم الزبون</th>
-            <th style="padding: 8px; border: 1px solid #ccc;">الاسم بالإنجليزية</th>
-            <th style="padding: 8px; border: 1px solid #ccc;">رقم الهاتف</th>
-            <th style="padding: 8px; border: 1px solid #ccc;">اسم المندوب</th>
-            <th style="padding: 8px; border: 1px solid #ccc;">المدفوع</th>
-            <th style="padding: 8px; border: 1px solid #ccc;">المتبقي</th>
-            <th style="padding: 8px; border: 1px solid #ccc;">فئة البطاقة</th>
-            <th style="padding: 8px; border: 1px solid #ccc;">العنوان</th>
-            <th style="padding: 8px; border: 1px solid #ccc;">ملاحظات</th>
+            <th style="padding: 6px; border: 1px solid #ccc;">رقم البطاقة</th>
+            <th style="padding: 6px; border: 1px solid #ccc;">الاسم العربي</th>
+            <th style="padding: 6px; border: 1px solid #ccc;">الاسم بالإنجليزية</th>
+            <th style="padding: 6px; border: 1px solid #ccc;">رقم الهاتف</th>
+            <th style="padding: 6px; border: 1px solid #ccc;">اسم المندوب</th>
+            <th style="padding: 6px; border: 1px solid #ccc;">المبلغ المدفوع</th>
+            <th style="padding: 6px; border: 1px solid #ccc;">المبلغ المتبقي</th>
+            <th style="padding: 6px; border: 1px solid #ccc;">فئة البطاقة</th>
+            <th style="padding: 6px; border: 1px solid #ccc;">تاريخ الانتهاء</th>
+            <th style="padding: 6px; border: 1px solid #ccc;">العنوان</th>
+            <th style="padding: 6px; border: 1px solid #ccc;">الوزارة/القسم</th>
+            <th style="padding: 6px; border: 1px solid #ccc;">ملاحظات</th>
           </tr>
         </thead>
         <tbody>
     `;
-
-    data.forEach(report => {
+    data.forEach((report) => {
       tableHtml += `
         <tr>
-          <td style="padding: 8px; border: 1px solid #ccc;">${report.name_en || ""}</td>
-          <td style="padding: 8px; border: 1px solid #ccc;">${report.phoneNumber || ""}</td>
-          <td style="padding: 8px; border: 1px solid #ccc;">${report.admin || ""}</td>
-          <td style="padding: 8px; border: 1px solid #ccc;">${formatNumberWithCommas(report.moneyPaid)}</td>
-          <td style="padding: 8px; border: 1px solid #ccc;">${formatNumberWithCommas(report.moneyRemain)}</td>
-          <td style="padding: 8px; border: 1px solid #ccc;">${renderCardCategory(report.cardCategory)}</td>
-          <td style="padding: 8px; border: 1px solid #ccc;">${report.address || ""} - ${report.ministry || ""}</td>
-          <td style="padding: 8px; border: 1px solid #ccc; max-width: 300px; white-space: pre-wrap;">${report.notes || ""}</td>
+          <td style="padding: 6px; border: 1px solid #ccc;">${report.id || ""}</td>
+          <td style="padding: 6px; border: 1px solid #ccc;">${report.name_ar || ""}</td>
+          <td style="padding: 6px; border: 1px solid #ccc;">${report.name_en || ""}</td>
+          <td style="padding: 6px; border: 1px solid #ccc;">${report.phoneNumber || ""}</td>
+          <td style="padding: 6px; border: 1px solid #ccc;">${report.admin || ""}</td>
+          <td style="padding: 6px; border: 1px solid #ccc;">${formatNumberWithCommas(report.moneyPaid)}</td>
+          <td style="padding: 6px; border: 1px solid #ccc;">${formatNumberWithCommas(report.moneyRemain)}</td>
+          <td style="padding: 6px; border: 1px solid #ccc;">${renderCardCategory(report.cardCategory)}</td>
+          <td style="padding: 6px; border: 1px solid #ccc;">${report.expire_period || ""}</td>
+          <td style="padding: 6px; border: 1px solid #ccc;">${report.address || ""}</td>
+          <td style="padding: 6px; border: 1px solid #ccc;">${report.ministry || ""}</td>
+          <td style="padding: 6px; border: 1px solid #ccc;">${report.notes || ""}</td>
         </tr>
       `;
     });
-
     tableHtml += `</tbody></table>`;
     tempTable.innerHTML = tableHtml;
     document.body.appendChild(tempTable);
-
     try {
       const canvas = await window.html2canvas(tempTable, { scale: 2, useCORS: true });
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 190;
+      const imgData = canvas.toDataURL("image/png");
+      const imgWidth = 280;
       const pageHeight = doc.internal.pageSize.getHeight();
-      const imgHeight = canvas.height * imgWidth / canvas.width;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
       let heightLeft = imgHeight;
       let position = 10;
-      doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+      doc.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
       while (heightLeft >= 0) {
         position = heightLeft - imgHeight + 10;
         doc.addPage();
-        doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+        doc.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
       doc.save(`${fileName}.pdf`);
@@ -264,17 +272,16 @@ const AccessPrint = () => {
           <label className="text-sm mb-1">ماذا تبحث عن؟</label>
           <input type="text" value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder="الاسم أو رقم الهاتف أو اسم الموظفة" className="border px-3 py-2 rounded w-full" />
         </div>
-        <button onClick={handleSearch} className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition h-[42px] mt-auto">تصفية</button>
-
+        <button onClick={() => setCurrentPage(1)} className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition h-[42px]">تصفية</button>
         <div className="relative">
-          <button onClick={() => setShowExportOptions(!showExportOptions)} className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-green-700 transition h-[42px] mt-auto flex items-center justify-center">
+          <button onClick={() => setShowExportOptions(!showExportOptions)} className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-green-700 transition h-[42px] flex items-center">
             تصدير
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 transform rotate-90" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
           </button>
           {showExportOptions && (
-            <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-10 text-sm">
+            <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded shadow-lg z-10 text-sm">
               <button onClick={() => { exportToExcel(filteredReports, "تقارير-الطباعة-الكل"); setShowExportOptions(false); }} className="block w-full text-right px-4 py-2 hover:bg-gray-100">تصدير الكل (Excel)</button>
               <button onClick={() => { exportToExcel(currentReports, "تقارير-الطباعة-الصفحة-الحالية"); setShowExportOptions(false); }} className="block w-full text-right px-4 py-2 hover:bg-gray-100">تصدير الصفحة الحالية (Excel)</button>
               <button onClick={() => { exportToPdf(filteredReports, "تقارير-الطباعة-الكل"); setShowExportOptions(false); }} className="block w-full text-right px-4 py-2 hover:bg-gray-100">تصدير الكل (PDF)</button>
@@ -288,13 +295,14 @@ const AccessPrint = () => {
         <table className="w-full text-sm text-right border-collapse min-w-[1000px]">
           <thead className="bg-gray-100 text-gray-600 font-bold">
             <tr>
-              {/* <th className="px-4 py-3">اسم الزبون</th> */}
+              <th className="px-4 py-3">رقم البطاقة</th>
               <th className="px-4 py-3">الاسم بالإنجليزية</th>
               <th className="px-4 py-3">رقم الهاتف</th>
               <th className="px-4 py-3">اسم المندوب</th>
               <th className="px-4 py-3">المبلغ المدفوع</th>
               <th className="px-4 py-3">المبلغ المتبقي</th>
               <th className="px-4 py-3">فئة البطاقة</th>
+              <th className="px-4 py-3">تاريخ الانتهاء</th>
               <th className="px-4 py-3">العنوان</th>
               <th className="px-4 py-3">ملاحظات</th>
             </tr>
@@ -303,20 +311,21 @@ const AccessPrint = () => {
             {currentReports.length > 0 ? (
               currentReports.map((report) => (
                 <tr key={report._id} className="border-t hover:bg-gray-50">
-                  {/* <td className="px-4 py-3">{report.name_ar}</td> */}
+                  <td className="px-4 py-3">{report.id}</td>
                   <td className="px-4 py-3">{report.name_en}</td>
                   <td className="px-4 py-3">{report.phoneNumber}</td>
                   <td className="px-4 py-3">{report.admin}</td>
                   <td className="px-4 py-3">{formatNumberWithCommas(report.moneyPaid)}</td>
                   <td className="px-4 py-3">{formatNumberWithCommas(report.moneyRemain)}</td>
                   <td className="px-4 py-3">{renderCardCategory(report.cardCategory)}</td>
+                  <td className="px-4 py-3">{report.expire_period}</td>
                   <td className="px-4 py-3">{report.address} - {report.ministry}</td>
                   <td className="px-4 py-3">{report.notes}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="9" className="px-4 py-4 text-center text-gray-500">لا توجد بيانات</td>
+                <td colSpan="10" className="px-4 py-4 text-center text-gray-500">لا توجد بيانات</td>
               </tr>
             )}
           </tbody>
@@ -331,8 +340,7 @@ const AccessPrint = () => {
           >
             السابق
           </button>
-
-          {pageNumbers.map((num, idx) =>
+          {getPageNumbers().map((num, idx) =>
             num === "..." ? (
               <span key={"ellipsis-" + idx} className="px-3 py-2 select-none">...</span>
             ) : (
@@ -345,7 +353,6 @@ const AccessPrint = () => {
               </button>
             )
           )}
-
           <button
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage === totalPages}

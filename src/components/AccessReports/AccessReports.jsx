@@ -102,7 +102,7 @@ const AccessReports = () => {
         const response =
           userRole === "admin"
             ? await axios.get(`${API_URL}/by-admin/${currentUsername}`, headers)
-            : await axios.get(`${API_URL}`, headers);
+            : await axios.get(`${API_URL}/all`, headers);
         const allReports = response.data;
         setReports(allReports);
         setFilteredReports(allReports);
