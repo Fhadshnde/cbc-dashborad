@@ -726,7 +726,7 @@ className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-o
 </td>
 <td className="px-4 py-3">{report.date || "غير متوفر"}</td>
 <td className="px-4 py-3">{report.admin}</td>
-<td className="px-4 py-3">{report.id}</td>
+<td className="px-4 py-3">{report.idOfcbc}</td>
 <td className="px-4 py-3">{renderStatus(report.status)}</td>
 </tr>
 ))

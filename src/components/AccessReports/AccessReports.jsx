@@ -99,10 +99,7 @@ const AccessReports = () => {
       setError(null);
       try {
         const headers = { headers: getAuthHeader() };
-        const response =
-          userRole === "admin"
-            ? await axios.get(`${API_URL}/by-admin/${currentUsername}`, headers)
-            : await axios.get(`${API_URL}/all`, headers);
+        const response =await axios.get(`${API_URL}/all`, headers);
         const allReports = response.data;
         setReports(allReports);
         setFilteredReports(allReports);

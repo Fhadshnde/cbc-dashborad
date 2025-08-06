@@ -305,6 +305,7 @@ const AccessPrint = () => {
               <th className="px-4 py-3">تاريخ الانتهاء</th>
               <th className="px-4 py-3">العنوان</th>
               <th className="px-4 py-3">ملاحظات</th>
+              <th className="px-4 py-3"> رقم البطاقة</th>
             </tr>
           </thead>
           <tbody>
@@ -321,6 +322,8 @@ const AccessPrint = () => {
                   <td className="px-4 py-3">{report.expire_period}</td>
                   <td className="px-4 py-3">{report.address} - {report.ministry}</td>
                   <td className="px-4 py-3">{report.notes}</td>
+                  <td className="px-4 py-3">{report.idOfcbc}</td>
+
                 </tr>
               ))
             ) : (

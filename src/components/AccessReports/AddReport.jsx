@@ -6,6 +6,7 @@ const API_URL = "https://hawkama.cbc-api.app/api/reports";
 
 const AddReportForm = () => {
   const [formData, setFormData] = useState({
+    name_ar: "",
     name_en: "",
     phoneNumber: "",
     quantity: "",
