@@ -312,7 +312,7 @@ const AccessPrint = () => {
             {currentReports.length > 0 ? (
               currentReports.map((report) => (
                 <tr key={report._id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-3">{report.id}</td>
+                  <td className="px-4 py-3">{report.idOfcbc}</td>
                   <td className="px-4 py-3">{report.name_en}</td>
                   <td className="px-4 py-3">{report.phoneNumber}</td>
                   <td className="px-4 py-3">{report.admin}</td>
