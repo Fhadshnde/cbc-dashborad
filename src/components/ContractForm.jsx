@@ -241,7 +241,7 @@ const ContractForm = () => {
 
       {!isEditable && !isCreateMode && (
         <p className="mb-4 text-gray-500 italic">
-          لا يمكن تعديل هذا العقد لأنه تم إنهاؤه أو لا تملك الصلاحيات.
+          لا يمكن تعديل هذا العقد لأنه تم إنهاؤه أو لا تملك الصلاحيات. kwdch رناث ني٨ضعي
         </p>
       )}
 

@@ -214,7 +214,7 @@ const AccessPrint = () => {
     data.forEach((report) => {
       tableHtml += `
         <tr>
-          <td style="padding: 6px; border: 1px solid #ccc;">${report.id || ""}</td>
+          <td style="padding: 6px; border: 1px solid #ccc;">${report.idOfcbc || ""}</td>
           <td style="padding: 6px; border: 1px solid #ccc;">${report.name_ar || ""}</td>
           <td style="padding: 6px; border: 1px solid #ccc;">${report.name_en || ""}</td>
           <td style="padding: 6px; border: 1px solid #ccc;">${report.phoneNumber || ""}</td>
