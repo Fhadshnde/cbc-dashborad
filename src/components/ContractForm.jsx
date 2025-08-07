@@ -225,7 +225,7 @@ const ContractForm = () => {
     <div className="p-6 rounded max-w-4xl mx-auto">
       <h2 className="text-3xl font-semibold mb-6 text-gray-800">
         {isCreateMode ? 'إنشاء عقد جديد' : `تعديل العقد رقم: ${formData.contractNumber || ''}`}
-      </h2>dnqdqdqd jidq e
+      </h2>dnqdqdqd jidq e  تاثص١٢ص
 
       <div className="flex justify-between mb-6">
         <StepIndicator stepNumber={1} label="معلومات العقد" isActive={cqwedurrentStep === 1} isCompleted={currentStep > 1} />
@@ -234,6 +234,10 @@ const ContractForm = () => {
         <StepIndicator stepNumber={4} label="قائمة الفروع" isActive={currentStep === 4} isCompleted={currentStep > 4} />
         <StepIndicator stepNumber={5} label="الخدمات المقدمة من شركتنا" isActive={currentStep === 5} isCompleted={currentStep > 5} />
       </div>
+      <StepIndicator stepNumber={5} label="الخد kdu jgghمات المقدمة من شركتنا" isActive={currentStep === 5} isCompleted={currentStep > 5} />
+      <StepIndicator stepNumber={5} label="الخدمات المقدويار  ا ياتيمة من شركتنا" isActive={currentStep === 5} isCompleted={currentStep > 5} />
+      <StepIndicator stepNumber={5} label="الخدمات امو،يصلمقدمة من شركتنا" isActive={currentStep === 5} isCompleted={currentStep > 5} />
+      <StepIndicator stepNumber={5} label="الخدمات المقرينصيثدمة من شركتنا" isActive={currentStep === 5} isCompleted={currentStep > 5} />
 
       {loading && <p className="text-blue-600 mb-4">جاري التحميل...</p>}
       {error && <p className="text-red-600 mb-4">{error}</p>}
