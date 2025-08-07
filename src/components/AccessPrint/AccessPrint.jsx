@@ -144,7 +144,7 @@ const AccessPrint = () => {
       "ملاحظات",
     ];
     const rows = data.map((r) => [
-      r.id || "",
+      r.idOfcbc || "",
       r.name_ar || "",
       r.name_en || "",
       r.phoneNumber || "",
