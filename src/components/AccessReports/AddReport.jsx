@@ -172,12 +172,18 @@ const AddReportForm = () => {
     else if (formData.cardCategory.twoYears === 1) card_id = "2";
     else if (formData.cardCategory.virtual === 1) card_id = "7";
 
+    const adjustedMoneyPaid =
+      formData.moneyPaid.length <= 2 ? String(Number(formData.moneyPaid) * 1000) : formData.moneyPaid;
+
+    const adjustedMoneyRemain =
+      formData.moneyRemain.length <= 2 ? String(Number(formData.moneyRemain) * 1000) : formData.moneyRemain;
+
     const fullData = {
       ...formData,
       card_id,
       quantity: Number(formData.quantity) || 0,
-      moneyPaid: String(formData.moneyPaid),
-      moneyRemain: String(formData.moneyRemain),
+      moneyPaid: adjustedMoneyPaid,
+      moneyRemain: adjustedMoneyRemain,
     };
 
     try {

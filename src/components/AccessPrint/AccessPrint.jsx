@@ -132,7 +132,7 @@ const AccessPrint = () => {
     const headers = [
       "رقم البطاقة",
       "الاسم العربي",
-      "الاسم بالإنجليزية",
+      "الاسم بالإنجليزية", // This header remains the same
       "رقم الهاتف",
       "اسم المندوب",
       "المبلغ المدفوع",
@@ -146,7 +146,7 @@ const AccessPrint = () => {
     const rows = data.map((r) => [
       r.idOfcbc || "",
       r.name_ar || "",
-      r.name_en || "",
+      (r.name_en && r.name_en.toUpperCase()) || "", // This is the line to change
       r.phoneNumber || "",
       r.admin || "",
       formatNumberWithCommas(r.moneyPaid),
