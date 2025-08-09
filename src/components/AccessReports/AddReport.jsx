@@ -33,7 +33,7 @@ const AddReportForm = () => {
   const [usersError, setUsersError] = useState("");
 
   const [regions, setRegions] = useState([]);
-  const [governorate, setGovernorate] = useState("");
+  const [selectedAdminGovernorate, setSelectedAdminGovernorate] = useState("");
   const [loadingRegions, setLoadingRegions] = useState(false);
   const [regionsError, setRegionsError] = useState("");
 
@@ -41,7 +41,7 @@ const AddReportForm = () => {
     oneYear: 45000,
     twoYears: 65000,
     virtual: 30000,
-    temporarycard: '', // هنا تم جعل القيمة فارغة
+    temporarycard: "",
   });
   const [loadingPrices, setLoadingPrices] = useState(false);
   const [pricesError, setPricesError] = useState("");
@@ -59,7 +59,9 @@ const AddReportForm = () => {
         const response = await axios.get(`${API_URL_USERS}/usernames-data`, { headers });
         setUsers(response.data);
         if (response.data.length > 0 && !formData.admin) {
-          setFormData((prev) => ({ ...prev, admin: response.data[0].username }));
+          const defaultAdmin = response.data[0];
+          setFormData((prev) => ({ ...prev, admin: defaultAdmin.username }));
+          setSelectedAdminGovernorate(defaultAdmin.governorate);
         }
       } catch (error) {
         setUsersError("فشل في جلب المستخدمين: " + (error.response?.data?.message || error.message));
@@ -79,16 +81,15 @@ const AddReportForm = () => {
       try {
         const userData = JSON.parse(storedUserData);
         const username = userData?.username || "غير معروف";
-        const userGovernorate = userData?.governorate || "";
         setFormData((prev) => ({ ...prev, admin: username }));
-        setGovernorate(userGovernorate);
+        setSelectedAdminGovernorate(userData?.governorate || "");
       } catch (e) {
         setFormData((prev) => ({ ...prev, admin: "غير معروف" }));
-        setGovernorate("");
+        setSelectedAdminGovernorate("");
       }
     } else {
       setFormData((prev) => ({ ...prev, admin: "غير معروف" }));
-      setGovernorate("");
+      setSelectedAdminGovernorate("");
     }
   }, []);
 
@@ -100,7 +101,7 @@ const AddReportForm = () => {
         navigate("/login");
         return;
       }
-      if (!governorate) {
+      if (!selectedAdminGovernorate) {
         setRegions([]);
         return;
       }
@@ -108,7 +109,7 @@ const AddReportForm = () => {
       setRegionsError("");
       try {
         const headers = { Authorization: `Bearer ${token}` };
-        const response = await axios.get(`${API_URL_REPORTS}/regions/my-governorate`, { headers });
+        const response = await axios.get(`${API_URL_REPORTS}/regions?governorate=${selectedAdminGovernorate}`, { headers });
         setRegions(response.data.regions);
       } catch (error) {
         setRegions([]);
@@ -122,7 +123,7 @@ const AddReportForm = () => {
       }
     };
     fetchRegions();
-  }, [governorate, navigate]);
+  }, [selectedAdminGovernorate, navigate]);
 
   useEffect(() => {
     const fetchPrices = async () => {
@@ -181,6 +182,15 @@ const AddReportForm = () => {
         ...prev,
         [name]: checked,
       }));
+    } else if (name === "admin") {
+      const selectedUser = users.find((user) => user.username === value);
+      if (selectedUser) {
+        setSelectedAdminGovernorate(selectedUser.governorate);
+        setFormData((prev) => ({ ...prev, [name]: value, region: "" }));
+      } else {
+        setSelectedAdminGovernorate("");
+        setFormData((prev) => ({ ...prev, [name]: value, region: "" }));
+      }
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -206,6 +216,7 @@ const AddReportForm = () => {
       quantity: Number(formData.quantity) || 0,
       moneyPaid: adjustedMoneyPaid,
       moneyRemain: adjustedMoneyRemain,
+      governorate: selectedAdminGovernorate,
     };
     try {
       const headers = { headers: getAuthHeader() };
@@ -227,7 +238,7 @@ const AddReportForm = () => {
     <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-lg mt-10 font-sans text-right">
       <h2 className="text-2xl font-bold mb-6 text-gray-700">إضافة فاتورة جديدة</h2>
       <p className="mb-4 text-gray-600 text-sm">
-        المحافظة: <strong>{governorate || "غير محددة"}</strong>
+        المحافظة: <strong>{selectedAdminGovernorate || "غير محددة"}</strong>
       </p>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div>
@@ -329,7 +340,7 @@ const AddReportForm = () => {
           >
             <option value="">اختر موظف</option>
             {users.map((user) => (
-              <option key={user.username} value={user.username}>
+              <option key={user._id || user.username} value={user.username}>
                 {user.username}
               </option>
             ))}
@@ -345,7 +356,7 @@ const AddReportForm = () => {
             onChange={handleChange}
             className="w-full border rounded px-4 py-2"
             required
-            disabled={loadingRegions || regions.length === 0 || !governorate}
+            disabled={loadingRegions || regions.length === 0 || !selectedAdminGovernorate}
           >
             <option value="">اختر منطقة</option>
             {regions.map((reg) => (
@@ -356,11 +367,11 @@ const AddReportForm = () => {
           </select>
           {loadingRegions && <p className="text-gray-500 text-sm mt-1">جاري جلب المناطق...</p>}
           {regionsError && <p className="text-red-500 text-sm mt-1">{regionsError}</p>}
-          {!governorate && !loadingRegions && !regionsError && (
+          {!selectedAdminGovernorate && !loadingRegions && !regionsError && (
             <p className="text-gray-500 text-sm mt-1">المحافظة غير محددة بعد، أو توكن المصادقة مفقود.</p>
           )}
-          {governorate && !loadingRegions && regions.length === 0 && !regionsError && (
-            <p className="text-red-500 text-sm mt-1">لا توجد مناطق متاحة لمحافظتك {governorate}.</p>
+          {selectedAdminGovernorate && !loadingRegions && regions.length === 0 && !regionsError && (
+            <p className="text-red-500 text-sm mt-1">لا توجد مناطق متاحة لمحافظة {selectedAdminGovernorate}.</p>
           )}
         </div>
         <div className="sm:col-span-2">
@@ -411,7 +422,7 @@ const AddReportForm = () => {
                 checked={formData.cardCategory.temporarycard === 1}
                 className="text-teal-600"
               />
-              <span>بطاقة تجديد مؤقتة - {specialPrices.temporarycard.toLocaleString()} د.ع</span>
+              <span>بطاقة مؤقتة - {specialPrices.temporarycard.toLocaleString()} د.ع</span>
             </label>
           </div>
         </div>
@@ -427,4 +438,5 @@ const AddReportForm = () => {
     </div>
   );
 };
+
 export default AddReportForm;

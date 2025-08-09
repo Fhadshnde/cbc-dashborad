@@ -112,6 +112,10 @@ const AccessPrint = () => {
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentReports = filteredReports.slice(startIndex, endIndex);
 
+  // حساب المجموع للصفحة الحالية فقط
+  const totalMoneyPaid = currentReports.reduce((sum, r) => sum + (Number(r.moneyPaid) || 0), 0);
+  const totalMoneyRemain = currentReports.reduce((sum, r) => sum + (Number(r.moneyRemain) || 0), 0);
+
   const goToPage = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
@@ -132,7 +136,7 @@ const AccessPrint = () => {
     const headers = [
       "رقم البطاقة",
       "الاسم العربي",
-      "الاسم بالإنجليزية", // This header remains the same
+      "الاسم بالإنجليزية",
       "رقم الهاتف",
       "اسم المندوب",
       "المبلغ المدفوع",
@@ -146,7 +150,7 @@ const AccessPrint = () => {
     const rows = data.map((r) => [
       r.idOfcbc || "",
       r.name_ar || "",
-      (r.name_en && r.name_en.toUpperCase()) || "", // This is the line to change
+      (r.name_en && r.name_en.toUpperCase()) || "",
       r.phoneNumber || "",
       r.admin || "",
       formatNumberWithCommas(r.moneyPaid),
@@ -304,62 +308,68 @@ const AccessPrint = () => {
               <th className="px-4 py-3">فئة البطاقة</th>
               <th className="px-4 py-3">تاريخ الانتهاء</th>
               <th className="px-4 py-3">العنوان</th>
+              <th className="px-4 py-3">الوزارة/القسم</th>
               <th className="px-4 py-3">ملاحظات</th>
-              <th className="px-4 py-3"> رقم البطاقة</th>
             </tr>
           </thead>
           <tbody>
-            {currentReports.length > 0 ? (
-              currentReports.map((report) => (
-                <tr key={report._id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-3">{report.idOfcbc}</td>
-                  <td className="px-4 py-3">{report.name_en}</td>
-                  <td className="px-4 py-3">{report.phoneNumber}</td>
-                  <td className="px-4 py-3">{report.admin}</td>
-                  <td className="px-4 py-3">{formatNumberWithCommas(report.moneyPaid)}</td>
-                  <td className="px-4 py-3">{formatNumberWithCommas(report.moneyRemain)}</td>
-                  <td className="px-4 py-3">{renderCardCategory(report.cardCategory)}</td>
-                  <td className="px-4 py-3">{report.expire_period}</td>
-                  <td className="px-4 py-3">{report.address} - {report.ministry}</td>
-                  <td className="px-4 py-3">{report.notes}</td>
-                  <td className="px-4 py-3">{report.idOfcbc}</td>
-
-                </tr>
-              ))
-            ) : (
+            {currentReports.length === 0 && (
               <tr>
-                <td colSpan="10" className="px-4 py-4 text-center text-gray-500">لا توجد بيانات</td>
+                <td colSpan="11" className="text-center py-4 text-gray-500">لا توجد بيانات للعرض</td>
               </tr>
             )}
+            {currentReports.map((report) => (
+              <tr key={report._id} className="border-b border-gray-200 hover:bg-gray-50">
+                <td className="px-4 py-2">{report.idOfcbc}</td>
+                <td className="px-4 py-2">{report.name_en ? report.name_en.toUpperCase() : ""}</td>
+                <td className="px-4 py-2">{report.phoneNumber}</td>
+                <td className="px-4 py-2">{report.admin}</td>
+                <td className="px-4 py-2">{formatNumberWithCommas(report.moneyPaid)}</td>
+                <td className="px-4 py-2">{formatNumberWithCommas(report.moneyRemain)}</td>
+                <td className="px-4 py-2">{renderCardCategory(report.cardCategory)}</td>
+                <td className="px-4 py-2">{report.expire_period}</td>
+                <td className="px-4 py-2">{report.address}</td>
+                <td className="px-4 py-2">{report.ministry}</td>
+                <td className="px-4 py-2">{report.notes}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
+
+      {/* عرض المجموع أسفل الجدول */}
+      <div className="mt-2 bg-gray-100 p-3 rounded text-right font-semibold text-lg">
+        <span className="ml-6">إجمالي المبلغ المدفوع: {formatNumberWithCommas(totalMoneyPaid)}</span>
+        <span>إجمالي المبلغ المتبقي: {formatNumberWithCommas(totalMoneyRemain)}</span>
+      </div>
+
+      {/* الترقيم والانتقال بين الصفحات */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-4">
+        <div className="flex justify-center items-center gap-2 mt-4 flex-wrap">
           <button
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`px-3 py-1 rounded border ${currentPage === 1 ? "text-gray-400 border-gray-300" : "hover:bg-gray-200 cursor-pointer"}`}
           >
             السابق
           </button>
-          {getPageNumbers().map((num, idx) =>
-            num === "..." ? (
-              <span key={"ellipsis-" + idx} className="px-3 py-2 select-none">...</span>
+          {getPageNumbers().map((page, idx) =>
+            page === "..." ? (
+              <span key={`dots-${idx}`} className="px-3 py-1">...</span>
             ) : (
               <button
-                key={num}
-                onClick={() => goToPage(num)}
-                className={`px-4 py-2 rounded ${currentPage === num ? "bg-teal-700 text-white" : "bg-gray-200 text-gray-800 hover:bg-gray-300"}`}
+                key={page}
+                onClick={() => goToPage(page)}
+                className={`px-3 py-1 rounded border ${currentPage === page ? "bg-teal-600 text-white border-teal-600" : "hover:bg-gray-200 cursor-pointer"}`}
               >
-                {num}
+                {page}
               </button>
             )
           )}
           <button
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`px-3 py-1 rounded border ${currentPage === totalPages ? "text-gray-400 border-gray-300" : "hover:bg-gray-200 cursor-pointer"}`}
           >
             التالي
           </button>
