@@ -70,11 +70,8 @@ const NewBills = () => {
     try {
       const headers = getAuthHeader();
       if (!headers) return;
-
       const response = await axios.get(API_URL, { headers });
-      
       const sortedReports = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      
       const mappedBills = sortedReports.map(report => ({
         code: report._id.slice(-6),
         status: getStatusText(report.status),
@@ -111,27 +108,22 @@ const NewBills = () => {
       "
     >
       <h2 className="text-lg font-bold text-center mb-6">الفواتير المضافة حديثاً</h2>
-      
       {loading && <div className="text-center text-gray-600 py-4">جاري تحميل الفواتير...</div>}
       {error && <div className="text-center text-red-600 py-4">{error}</div>}
-
       {!loading && !error && latestBills.length === 0 && (
         <div className="text-center text-gray-500 py-4">لا توجد فواتير مضافة حديثاً.</div>
       )}
-
-      <div className="flex flex-col gap-4 px-2">
+      <div className="flex flex-col gap-4 px-2 max-h-[350px] overflow-y-auto [@media(min-width:601px)]:max-h-none">
         {!loading && !error && latestBills.map((bill, index) => (
           <div key={index} className="flex items-start gap-3">
             <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full bg-gray-100">
               <FaBell className="text-gray-400 text-lg" />
             </div>
-
             <div className="flex flex-col text-right flex-1">
               <span className="text-sm font-semibold text-gray-700">{bill.status}</span>
               <span className="text-sm text-gray-500">تمت إضافة فاتورة جديدة بواسطة {bill.adminName}</span>
               <span className="text-xs text-gray-400">{bill.time}</span>
             </div>
-
             <div className="flex flex-col items-end flex-shrink-0">
               <div className="flex items-center">
                 <span
