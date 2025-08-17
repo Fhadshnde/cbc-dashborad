@@ -87,6 +87,7 @@ const AccessPrint = () => {
           (r.name_en && r.name_en.toLowerCase().includes(search)) ||
           (r.phoneNumber && r.phoneNumber.toLowerCase().includes(search)) ||
           (r.admin && r.admin.toLowerCase().includes(search))
+          || (r.idOfcbc && r.idOfcbc.toLowerCase().includes(search))
       );
     }
     setFilteredReports(result);
@@ -144,8 +145,10 @@ const AccessPrint = () => {
       "فئة البطاقة",
       "تاريخ الانتهاء",
       "العنوان",
+      "المنطقة",
       "الوزارة/القسم",
       "ملاحظات",
+      "على الراتب"
     ];
     const rows = data.map((r) => [
       r.idOfcbc || "",
@@ -158,8 +161,10 @@ const AccessPrint = () => {
       renderCardCategory(r.cardCategory),
       r.expire_period || "",
       r.address || "",
+      r.region || "",
       r.ministry || "",
       r.notes || "",
+      r.onPayroll ? "نعم" : "لا"
     ]);
     const ws = window.XLSX.utils.aoa_to_sheet([headers, ...rows]);
     ws["!cols"] = [
@@ -308,8 +313,10 @@ const AccessPrint = () => {
               <th className="px-4 py-3">فئة البطاقة</th>
               <th className="px-4 py-3">تاريخ الانتهاء</th>
               <th className="px-4 py-3">العنوان</th>
+              <th className="px-4 py-3">المنطقة</th>
               <th className="px-4 py-3">الوزارة/القسم</th>
               <th className="px-4 py-3">ملاحظات</th>
+              <th className="px-4 py-3">على الراتب</th>
             </tr>
           </thead>
           <tbody>
@@ -329,8 +336,10 @@ const AccessPrint = () => {
                 <td className="px-4 py-2">{renderCardCategory(report.cardCategory)}</td>
                 <td className="px-4 py-2">{report.expire_period}</td>
                 <td className="px-4 py-2">{report.address}</td>
+                <td className="px-4 py-2">{report.region}</td>
                 <td className="px-4 py-2">{report.ministry}</td>
                 <td className="px-4 py-2">{report.notes}</td>
+                <td className="px-4 py-2">{report.onPayroll ? "نعم" : "لا"}</td>
               </tr>
             ))}
           </tbody>

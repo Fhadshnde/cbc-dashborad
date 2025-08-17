@@ -241,6 +241,16 @@ const AddReportForm = () => {
         المحافظة: <strong>{selectedAdminGovernorate || "غير محددة"}</strong>
       </p>
       <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div>
+          <label className="block mb-1 text-gray-600">الاسم بالعربي</label>
+          <input
+            name="name_ar"
+            value={formData.name_ar}
+            onChange={handleChange}
+            className="w-full border rounded px-4 py-2"
+            required
+          />
+        </div>
         <div>
           <label className="block mb-1 text-gray-600">الاسم بالإنجليزي</label>
           <input
