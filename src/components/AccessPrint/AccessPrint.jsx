@@ -117,6 +117,8 @@ const AccessPrint = () => {
   const totalMoneyPaid = currentReports.reduce((sum, r) => sum + (Number(r.moneyPaid) || 0), 0);
   const totalMoneyRemain = currentReports.reduce((sum, r) => sum + (Number(r.moneyRemain) || 0), 0);
 
+  const totalMoneyPaidAll = filteredReports.reduce((sum, r) => sum + (Number(r.moneyPaid) || 0), 0);
+  const totalMoneyRemainAll = filteredReports.reduce((sum, r) => sum + (Number(r.moneyRemain) || 0), 0);
   const goToPage = (pageNumber) => {
     if (pageNumber > 0 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
@@ -346,10 +348,15 @@ const AccessPrint = () => {
         </table>
       </div>
 
-      {/* عرض المجموع أسفل الجدول */}
-      <div className="mt-2 bg-gray-100 p-3 rounded text-right font-semibold text-lg">
-        <span className="ml-6">إجمالي المبلغ المدفوع: {formatNumberWithCommas(totalMoneyPaid)}</span>
-        <span>إجمالي المبلغ المتبقي: {formatNumberWithCommas(totalMoneyRemain)}</span>
+      <div className="mt-2 bg-gray-100 p-3 rounded text-right font-semibold text-lg space-y-2">
+        <div>
+          <span className="ml-6">إجمالي الصفحة الحالية (مدفوع): {formatNumberWithCommas(totalMoneyPaid)}</span>
+          <span>إجمالي الصفحة الحالية (متبقي): {formatNumberWithCommas(totalMoneyRemain)}</span>
+        </div>
+        <div>
+          <span className="ml-6">إجمالي الكل (مدفوع): {formatNumberWithCommas(totalMoneyPaidAll)}</span>
+          <span>إجمالي الكل (متبقي): {formatNumberWithCommas(totalMoneyRemainAll)}</span>
+        </div>
       </div>
 
       {/* الترقيم والانتقال بين الصفحات */}
