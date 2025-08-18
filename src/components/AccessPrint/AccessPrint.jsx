@@ -86,10 +86,11 @@ const AccessPrint = () => {
           (r.name_ar && r.name_ar.toLowerCase().includes(search)) ||
           (r.name_en && r.name_en.toLowerCase().includes(search)) ||
           (r.phoneNumber && r.phoneNumber.toLowerCase().includes(search)) ||
-          (r.admin && r.admin.toLowerCase().includes(search))
-          || (r.idOfcbc && r.idOfcbc.toLowerCase().includes(search))
+          (r.admin && r.admin.toLowerCase().includes(search)) ||
+          (r.idOfcbc && r.idOfcbc.toString().toLowerCase().includes(search))
       );
     }
+    
     setFilteredReports(result);
     setCurrentPage(1);
   }, [startDate, endDate, searchText, reports]);
