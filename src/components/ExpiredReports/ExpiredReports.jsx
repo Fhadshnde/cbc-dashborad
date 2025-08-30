@@ -106,7 +106,7 @@ const ExpiredReports = () => {
           (r.name_ar && r.name_ar.toLowerCase().includes(search)) ||
           (r.phoneNumber && r.phoneNumber.toLowerCase().includes(search)) ||
           (r.admin && r.admin.toLowerCase().includes(search)) ||
-          (r.id !== null && r.id !== undefined && String(r.id).toLowerCase().includes(search))
+          (r.idOfcbc !== null && r.idOfcbc !== undefined && String(r.idOfcbc).toLowerCase().includes(search))
       );
     }
     setFilteredReports(result);
@@ -375,13 +375,13 @@ const ExpiredReports = () => {
             <tr>
               <th className="px-4 py-3">اسم الزبون</th>
               <th className="px-4 py-3">رقم الهاتف</th>
-              <th className="px-4 py-3">تاريخ الإنشاء</th>
+              {/* <th className="px-4 py-3">تاريخ الإنشاء</th> */}
               <th className="px-4 py-3">تاريخ الانتهاء</th>
               <th className="px-4 py-3">المبلغ المدفوع</th>
               <th className="px-4 py-3">المبلغ المتبقي</th>
               <th className="px-4 py-3">الموظفة المسؤولة</th>
               <th className="px-4 py-3">رقم البطاقة</th>
-              <th className="px-4 py-3">تسلسل الوصل</th>
+              {/* <th className="px-4 py-3">تسلسل الوصل</th> */}
               <th className="px-4 py-3">إجراء</th>
             </tr>
           </thead>
@@ -389,17 +389,17 @@ const ExpiredReports = () => {
             {(currentReports || []).length > 0 ? (
               (currentReports || []).map((report) => (
                 <tr key={report._id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-3">{report.name_ar || report.name_en}</td>
+                  <td className="px-4 py-3">{ report.name_en}</td>
                   <td className="px-4 py-3">{report.phoneNumber}</td>
-                  <td className="px-4 py-3">
+                  {/* <td className="px-4 py-3">
                     {formatDate(report.createdAt)}
-                  </td>
+                  </td> */}
                   <td className="px-4 py-3">{report.date || "غير متوفر"}</td>
                   <td className="px-4 py-3">{report.moneyPaid}</td>
                   <td className="px-4 py-3">{report.moneyRemain}</td>
                   <td className="px-4 py-3">{report.admin}</td>
-                  <td className="px-4 py-3">{report.id}</td>
-                  <td className="px-4 py-3">{report.number}</td>
+                  <td className="px-4 py-3">{report.idOfcbc}</td>
+                  {/* <td className="px-4 py-3">{report.number}</td> */}
                   <td className="px-4 py-3">
                     <button
                       onClick={() => openRenewalModal(report)}

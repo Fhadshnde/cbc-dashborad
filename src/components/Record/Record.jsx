@@ -352,11 +352,11 @@ const RenewalArchive = () => {
             {(currentRecords || []).length > 0 ? (
               (currentRecords || []).map((record) => (
                 <tr key={record._id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-3">{record.originalReportId?.name_ar || record.originalReportId?.name_en || "غير متوفر"}</td>
+                  <td className="px-4 py-3">{ record.originalReportId?.name_en || "غير متوفر"}</td>
                   <td className="px-4 py-3">{record.originalReportId?.phoneNumber || "غير متوفر"}</td>
                   <td className="px-4 py-3">{formatDate(record.renewalDate)}</td>
                   <td className="px-4 py-3">{record.renewedByUserId?.username || "غير متوفر"}</td>
-                  <td className="px-4 py-3">{record.originalReportId?.id || "غير متوفر"}</td>
+                  <td className="px-4 py-3">{record.originalReportId?.idOfcbc || "غير متوفر"}</td>
                 </tr>
               ))
             ) : (
