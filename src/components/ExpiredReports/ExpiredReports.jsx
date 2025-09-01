@@ -6,6 +6,7 @@ import moment from "moment";
 const API_URL = "https://hawkama.cbc-api.app/api/reports";
 const EXPIRED_API_URL = `${API_URL}/expired`;
 const RENEW_API_URL = `${API_URL}/renew`;
+const SEARCH_API_URL = `${API_URL}/my-reports/search`;
 const ITEMS_PER_PAGE = 10;
 
 const getAuthHeader = () => {
@@ -94,23 +95,46 @@ const ExpiredReports = () => {
   }, []);
 
   useEffect(() => {
-    handleSearch();
-  }, [searchText, reports]);
+    const timer = setTimeout(() => {
+      if (searchText.trim() === "") {
+        fetchExpiredReports();
+      } else {
+        handleSearch();
+      }
+    }, 500);
 
-  const handleSearch = () => {
-    let result = reports;
-    if (searchText.trim()) {
-      const search = searchText.trim().toLowerCase();
-      result = result.filter(
-        (r) =>
-          (r.name_ar && r.name_ar.toLowerCase().includes(search)) ||
-          (r.phoneNumber && r.phoneNumber.toLowerCase().includes(search)) ||
-          (r.admin && r.admin.toLowerCase().includes(search)) ||
-          (r.idOfcbc !== null && r.idOfcbc !== undefined && String(r.idOfcbc).toLowerCase().includes(search))
-      );
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
+  const handleSearch = async () => {
+    const query = searchText.trim();
+    if (query.length === 0) {
+      fetchExpiredReports();
+      return;
     }
-    setFilteredReports(result);
-    setCurrentPage(1);
+    setLoading(true);
+    try {
+      const response = await axios.get(`${SEARCH_API_URL}?name=${encodeURIComponent(query)}`, {
+        headers: getAuthHeader(),
+      });
+      if (Array.isArray(response.data)) {
+        // filter the data to get only expired reports
+        const expiredResults = response.data.filter(report => {
+          const expirationDate = moment(report.date, 'DD/MM/YYYY');
+          return moment().isAfter(expirationDate, 'day');
+        });
+        setFilteredReports(expiredResults);
+      } else {
+        setError("بيانات غير صالحة من الخادم. التنسيق المتوقع هو مصفوفة.");
+        setFilteredReports([]);
+      }
+    } catch (e) {
+      setError("فشل في البحث عن البيانات.");
+      setFilteredReports([]);
+    } finally {
+      setLoading(false);
+      setCurrentPage(1);
+    }
   };
 
   const totalPages = Math.ceil((filteredReports?.length || 0) / ITEMS_PER_PAGE);
@@ -326,7 +350,6 @@ const ExpiredReports = () => {
           <label htmlFor="search" className="text-sm mb-1">ماذا تبحث عن؟</label>
           <input type="text" id="search" value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder="الاسم أو رقم الهاتف أو اسم الموظفة" className="border px-3 py-2 rounded w-full" />
         </div>
-        <button onClick={handleSearch} className="bg-teal-600 text-white px-6 py-2 rounded hover:bg-teal-700 transition h-[42px] mt-auto">تصفية</button>
         <div className="relative">
           <button
             onClick={() => setShowExportOptions(!showExportOptions)}
@@ -375,13 +398,11 @@ const ExpiredReports = () => {
             <tr>
               <th className="px-4 py-3">اسم الزبون</th>
               <th className="px-4 py-3">رقم الهاتف</th>
-              {/* <th className="px-4 py-3">تاريخ الإنشاء</th> */}
               <th className="px-4 py-3">تاريخ الانتهاء</th>
               <th className="px-4 py-3">المبلغ المدفوع</th>
               <th className="px-4 py-3">المبلغ المتبقي</th>
               <th className="px-4 py-3">الموظفة المسؤولة</th>
               <th className="px-4 py-3">رقم البطاقة</th>
-              {/* <th className="px-4 py-3">تسلسل الوصل</th> */}
               <th className="px-4 py-3">إجراء</th>
             </tr>
           </thead>
@@ -389,17 +410,13 @@ const ExpiredReports = () => {
             {(currentReports || []).length > 0 ? (
               (currentReports || []).map((report) => (
                 <tr key={report._id} className="border-t hover:bg-gray-50">
-                  <td className="px-4 py-3">{ report.name_en}</td>
+                  <td className="px-4 py-3">{ report.name_ar}</td>
                   <td className="px-4 py-3">{report.phoneNumber}</td>
-                  {/* <td className="px-4 py-3">
-                    {formatDate(report.createdAt)}
-                  </td> */}
                   <td className="px-4 py-3">{report.date || "غير متوفر"}</td>
                   <td className="px-4 py-3">{report.moneyPaid}</td>
                   <td className="px-4 py-3">{report.moneyRemain}</td>
                   <td className="px-4 py-3">{report.admin}</td>
                   <td className="px-4 py-3">{report.idOfcbc}</td>
-                  {/* <td className="px-4 py-3">{report.number}</td> */}
                   <td className="px-4 py-3">
                     <button
                       onClick={() => openRenewalModal(report)}

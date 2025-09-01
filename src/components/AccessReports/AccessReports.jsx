@@ -333,6 +333,7 @@ const AccessReports = () => {
                   <th className="px-2 py-2">الاسم بالعربي</th>
                   <th className="px-2 py-2">الاسم بالإنجليزي</th>
                   <th className="px-2 py-2">رقم الهاتف</th>
+                  <th className="px-2 py-2">رقم البطاقة</th>
                   <th className="px-2 py-2">المبلغ الكامل</th>
                   <th className="px-2 py-2">المدفوع</th>
                   <th className="px-2 py-2">المتبقي</th>
@@ -362,6 +363,7 @@ const AccessReports = () => {
                       <td className="px-2 py-2">{report.name_ar}</td>
                       <td className="px-2 py-2">{report.name_en}</td>
                       <td className="px-2 py-2">{report.phoneNumber}</td>
+                      <td className="px-2 py-2">{report.idOfcbc}</td>
                       <td className="px-2 py-2">{formatNumber(report.quantity)}</td>
                       <td className="px-2 py-2">{formatNumber(report.moneyPaid)}</td>
                       <td className="px-2 py-2">{formatNumber(report.moneyRemain)}</td>

@@ -15,6 +15,7 @@ const SALES_ITEMS = [
   // { icon: FaFileInvoiceDollar, href: "/supervisor", text: 'قسم الذاتية' },
   { icon: FaFileInvoiceDollar, href: "/record", text: 'أرشيف الفواتير المجددة' },
   { icon: FaFileInvoiceDollar, href: "/expired-reports", text: 'الفواتير المنتهية' },
+  // { icon: FaFileInvoiceDollar, href: "/archives/access-archive-2", text: 'حسابي' },
   
 
 ];

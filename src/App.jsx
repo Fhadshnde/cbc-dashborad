@@ -54,6 +54,7 @@ import DocumentRequestsPage from "./components/Profile/DocumentRequestsPage";
 import CourseRequestsPage from "./components/Profile/CourseRequestsPage";
 import Record from "./components/Record/Record";
 import ExpiredReports from "./components/ExpiredReports/ExpiredReports";
+import AccessArchive2 from "./components/Archives/AccessArchive2";
 // لا يوجد تغيير في ProtectedLayout
 const ProtectedLayout = ({ setIsAuthenticated }) => {
   return (
@@ -116,6 +117,7 @@ const ProtectedLayout = ({ setIsAuthenticated }) => {
           <Route path="/supervisor/requests/coursess" element={<CourseRequestsPage />} />
 
           <Route path="/archives" element={<Archives />} />
+          <Route path="/archives/access-archive-2" element={<AccessArchive2 />} />
           <Route path="/summary-reports" element={<SummaryReports />} />
           <Route
             path="/reports/admin/:adminUsername"
